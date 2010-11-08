@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?> 
+<!DOCTYPE HTML> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"> 
+ <head> 
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+  <meta name="robots" content="index, all" />
+  <meta name="author" content="Petr Sloup" />
+  <title>WebGL Earth</title>
+  
+  <script src="closure-library/closure/goog/base.js"></script>
+  
+  <script src="we/webgl-debug.js"></script>
+  
+  <script src="we/debug.js"></script>
+  
+  <script src="we/gl/context.js"></script>
+  
+  <script src="we/gl/mesh.js"></script>
+  <script src="we/gl/plane.js"></script>
+  
+  <script src="we/gl/texture.js"></script>
+  <script src="we/gl/shader.js"></script>
+  <script src="we/scene.js"></script>
+  
+  <script src="we/init.js"></script>
+  
+  <script id="shader-fs" type="x-shader/x-fragment"> 
+    #ifdef GL_ES
+    precision highp float;
+    #endif
+    
+    const float PI = 3.1415926535;
+    const float MAX_PHI = 1.4844222297453;
+    varying vec2 vTextureCoord;
+    
+    uniform sampler2D uSampler;
+    
+    void main(void) {
+      float phi = PI*(vTextureCoord.t-0.5); //phi: -PI/2 -> PI/2
+                                            //uhel, pro ktery chci vypocitat barvu
+      if (abs(phi) > MAX_PHI) { //kdyz chci vic, nez mi mercator da, cerno
+        gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+      } else {
+        gl_FragColor = texture2D(uSampler,
+          vec2(vTextureCoord.s, (log(tan(phi/2.0 + PI/4.0))/PI)/2.0 + 0.5)
+      );
+      }
+    }
+  </script>
+   
+  <script id="shader-vs" type="x-shader/x-vertex"> 
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+    
+    uniform mat4 uMVPMatrix;
+    
+    varying vec2 vTextureCoord;
+    
+    void main(void) {
+      gl_Position = uMVPMatrix * vec4(aVertexPosition, 1.0);
+      vTextureCoord = aTextureCoord;
+    }
+  </script>
+ </head> 
+ <body onload="javascript:we.init(document.getElementById('glcanvas'));">
+   <a href="index-compiled.html">Compiled version</a>
+   <div id="fpsbox"></div>
+   <canvas id="glcanvas" width="640" height="480">
+    Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+   </canvas>
+   <div id="log" style="float:right;"></div>
+ </body> 
+</html>
