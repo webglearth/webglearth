@@ -12,9 +12,9 @@ goog.provide('WebGLDebugUtils');
 WebGLDebugUtils = function() {
 
   /**
- * Wrapped logging function.
- * @param {string} msg Message to log.
- */
+   * Wrapped logging function.
+   * @param {string} msg Message to log.
+   */
   var log = function(msg) {
     if (window.console && window.console.log) {
       window.console.log(msg);
@@ -103,17 +103,17 @@ WebGLDebugUtils = function() {
   };
 
   /**
- * Map of numbers to names.
- * @type {Object}
- */
+   * Map of numbers to names.
+   * @type {Object}
+   */
   var glEnums = null;
 
   /**
- * Initializes this module. Safe to call more than once.
- * @param {!WebGLRenderingContext} ctx A WebGL context. If
- *    you have more than one context it doesn't matter which one
- *    you pass in, it is only used to pull out constants.
- */
+   * Initializes this module. Safe to call more than once.
+   * @param {!WebGLRenderingContext} ctx A WebGL context. If
+   *    you have more than one context it doesn't matter which one
+   *    you pass in, it is only used to pull out constants.
+   */
   function init(ctx) {
     if (glEnums == null) {
       glEnums = { };
@@ -126,8 +126,8 @@ WebGLDebugUtils = function() {
   }
 
   /**
- * Checks the utils have been initialized.
- */
+   * Checks the utils have been initialized.
+   */
   function checkInit() {
     if (glEnums == null) {
       throw 'WebGLDebugUtils.init(ctx) not called';
@@ -135,24 +135,24 @@ WebGLDebugUtils = function() {
   }
 
   /**
- * Returns true or false if value matches any WebGL enum
- * @param {*} value Value to check if it might be an enum.
- * @return {boolean} True if value matches one of the WebGL defined enums.
- */
+   * Returns true or false if value matches any WebGL enum
+   * @param {*} value Value to check if it might be an enum.
+   * @return {boolean} True if value matches one of the WebGL defined enums.
+   */
   function mightBeEnum(value) {
     checkInit();
     return (glEnums[value] !== undefined);
   }
 
   /**
- * Gets an string version of an WebGL enum.
- *
- * Example:
- *   var str = WebGLDebugUtil.glEnumToString(ctx.getError());
- *
- * @param {number} value Value to return an enum for.
- * @return {string} The string version of the enum.
- */
+   * Gets an string version of an WebGL enum.
+   *
+   * Example:
+   *   var str = WebGLDebugUtil.glEnumToString(ctx.getError());
+   *
+   * @param {number} value Value to return an enum for.
+   * @return {string} The string version of the enum.
+   */
   function glEnumToString(value) {
     checkInit();
     var name = glEnums[value];
@@ -161,13 +161,13 @@ WebGLDebugUtils = function() {
   }
 
   /**
- * Returns the string version of a WebGL argument.
- * Attempts to convert enum arguments to strings.
- * @param {string} functionName the name of the WebGL function.
- * @param {number} argumentIndex the index of the argument.
- * @param {number} value The value of the argument.
- * @return {string} The value as a string.
- */
+   * Returns the string version of a WebGL argument.
+   * Attempts to convert enum arguments to strings.
+   * @param {string} functionName the name of the WebGL function.
+   * @param {number} argumentIndex the index of the argument.
+   * @param {number} value The value of the argument.
+   * @return {string} The value as a string.
+   */
   function glFunctionArgToString(functionName, argumentIndex, value) {
     var funcInfo = glValidEnumContexts[functionName];
     if (funcInfo !== undefined) {
@@ -179,18 +179,18 @@ WebGLDebugUtils = function() {
   }
 
   /**
- * Given a WebGL context returns a wrapped context that calls
- * gl.getError after every command and calls a function if the
- * result is not gl.NO_ERROR.
- *
- * @param {!WebGLRenderingContext} ctx The webgl context to
- *        wrap.
- * @param {!function(number, string, Arguments): void} opt_onErrorFunc
- *        The function to call when gl.getError returns an
- *        error. If not specified the default function calls
- *        console.log with a message.
- * @return {!WebGLRenderingContext} Wrapper context.
- */
+   * Given a WebGL context returns a wrapped context that calls
+   * gl.getError after every command and calls a function if the
+   * result is not gl.NO_ERROR.
+   *
+   * @param {!WebGLRenderingContext} ctx The webgl context to
+   *        wrap.
+   * @param {!function(number, string, Arguments): void} opt_onErrorFunc
+   *        The function to call when gl.getError returns an
+   *        error. If not specified the default function calls
+   *        console.log with a message.
+   * @return {!WebGLRenderingContext} Wrapper context.
+   */
   function makeDebugContext(ctx, opt_onErrorFunc) {
     init(ctx);
     opt_onErrorFunc = opt_onErrorFunc || function(err, functionName, args) {
@@ -248,73 +248,72 @@ WebGLDebugUtils = function() {
 
   return {
     /**
-   * Initializes this module. Safe to call more than once.
-   * @param {!WebGLRenderingContext} ctx A WebGL context. If
-   *    you have more than one context it doesn't matter which one
-   *    you pass in, it is only used to pull out constants.
-   */
+     * Initializes this module. Safe to call more than once.
+     * @param {!WebGLRenderingContext} ctx A WebGL context. If
+     *    you have more than one context it doesn't matter which one
+     *    you pass in, it is only used to pull out constants.
+     */
     init: init,
 
     /**
-   * Returns true or false if value matches any WebGL enum
-   * @param {*} value Value to check if it might be an enum.
-   * @return {boolean} True if value matches one of the WebGL defined enums.
-   */
+     * Returns true or false if value matches any WebGL enum
+     * @param {*} value Value to check if it might be an enum.
+     * @return {boolean} True if value matches one of the WebGL defined enums.
+     */
     mightBeEnum: mightBeEnum,
 
     /**
-   * Gets an string version of an WebGL enum.
-   *
-   * Example:
-   *   WebGLDebugUtil.init(ctx);
-   *   var str = WebGLDebugUtil.glEnumToString(ctx.getError());
-   *
-   * @param {number} value Value to return an enum for.
-   * @return {string} The string version of the enum.
-   */
+     * Gets an string version of an WebGL enum.
+     *
+     * Example:
+     *   WebGLDebugUtil.init(ctx);
+     *   var str = WebGLDebugUtil.glEnumToString(ctx.getError());
+     *
+     * @param {number} value Value to return an enum for.
+     * @return {string} The string version of the enum.
+     */
     glEnumToString: glEnumToString,
 
     /**
-   * Converts the argument of a WebGL function to a string.
-   * Attempts to convert enum arguments to strings.
-   *
-   * Example:
-   *   WebGLDebugUtil.init(ctx);
-   *   var str =
-   *      WebGLDebugUtil.glFunctionArgToString('bindTexture', 0, gl.TEXTURE_2D);
-   *
-   * would return 'TEXTURE_2D'
-   *
-   * @param {string} functionName the name of the WebGL function.
-   * @param {number} argumentIndx the index of the argument.
-   * @param {*} value The value of the argument.
-   * @return {string} The value as a string.
-   */
+     * Converts the argument of a WebGL function to a string.
+     * Attempts to convert enum arguments to strings.
+     *
+     * Example:
+     *  WebGLDebugUtil.init(ctx);
+     *  var str =
+     *    WebGLDebugUtil.glFunctionArgToString('bindTexture', 0, gl.TEXTURE_2D);
+     *
+     * would return 'TEXTURE_2D'
+     *
+     * @param {string} functionName the name of the WebGL function.
+     * @param {number} argumentIndx the index of the argument.
+     * @param {*} value The value of the argument.
+     * @return {string} The value as a string.
+     */
     glFunctionArgToString: glFunctionArgToString,
 
     /**
-   * Given a WebGL context returns a wrapped context that calls
-   * gl.getError after every command and calls a function if the
-   * result is not NO_ERROR.
-   *
-   * You can supply your own function if you want. For example, if you'd like
-   * an exception thrown on any GL error you could do this
-   *
-   *    function throwOnGLError(err, funcName, args) {
-   *      throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to" +
-   *            funcName;
-   *    };
-   *
-   *    ctx = WebGLDebugUtils.makeDebugContext(
-   *        canvas.getContext("webgl"), throwOnGLError);
-   *
-   * @param {!WebGLRenderingContext} ctx The webgl context to wrap.
-   * @param {!function(err, funcName, args): void} opt_onErrorFunc The function
-   *     to call when gl.getError returns an error. If not specified the default
-   *     function calls console.log with a message.
-   */
+     * Given a WebGL context returns a wrapped context that calls
+     * gl.getError after every command and calls a function if the
+     * result is not NO_ERROR.
+     *
+     * You can supply your own function if you want. For example, if you'd like
+     * an exception thrown on any GL error you could do this
+     *
+     *    function throwOnGLError(err, funcName, args) {
+     *      throw WebGLDebugUtils.glEnumToString(err) +
+     *            " was caused by call to" + funcName;
+     *    };
+     *
+     *    ctx = WebGLDebugUtils.makeDebugContext(
+     *        canvas.getContext("webgl"), throwOnGLError);
+     *
+     * @param {!WebGLRenderingContext} ctx The webgl context to wrap.
+     * @param {!function(err, funcName, args): void} opt_onErrorFunc
+     *         The function to call when gl.getError returns an error. If not
+     *         specified the default function calls console.log with a message.
+     */
     makeDebugContext: makeDebugContext
   };
 
 }();
-

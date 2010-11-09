@@ -20,7 +20,7 @@ goog.require('we.gl.Mesh');
 we.gl.Plane = function(context, width, height) {
   /**
    * WebGL context
-   * @type {!Object}
+   * @type {!WebGLRenderingContext}
    */
   this.gl = context.gl;
 

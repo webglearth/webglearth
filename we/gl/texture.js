@@ -7,12 +7,13 @@
 
 goog.provide('we.gl.Texture');
 
+goog.require('goog.debug.Logger');
 
 /**
  * Asynchronously loads texture from URL
  * @param {!we.gl.Context} context WebGL context.
  * @param {string} url URL of image to load.
- * @return {Object} WebGL texture handler.
+ * @return {!WebGLTexture} WebGL texture handler.
  */
 we.gl.Texture.load = function(context, url) {
   var gl = context.gl;
@@ -48,10 +49,9 @@ we.gl.Texture.load = function(context, url) {
 
 
 if (goog.DEBUG) {
-  goog.require('goog.debug.Logger');
   /**
- * Shared logger instance
- * @type {goog.debug.Logger}
- */
+   * Shared logger instance
+   * @type {goog.debug.Logger}
+   */
   we.gl.Texture.logger = goog.debug.Logger.getLogger('we.gl.Texture');
 }

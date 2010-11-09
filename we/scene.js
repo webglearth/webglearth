@@ -11,6 +11,7 @@ goog.require('goog.debug.Logger');
 goog.require('we.gl.Context');
 goog.require('we.gl.Plane');
 goog.require('we.gl.Shader');
+goog.require('we.gl.Texture');
 
 /**
  * Object handling scene data
@@ -18,6 +19,9 @@ goog.require('we.gl.Shader');
  * @constructor
  */
 we.Scene = function(context) {
+  /**
+   * @type {!we.gl.Context}
+   */
   this.context = context;
   var gl = context.gl;
 
@@ -53,8 +57,6 @@ we.Scene = function(context) {
   we.plane = new we.gl.Plane(context, 5, 2.5);
   we.texture = we.gl.Texture.load(context,
       'http://a.tile.openstreetmap.org/0/0/0.png');
-  //http://a.tile.openstreetmap.org/0/0/0.png merc1024_lines.jpg
-
 };
 
 /**
@@ -91,10 +93,9 @@ we.Scene.prototype.draw = function() {
 };
 
 if (goog.DEBUG) {
-  goog.require('we.gl.Texture');
   /**
- * Shared logger instance
- * @type {goog.debug.Logger}
- */
+   * Shared logger instance
+   * @type {goog.debug.Logger}
+   */
   we.Scene.logger = goog.debug.Logger.getLogger('we.scene');
 }

@@ -15,12 +15,12 @@ we.gl.Mesh = function() {};
 
 /**
  * Buffer containing vertices
- * @type {Object}
+ * @type {WebGLBuffer}
  */
 we.gl.Mesh.vertexBuffer;
 
 /**
  * Buffer containing texture coordinates
- * @type {Object}
+ * @type {WebGLBuffer}
  */
 we.gl.Mesh.texCoordBuffer;

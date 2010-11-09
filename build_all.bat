@@ -3,7 +3,7 @@
 REM   This simple batch file can be used to run Closure Compiler on
 REM   WebGL Earth source files to produce single, optimized .js file.
 
-set PROJECT_ROOT=C:/Users/Petr/Documents/WebGL-Earth
+set PROJECT_ROOT=C:/Users/Petr/Documents/WebGL-Earth/trunk
 set LIB_ROOT=%PROJECT_ROOT%/closure-library/closure
 set LEVEL=ADVANCED_OPTIMIZATIONS
 set WEBGL_EXTERNS=--externs=webgl-externs.js

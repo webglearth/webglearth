@@ -14,6 +14,7 @@ goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('we.Scene');
 goog.require('we.debug');
+goog.require('we.gl.Context');
 
 //Dummy dependencies
 goog.addDependency('',
@@ -64,11 +65,10 @@ we.init = function(canvas) {
 };
 
 if (goog.DEBUG) {
-  goog.require('we.gl.Context');
   /**
- * Shared logger instance
- * @type {goog.debug.Logger}
- */
+   * Shared logger instance
+   * @type {goog.debug.Logger}
+   */
   we.logger = goog.debug.Logger.getLogger('we');
 }
 

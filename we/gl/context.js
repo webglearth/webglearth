@@ -16,6 +16,7 @@ goog.require('goog.dom');
 goog.require('goog.i18n.NumberFormat');
 
 goog.require('goog.math.Matrix');
+goog.require('we.debug');
 
 /**
  * @define {boolean} Defines whether FPS should be calculated and displayed.
@@ -24,7 +25,7 @@ we.CALC_FPS = true;
 
 /**
  * Object wrapping a WebGL context.
- * @param {Element} canvas Canvas element.
+ * @param {!Element} canvas Canvas element.
  * @constructor
  */
 we.gl.Context = function(canvas) {
@@ -64,27 +65,25 @@ we.gl.Context = function(canvas) {
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-  //gl.clear(gl.COLOR_BUFFER_BIT);
+  //gl.enable(gl.BLEND);
+  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   /**
    * WebGL context
-   * @type {!Object}
-  */
+   * @type {!WebGLRenderingContext}
+   */
   this.gl = gl;
 
   /**
    * Viewport width
    * @type {number}
-  */
+   */
   this.viewportWidth = canvas.width;
 
   /**
    * Viewport height
    * @type {number}
-  */
+   */
   this.viewportHeight = canvas.height;
 
   gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
@@ -92,13 +91,13 @@ we.gl.Context = function(canvas) {
   /**
    * 4x4 projection matrix
    * @type {!goog.math.Matrix}
-  */
+   */
   this.projectionMatrix = goog.math.Matrix.createIdentityMatrix(4);
 
   /**
    * 4x4 model-view matrix
    * @type {!goog.math.Matrix}
-  */
+   */
   this.modelViewMatrix = goog.math.Matrix.createIdentityMatrix(4);
 
   if (we.CALC_FPS) {
@@ -195,7 +194,7 @@ we.gl.Context.prototype.translate = function(x, y, z) {
 /**
  * Scene to be rendered
  * @type {we.Scene}
-*/
+ */
 we.gl.Context.prototype.scene = null;
 
 /**
@@ -252,10 +251,9 @@ we.gl.Context.prototype.renderFrame = function() {
   //gl.clearColor(Math.random(), Math.random() * 0.5, Math.random() * 0.5, 1);
 };
 if (goog.DEBUG) {
-  goog.require('we.debug');
   /**
- * Shared logger instance
- * @type {goog.debug.Logger}
- */
+   * Shared logger instance
+   * @type {goog.debug.Logger}
+   */
   we.gl.Context.logger = goog.debug.Logger.getLogger('we.gl.Context');
 }
