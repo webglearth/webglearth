@@ -16,6 +16,8 @@ goog.require('we.gl.Shader');
 goog.require('we.gl.Texture');
 goog.require('we.scene.SegmentedPlane');
 
+goog.require('we.texturing.OSMTileProvider');
+
 /**
  * Object handling scene data
  * @param {!we.gl.Context} context WebGL context.
@@ -28,10 +30,33 @@ we.scene.Scene = function(context) {
   this.context = context;
   var gl = context.gl;
 
+
+  /**
+   * @type {!we.texturing.TileProvider}
+   */
+  this.tileProvider = new we.texturing.OSMTileProvider();
+
+  /**
+   * @type {number}
+   */
   this.zoomLevel = 0;
+
+  /**
+   * @type {number}
+   */
   this.distance = 0;
+
+  /**
+   * @type {number}
+   */
   this.rotation = 0;
+
+  /**
+   * @type {number}
+   */
   this.latitude = 0;
+
+  //alert(this.tileProvider.getTileURL(6, 50, 3));
 
   var zoomSlider = new goog.ui.Slider;
   zoomSlider.setOrientation(goog.ui.Slider.Orientation.HORIZONTAL);
