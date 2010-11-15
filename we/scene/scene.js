@@ -14,7 +14,7 @@ goog.require('we.gl.Context');
 goog.require('we.gl.Plane');
 goog.require('we.gl.Shader');
 goog.require('we.gl.Texture');
-goog.require('we.scene.EarthPlane');
+goog.require('we.scene.SegmentedPlane');
 
 /**
  * Object handling scene data
@@ -147,7 +147,7 @@ we.scene.Scene = function(context) {
 
   we.program = shaderProgram;
 
-  we.plane = new we.scene.EarthPlane(context, 32, 32, 2);
+  we.plane = new we.scene.SegmentedPlane(context, 32, 32, 2);
   //new we.gl.Plane(context, 5, 2.5);
   we.texture = we.gl.Texture.load(context,
       'http://a.tile.openstreetmap.org/0/0/0.png');

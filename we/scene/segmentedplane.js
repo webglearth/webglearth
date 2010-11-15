@@ -1,16 +1,16 @@
 /**
- * @fileoverview Contains functions for creating simple plane.
+ * @fileoverview Contains functions for creating segmented plane.
  *
  * @author slouppetr@gmail.com (Petr Sloup)
  *
  */
 
-goog.provide('we.scene.EarthPlane');
+goog.provide('we.scene.SegmentedPlane');
 
 goog.require('we.gl.Mesh');
 
 /**
- * Object representing a plane.
+ * Object representing a segmented plane.
  * @param {!we.gl.Context} context WebGL context.
  * @param {number} width Width of plane in segments.
  * @param {number} height Height of plane in segments.
@@ -18,7 +18,7 @@ goog.require('we.gl.Mesh');
  * @constructor
  * @implements {we.gl.Mesh}
  */
-we.scene.EarthPlane = function(context, width, height, opt_subdiv) {
+we.scene.SegmentedPlane = function(context, width, height, opt_subdiv) {
   /**
    * WebGL context
    * @type {!WebGLRenderingContext}
@@ -79,5 +79,4 @@ we.scene.EarthPlane = function(context, width, height, opt_subdiv) {
   );
   this.texCoordBuffer.itemSize = 2;
   this.texCoordBuffer.numItems = numItems;
-
 };
