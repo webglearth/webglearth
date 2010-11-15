@@ -7,9 +7,9 @@
 
 /**
  * @constructor
- * @param {!Array.<*>} source Source array
+ * @param {!Array.<*>|number} arg1 Source array or size of new array
  */
-function Float32Array(source) {}
+function Float32Array(arg1) {}
 
 /**
  * @constructor
@@ -135,6 +135,11 @@ WebGLRenderingContext.TEXTURE0 = 0x84C0;
  * @type {number}
  */
 WebGLRenderingContext.ARRAY_BUFFER = 0x8892;
+
+/**
+ * @type {number}
+ */
+WebGLRenderingContext.TRIANGLES = 0x0004;
 
 /**
  * @type {number}
@@ -280,6 +285,12 @@ WebGLRenderingContext.activeTexture = function(what) {};
  * @param {number} what2
  */
 WebGLRenderingContext.uniform1i = function(what, what2) {};
+
+/**
+ * @param {WebGLUniformLocation} what
+ * @param {number} what2
+ */
+WebGLRenderingContext.uniform1f = function(what, what2) {};
 
 /**
  * @param {number} what

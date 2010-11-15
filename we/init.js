@@ -12,9 +12,9 @@ goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 
 goog.require('goog.events');
-goog.require('we.Scene');
 goog.require('we.debug');
 goog.require('we.gl.Context');
+goog.require('we.scene.Scene');
 
 //Dummy dependencies
 goog.addDependency('',
@@ -35,7 +35,7 @@ we.init = function(canvas) {
       we.logger.info('Initializing...');
 
     var context = new we.gl.Context(canvas);
-    context.setPerspective(45, 0.1, 100);
+    context.setPerspective(50, 0.00001, 10);
 
     we.loopTimer = new goog.Timer(15);
     goog.events.listen(
@@ -44,7 +44,7 @@ we.init = function(canvas) {
         function() {context.renderFrame()}
     );
 
-    context.scene = new we.Scene(context);
+    context.scene = new we.scene.Scene(context);
 
     if (goog.DEBUG) {
       we.logger.info('Done');

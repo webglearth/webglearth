@@ -7,6 +7,26 @@
   <meta name="author" content="Petr Sloup" />
   <title>WebGL Earth</title>
   
+  <style>
+    .goog-slider-horizontal {
+      background-color: ThreeDFace;
+      position: relative;
+      overflow: hidden;
+    }
+ 
+    .goog-slider-thumb {
+      position: absolute;
+      background-color: ThreeDShadow;
+      overflow: hidden;
+    }
+ 
+    .goog-slider-horizontal .goog-slider-thumb {
+      left: 0;
+      width: 20px;
+      height: 100%;
+    }
+  </style>
+  
   <script src="closure-library/closure/goog/base.js"></script>
   
   <script src="we/webgl-debug.js"></script>
@@ -20,7 +40,8 @@
   
   <script src="we/gl/texture.js"></script>
   <script src="we/gl/shader.js"></script>
-  <script src="we/scene.js"></script>
+  <script src="we/scene/earthplane.js"></script>
+  <script src="we/scene/scene.js"></script>
   
   <script src="we/init.js"></script>
   
@@ -36,29 +57,60 @@
     uniform sampler2D uSampler;
     
     void main(void) {
-      float phi = PI*(vTextureCoord.t-0.5); //phi: -PI/2 -> PI/2
+      //float phi = PI*(vTextureCoord.t-0.5); //phi: -PI/2 -> PI/2
                                             //uhel, pro ktery chci vypocitat barvu
-      if (abs(phi) > MAX_PHI) { //kdyz chci vic, nez mi mercator da, cerno
+      //gl_FragColor = texture2D(uSampler,
+      //  vec2(vTextureCoord.s, clamp((log(tan(phi/2.0 + PI/4.0))/PI)/2.0 + 0.5,0.0,1.0))
+      //);
+      if (min(vTextureCoord.x,vTextureCoord.y) < 4.0/256.0)
+      {
         gl_FragColor = vec4(0.0,0.0,0.0,1.0);
       } else {
-        gl_FragColor = texture2D(uSampler,
-          vec2(vTextureCoord.s, (log(tan(phi/2.0 + PI/4.0))/PI)/2.0 + 0.5)
-      );
+      //  discard;
+        //gl_FragColor = vec4(0.0,0.0,0.0,0.0); //vec4(vTextureCoord.x,vTextureCoord.y,0.0,1.0);
+      //}
+        gl_FragColor = texture2D(uSampler, vTextureCoord);//vec4(vTextureCoord.x,vTextureCoord.y,vTextureCoord.z,1.0); //vec4(0.0,0.0,0.0,1.0);
       }
     }
   </script>
    
-  <script id="shader-vs" type="x-shader/x-vertex"> 
+  <script id="shader-vs" type="x-shader/x-vertex">
+    const float PI = 3.1415926535;    
+    const float MAX_PHI = 1.4844222297453;
+    
     attribute vec3 aVertexPosition;
     attribute vec2 aTextureCoord;
     
     uniform mat4 uMVPMatrix;
     
+    uniform float uZoomLevel;
+    uniform float uLatitude;
+    
     varying vec2 vTextureCoord;
     
     void main(void) {
-      gl_Position = uMVPMatrix * vec4(aVertexPosition, 1.0);
-      vTextureCoord = aTextureCoord;
+      float n = pow(2.0,floor(uZoomLevel)); //pocet tilu na kouli
+      
+      //float alphan = (n-2.0)/n*PI;
+      float rn=1.0;//1.0/(2.0*sin(alphan/2.0)); //polomer koule
+      
+      //souradnice vrcholu, ktery kreslim
+      float phix = aVertexPosition.x/n*PI*2.0; //(-PI;PI)
+      float phiy = aVertexPosition.y/n*PI*2.0; //(-PI;PI)
+      
+      phiy = 2.0*atan(exp(uLatitude + phiy)) - PI/2.0;
+      
+      vec3 pos = aVertexPosition;
+      //pos.x = pos.x * cos(phiy);
+      pos.x = sin(phix)*rn*cos(phiy);
+      pos.y = sin(phiy)*rn;
+      pos.z = (cos(abs(phix)))*rn*cos(abs(phiy));
+      gl_Position = uMVPMatrix * vec4(pos, 1.0);
+      vTextureCoord = aTextureCoord; //aVertexPosition.x/4.0,aVertexPosition.y/4.0,0.0); //vec2(aTextureCoord.x*aTextureCoord.y,pos.z);//aTextureCoord;
+      //if (max(abs(pos.x),abs(pos.y)) > n/2.0)
+      //  vTextureCoord=vec3(1.0,1.0,aTextureCoord.x); //DEBUG
+      if ((abs(phiy) - MAX_PHI) > 0.01)
+        vTextureCoord=vec2(0.0,0.0); //DEBUG
     }
   </script>
  </head> 

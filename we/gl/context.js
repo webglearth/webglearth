@@ -16,6 +16,7 @@ goog.require('goog.dom');
 goog.require('goog.i18n.NumberFormat');
 
 goog.require('goog.math.Matrix');
+goog.require('goog.math.Vec3');
 goog.require('we.debug');
 
 /**
@@ -192,8 +193,28 @@ we.gl.Context.prototype.translate = function(x, y, z) {
 };
 
 /**
+ * Computes a matrix that performs a counterclockwise rotation of angle degrees
+ * about the vector from the origin through the point (x, y, z).
+ * @param {number} angle Angle to rotate.
+ * @param {number} x X translation.
+ * @param {number} y Y translation.
+ * @param {number} z Z translation.
+ */
+we.gl.Context.prototype.rotate = function(angle, x, y, z) {
+  var vec = (new goog.math.Vec3(x, y, z)).toArray();
+  var c = Math.cos(angle);
+  var s = Math.sin(angle);
+  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
+    [x * x * (1 - c) + c, x * y * (1 - c) - z * s, x * z * (1 - c) + y * s, 0],
+    [y * x * (1 - c) + z * s, y * y * (1 - c) + c, y * z * (1 - c) - x * s, 0],
+    [z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, z * z * (1 - c) + c, 0],
+    [0, 0, 0, 1]
+  ]));
+};
+
+/**
  * Scene to be rendered
- * @type {we.Scene}
+ * @type {we.scene.Scene}
  */
 we.gl.Context.prototype.scene = null;
 
