@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Provides basic debugging features.
  *
@@ -10,6 +11,7 @@ goog.provide('we.debug');
 goog.require('goog.debug.DivConsole');
 goog.require('goog.debug.FancyWindow');
 
+
 /**
  * Initializes and enables debug window.
  */
@@ -18,6 +20,7 @@ we.debug.initDebugWindow = function() {
   debugWindow.setEnabled(true);
   debugWindow.init();
 };
+
 
 /**
  * Initializes and enables console div.

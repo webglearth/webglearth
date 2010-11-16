@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Tile provider for OpenStreetMaps.
  *
@@ -12,6 +13,8 @@ goog.require('goog.string.StringBuffer');
 
 goog.require('we.texturing.TileProvider');
 
+
+
 /**
  * Tile provider for OpenStreetMaps
  * @constructor
@@ -19,10 +22,12 @@ goog.require('we.texturing.TileProvider');
  */
 we.texturing.OSMTileProvider = function() {};
 
+
 /** @inheritDoc */
 we.texturing.OSMTileProvider.prototype.getMaxZoomLevel = function() {
   return 18;
 };
+
 
 /** @inheritDoc */
 we.texturing.OSMTileProvider.prototype.getTileURL = function(zoom, x, y) {

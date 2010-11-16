@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains functions for texture initialization and loading.
  *
@@ -8,6 +9,7 @@
 goog.provide('we.gl.Texture');
 
 goog.require('goog.debug.Logger');
+
 
 /**
  * Asynchronously loads texture from URL

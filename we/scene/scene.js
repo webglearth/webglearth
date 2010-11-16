@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview WebGL Earth scene handling.
  *
@@ -17,6 +18,8 @@ goog.require('we.gl.Texture');
 goog.require('we.scene.SegmentedPlane');
 
 goog.require('we.texturing.OSMTileProvider');
+
+
 
 /**
  * Object handling scene data
@@ -177,6 +180,7 @@ we.scene.Scene = function(context) {
   we.texture = we.gl.Texture.load(context,
       'http://a.tile.openstreetmap.org/0/0/0.png');
 };
+
 
 /**
  * Draw scene

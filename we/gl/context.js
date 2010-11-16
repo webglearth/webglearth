@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains functions for WebGL initialization.
  *
@@ -19,10 +20,13 @@ goog.require('goog.math.Matrix');
 goog.require('goog.math.Vec3');
 goog.require('we.debug');
 
+
 /**
  * @define {boolean} Defines whether FPS should be calculated and displayed.
  */
 we.CALC_FPS = true;
+
+
 
 /**
  * Object wrapping a WebGL context.
@@ -151,6 +155,7 @@ we.gl.Context = function(canvas) {
     we.gl.Context.logger.info('Created');
 };
 
+
 /**
  * Calculates projection matrix to represent desired perspective projection
  * @param {number} fovy Field-of-view in degrees.
@@ -170,12 +175,14 @@ we.gl.Context.prototype.setPerspective = function(fovy, zNear, zFar) {
   ]);
 };
 
+
 /**
  * Loads 4x4 identity matrix as current model-view matrix
  */
 we.gl.Context.prototype.loadIdentity = function() {
   this.modelViewMatrix = goog.math.Matrix.createIdentityMatrix(4);
 };
+
 
 /**
  * Multiplies current model-view matrix to represent translation by (x,y,z)
@@ -191,6 +198,7 @@ we.gl.Context.prototype.translate = function(x, y, z) {
     [0, 0, 0, 1]
   ]));
 };
+
 
 /**
  * Computes a matrix that performs a counterclockwise rotation of angle degrees
@@ -212,11 +220,13 @@ we.gl.Context.prototype.rotate = function(angle, x, y, z) {
   ]));
 };
 
+
 /**
  * Scene to be rendered
  * @type {we.scene.Scene}
  */
 we.gl.Context.prototype.scene = null;
+
 
 /**
  * Returns MatrixView-Projection matrix ready to pass to vertex shader
@@ -227,6 +237,7 @@ we.gl.Context.prototype.getMVPM = function() {
       this.modelViewMatrix
       ).getTranspose().toArray()));
 };
+
 
 /**
  * Render one frame.

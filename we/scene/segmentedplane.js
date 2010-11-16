@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains functions for creating segmented plane.
  *
@@ -8,6 +9,8 @@
 goog.provide('we.scene.SegmentedPlane');
 
 goog.require('we.gl.Mesh');
+
+
 
 /**
  * Object representing a segmented plane.

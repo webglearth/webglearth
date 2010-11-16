@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains functions for creating shaders.
  *
@@ -11,6 +12,7 @@ goog.require('goog.debug.Logger');
 
 goog.require('goog.dom');
 goog.require('we.gl.Context');
+
 
 /**
  * Function compiling a shader
@@ -36,6 +38,7 @@ we.gl.Shader.create = function(context, shaderCode, shaderType) {
 
   return shader;
 };
+
 
 /**
  * Creates shader from Element

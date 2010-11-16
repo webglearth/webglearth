@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains functions for creating simple plane.
  *
@@ -8,6 +9,8 @@
 goog.provide('we.gl.Plane');
 
 goog.require('we.gl.Mesh');
+
+
 
 /**
  * Object representing a plane.

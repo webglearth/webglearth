@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains interface describing object providing tiles.
  *
@@ -7,16 +8,20 @@
 
 goog.provide('we.texturing.TileProvider');
 
+
+
 /**
  * Interface describing object providing tiles
  * @interface
  */
 we.texturing.TileProvider = function() {};
 
+
 /**
  * @return {number} Maximum zoom level of this TileProvider.
  */
 we.texturing.TileProvider.prototype.getMaxZoomLevel = function() {};
+
 
 /**
  * @param {number} zoom Zoom level.

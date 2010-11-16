@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Contains functions for WebGL Earth initialization.
  *
