@@ -16,6 +16,7 @@ goog.require('goog.dom');
 
 goog.require('goog.i18n.NumberFormat');
 
+goog.require('goog.math');
 goog.require('goog.math.Matrix');
 goog.require('goog.math.Vec3');
 goog.require('we.debug');
@@ -74,6 +75,12 @@ we.gl.Context = function(canvas) {
   //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   /**
+   * WebGL canvas
+   * @type {!Element}
+   */
+  this.canvas = canvas;
+
+  /**
    * WebGL context
    * @type {!WebGLRenderingContext}
    */
@@ -92,6 +99,12 @@ we.gl.Context = function(canvas) {
   this.viewportHeight = canvas.height;
 
   gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
+
+  /**
+   * Field-of-view in Y direction in radians
+   * @type {number}
+   */
+  this.fov = 0;
 
   /**
    * 4x4 projection matrix
@@ -163,10 +176,10 @@ we.gl.Context = function(canvas) {
  * @param {number} zFar Z-far plane.
  */
 we.gl.Context.prototype.setPerspective = function(fovy, zNear, zFar) {
-  var fovy_ = (Math.PI * fovy) / 180;
+  this.fov = goog.math.toRadians(fovy);
   var aspect = this.viewportWidth / this.viewportHeight;
 
-  var f = 1 / Math.tan(fovy_ / 2);
+  var f = 1 / Math.tan(this.fov / 2);
   this.projectionMatrix = new goog.math.Matrix([
     [f / aspect, 0, 0, 0],
     [0, f, 0, 0],
@@ -201,9 +214,9 @@ we.gl.Context.prototype.translate = function(x, y, z) {
 
 
 /**
- * Computes a matrix that performs a counterclockwise rotation of angle degrees
+ * Computes a matrix that performs a counterclockwise rotation of given angle
  * about the vector from the origin through the point (x, y, z).
- * @param {number} angle Angle to rotate.
+ * @param {number} angle Angle to rotate in radians.
  * @param {number} x X translation.
  * @param {number} y Y translation.
  * @param {number} z Z translation.

@@ -9,6 +9,9 @@
 goog.provide('we.scene.Scene');
 
 goog.require('goog.debug.Logger');
+goog.require('goog.events');
+goog.require('goog.events.MouseWheelHandler');
+goog.require('goog.math');
 goog.require('goog.ui.Slider');
 
 goog.require('we.gl.Context');
@@ -65,18 +68,6 @@ we.scene.Scene = function(context) {
    */
   this.longitude = 0;
 
-  //alert(this.tileProvider.getTileURL(6, 50, 3));
-
-  var distanceSlider = new goog.ui.Slider;
-  distanceSlider.createDom();
-  var distanceSliderEl = distanceSlider.getElement();
-  distanceSliderEl.style.width = '640px';
-  distanceSliderEl.style.height = '10px';
-  distanceSlider.render(document.body);
-  distanceSlider.setStep(null);
-  distanceSlider.setMinimum(-8);
-  distanceSlider.setMaximum(0);
-
   var zoomSlider = new goog.ui.Slider;
   zoomSlider.createDom();
   var zoomSliderEl = zoomSlider.getElement();
@@ -88,12 +79,7 @@ we.scene.Scene = function(context) {
   zoomSlider.setMaximum(20.99);
   var updateSceneZoomLevel = function(scene) {
     return (function() {
-      scene.zoomLevel = Math.min(Math.floor(zoomSlider.getValue()),
-          scene.tileProvider.getMaxZoomLevel());
-      scene.tileCount = Math.pow(2, scene.zoomLevel);
-      document.getElementById('fpsbox').innerHTML = scene.zoomLevel;
-      scene.distance = -1 / Math.pow(2, zoomSlider.getValue() - 4.6);
-      distanceSlider.setValue(scene.distance);
+      scene.setZoom(zoomSlider.getValue());
     });
   };
   zoomSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
@@ -176,9 +162,65 @@ we.scene.Scene = function(context) {
 
   we.program = shaderProgram;
 
-  we.plane = new we.scene.SegmentedPlane(context, 32, 32, 2);
+  we.plane = new we.scene.SegmentedPlane(context, 12, 12, 3);
   we.texture = we.gl.Texture.load(context,
       'http://a.tile.openstreetmap.org/0/0/0.png');
+
+  var mouseWheelHandler = function(scene) {
+    return (function(e) {
+      scene.zoomLevel -= e.deltaY / 12;
+      scene.zoomLevel = Math.max(zoomSlider.getMinimum(),
+          Math.min(zoomSlider.getMaximum(), scene.zoomLevel));
+      //scene.setZoom(scene.zoomLevel);
+      zoomSlider.setValue(scene.zoomLevel);
+      e.preventDefault();
+    });
+  }
+  var mwh = new goog.events.MouseWheelHandler(this.context.canvas);
+  goog.events.listen(mwh, goog.events.MouseWheelHandler.EventType.MOUSEWHEEL,
+      mouseWheelHandler(this));
+};
+
+
+/**
+ * Sets zoom level and calculates other appropriate cached variables
+ * Note: This does not update zoomSlider!
+ * @param {number} zoom New zoom level.
+ */
+we.scene.Scene.prototype.setZoom = function(zoom) {
+  this.zoomLevel = zoom;
+  this.tileCount = Math.pow(2, Math.min(Math.floor(this.zoomLevel),
+      this.tileProvider.getMaxZoomLevel()));
+  //document.getElementById('fpsbox').innerHTML = this.zoomLevel;
+  this.distance = Math.pow(2, zoom);
+};
+
+
+/**
+ * Project latitude from Unprojected to Mercator
+ * @param {number} latitude Unprojected latitude.
+ * @return {number} Latitude projected to Mercator.
+ */
+we.scene.Scene.prototype.projectLatitude = function(latitude) {
+  return Math.log(Math.tan(latitude / 2.0 + Math.PI / 4.0));
+};
+
+
+/**
+ * Calculates proper distance from the sphere according to current perspective
+ * settings so, that requested number of tiles can fit vertically on the canvas.
+ * @param {number} tiles Requested amount of tiles.
+ * @return {number} Calculated distance.
+ */
+we.scene.Scene.prototype.calcDistanceSoThatISeeXTilesOfTextureVertical =
+    function(tiles) {
+  var o = Math.cos(Math.abs(this.latitude)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, this.zoomLevel);
+  var sizeIWannaSee = thisPosDeformation * tiles;
+  //document.getElementById('fpsbox').innerHTML =
+  //    "thisPosDeformation: " + thisPosDeformation;
+  return Math.min(3,
+      (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2));
 };
 
 
@@ -188,8 +230,12 @@ we.scene.Scene = function(context) {
 we.scene.Scene.prototype.draw = function() {
   var gl = this.context.gl;
 
-  this.context.translate(0, 0, -1 + this.distance
-      /*/(Math.sin(Math.abs(this.latitude))+1.0)*/);
+  document.getElementById('coordbox').innerHTML =
+      goog.math.toDegrees(this.longitude) + '; ' +
+      goog.math.toDegrees(this.latitude) + ' @ ' + this.zoomLevel;
+
+  var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
+  this.context.translate(0, 0, -1 - d);
   this.context.rotate(this.latitude, 1, 0, 0);
   this.context.rotate(
       -(this.longitude / (Math.PI) * this.tileCount % 1.0) / this.tileCount *
@@ -214,11 +260,12 @@ we.scene.Scene.prototype.draw = function() {
       gl.FLOAT, false, 0, 0);
 
   gl.uniformMatrix4fv(we.program.mvpMatrixUniform, false, mvpm);
-  gl.uniform1f(we.program.zoomLevelUniform, this.zoomLevel);
+  gl.uniform1f(we.program.zoomLevelUniform,
+      Math.min(Math.floor(this.zoomLevel)),
+      this.tileProvider.getMaxZoomLevel());
   gl.uniform1f(we.program.tileCountUniform, this.tileCount);
-  var yOffset = Math.floor(Math.log(
-      Math.tan(this.latitude / 2.0 + Math.PI / 4.0)
-      ) / (Math.PI * 2) * this.tileCount);
+  var yOffset = Math.floor(this.projectLatitude(this.latitude) /
+      (Math.PI * 2) * this.tileCount);
   gl.uniform1f(we.program.yOffsetUniform, yOffset);
   gl.uniform1f(we.program.xOffsetUniform,
       Math.floor(this.longitude / (Math.PI) * this.tileCount));

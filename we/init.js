@@ -36,7 +36,7 @@ we.init = function(canvas) {
       we.logger.info('Initializing...');
 
     var context = new we.gl.Context(canvas);
-    context.setPerspective(50, 0.00001, 10);
+    context.setPerspective(50, 0.000001, 5);
 
     we.loopTimer = new goog.Timer(15);
     goog.events.listen(

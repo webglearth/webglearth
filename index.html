@@ -112,6 +112,9 @@
       // (is more numerically stable)
       phiy = atan((exp(phiy) - exp(-phiy))/2.0);
       
+      //if (abs(phiy) > MAX_PHI)
+      //  phiy = sign(phiy)*PIhalf;
+        
       if (max(abs(phix),abs(phiy)) > PI) return;
       
       vec3 pos;// = aVertexPosition;
@@ -136,8 +139,8 @@
  </head> 
  <body onload="javascript:we.init(document.getElementById('glcanvas'));">
    <a href="index-compiled.html">Compiled version</a>
-   <div id="fpsbox"></div>
-   <canvas id="glcanvas" width="640" height="480">
+   <div id="fpsbox"></div><div id="coordbox"></div>
+   <canvas id="glcanvas" width="800" height="480">
     Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
    </canvas>
    <div id="log" style="float:right;"></div>
