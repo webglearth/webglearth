@@ -18,7 +18,7 @@ goog.require('we.texturing.TileProvider');
 /**
  * Tile provider for OpenStreetMaps
  * @constructor
- * @implements {we.texturing.TileProvider}
+ * @extends {we.texturing.TileProvider}
  */
 we.texturing.OSMTileProvider = function() {};
 

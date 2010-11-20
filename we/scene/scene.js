@@ -21,6 +21,7 @@ goog.require('we.gl.Texture');
 goog.require('we.scene.SegmentedPlane');
 
 goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.TileProvider');
 
 
 
