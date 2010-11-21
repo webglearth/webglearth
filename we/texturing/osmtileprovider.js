@@ -19,13 +19,23 @@ goog.require('we.texturing.TileProvider');
  * Tile provider for OpenStreetMaps
  * @constructor
  * @extends {we.texturing.TileProvider}
+ * @inheritDoc
  */
-we.texturing.OSMTileProvider = function() {};
+we.texturing.OSMTileProvider = function() {
+  goog.base(this);
+};
+goog.inherits(we.texturing.OSMTileProvider, we.texturing.TileProvider);
 
 
 /** @inheritDoc */
 we.texturing.OSMTileProvider.prototype.getMaxZoomLevel = function() {
   return 18;
+};
+
+
+/** @inheritDoc */
+we.texturing.OSMTileProvider.prototype.getTileSize = function() {
+  return 256;
 };
 
 

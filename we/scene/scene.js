@@ -8,10 +8,12 @@
 
 goog.provide('we.scene.Scene');
 
+goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('goog.events.MouseWheelHandler');
 goog.require('goog.math');
+goog.require('goog.math.Coordinate');
 goog.require('goog.ui.Slider');
 
 goog.require('we.gl.Context');
@@ -19,8 +21,10 @@ goog.require('we.gl.Plane');
 goog.require('we.gl.Shader');
 goog.require('we.gl.Texture');
 goog.require('we.scene.SegmentedPlane');
+goog.require('we.scene.TileBuffer');
 
 goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
 
 
@@ -39,9 +43,21 @@ we.scene.Scene = function(context) {
 
 
   /**
-   * @type {!we.texturing.TileProvider}
+   * @type {!we.scene.TileBuffer}
    */
-  this.tileProvider = new we.texturing.OSMTileProvider();
+  this.tileBuffer = new we.scene.TileBuffer(
+      new we.texturing.OSMTileProvider(), context, 8, 8);
+
+  this.updateTilesTimer = new goog.Timer(300);
+  goog.events.listen(
+      this.updateTilesTimer,
+      goog.Timer.TICK,
+      function(scene) {
+        return (function() {scene.updateTiles();});
+      }(this)
+  );
+
+  this.updateTilesTimer.start();
 
   /**
    * @type {number}
@@ -76,15 +92,14 @@ we.scene.Scene = function(context) {
   zoomSliderEl.style.height = '20px';
   zoomSlider.render(document.body);
   zoomSlider.setStep(null);
-  zoomSlider.setMinimum(2);
+  zoomSlider.setMinimum(0);
   zoomSlider.setMaximum(20.99);
-  var updateSceneZoomLevel = function(scene) {
-    return (function() {
-      scene.setZoom(zoomSlider.getValue());
-    });
-  };
   zoomSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
-      updateSceneZoomLevel(this));
+      function(scene) {
+        return (function() {
+          scene.setZoom(zoomSlider.getValue());
+        });
+      }(this));
   zoomSlider.setValue(4);
 
   var latitudeSlider = new goog.ui.Slider;
@@ -96,14 +111,13 @@ we.scene.Scene = function(context) {
   latitudeSlider.setStep(null);
   latitudeSlider.setMinimum(-Math.PI / 2);
   latitudeSlider.setMaximum(Math.PI / 2);
-  var updateSceneLatitude = function(scene) {
-    return (function() {
-      scene.latitude = latitudeSlider.getValue();
-      //document.getElementById('fpsbox').innerHTML = scene.latitude;
-    });
-  };
   latitudeSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
-      updateSceneLatitude(this));
+      function(scene) {
+        return (function() {
+          scene.latitude = latitudeSlider.getValue();
+          //document.getElementById('fpsbox').innerHTML = scene.latitude;
+        });
+      }(this));
   latitudeSlider.setValue(0);
 
   var longitudeSlider = new goog.ui.Slider;
@@ -115,14 +129,13 @@ we.scene.Scene = function(context) {
   longitudeSlider.setStep(null);
   longitudeSlider.setMinimum(-Math.PI / 2);
   longitudeSlider.setMaximum(Math.PI / 2);
-  var updateSceneLongitude = function(scene) {
-    return (function() {
-      scene.longitude = longitudeSlider.getValue();
-      //document.getElementById('fpsbox').innerHTML = scene.longitude;
-    });
-  };
   longitudeSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
-      updateSceneLongitude(this));
+      function(scene) {
+        return (function() {
+          scene.longitude = longitudeSlider.getValue();
+          //document.getElementById('fpsbox').innerHTML = scene.longitude;
+        });
+      }(this));
   longitudeSlider.setValue(0);
 
   var fsshader = we.gl.Shader.createFromElement(context, 'shader-fs');
@@ -132,6 +145,8 @@ we.scene.Scene = function(context) {
   gl.attachShader(shaderProgram, vsshader);
   gl.attachShader(shaderProgram, fsshader);
   gl.linkProgram(shaderProgram);
+
+  // alert('b');
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
     throw Error('Could not initialise shaders');
@@ -149,8 +164,12 @@ we.scene.Scene = function(context) {
 
   shaderProgram.mvpMatrixUniform =
       gl.getUniformLocation(shaderProgram, 'uMVPMatrix');
-  shaderProgram.samplerUniform =
-      gl.getUniformLocation(shaderProgram, 'uSampler');
+  shaderProgram.tileBufferUniform =
+      gl.getUniformLocation(shaderProgram, 'uTileBuffer');
+  shaderProgram.metaBufferUniform =
+      gl.getUniformLocation(shaderProgram, 'uMetaBuffer');
+  shaderProgram.metaBufferSizeUniform =
+      gl.getUniformLocation(shaderProgram, 'uMetaBufferSize');
 
   shaderProgram.zoomLevelUniform =
       gl.getUniformLocation(shaderProgram, 'uZoomLevel');
@@ -190,10 +209,50 @@ we.scene.Scene = function(context) {
  */
 we.scene.Scene.prototype.setZoom = function(zoom) {
   this.zoomLevel = zoom;
-  this.tileCount = Math.pow(2, Math.min(Math.floor(this.zoomLevel),
-      this.tileProvider.getMaxZoomLevel()));
+  this.tileCount = Math.pow(2, Math.min(Math.floor(this.zoomLevel), 32));
+  //TODO:    this.tileProvider.getMaxZoomLevel()));
   //document.getElementById('fpsbox').innerHTML = this.zoomLevel;
   this.distance = Math.pow(2, zoom);
+};
+
+
+/**
+ * Calculates which tiles are needed and tries to buffer them
+ */
+we.scene.Scene.prototype.updateTiles = function() {
+
+  var yOffset = Math.floor(this.projectLatitude(this.latitude) /
+      (Math.PI * 2) * this.tileCount);
+  var xOffset =
+      Math.floor(this.longitude / (Math.PI) * this.tileCount);
+
+  var position = new goog.math.Coordinate(xOffset + this.tileCount / 2,
+      (this.tileCount - 1) - (yOffset + this.tileCount / 2));
+
+  var flooredZoom = Math.floor(this.zoomLevel);
+  this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y);
+  this.tileBuffer.tileNeeded(flooredZoom, position.x - 1, position.y);
+  this.tileBuffer.tileNeeded(flooredZoom, position.x + 1, position.y);
+  this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y - 1);
+  this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y + 1);
+  /*this.tileBuffer.tileNeeded(0, 0, 0);
+  this.tileBuffer.tileNeeded(1, 1, 1);
+  this.tileBuffer.tileNeeded(2, 0, 0);
+  this.tileBuffer.tileNeeded(2, 1, 2);
+  this.tileBuffer.tileNeeded(2, 3, 2);
+  this.tileBuffer.tileNeeded(3, 3, 2);
+  this.tileBuffer.tileNeeded(8, 3, 2);
+  this.tileBuffer.tileNeeded(9, 3, 2);
+  this.tileBuffer.tileNeeded(13, 3, 2);*/
+  /*for (var x = 1; x < 2; ++x) {
+    this.tileBuffer.tileNeeded(flooredZoom, position.x - x, position.y);
+    for (var y = 1; y < 2; ++y) {
+      this.tileBuffer.tileNeeded(flooredZoom, position.x - x, position.y - y);
+      this.tileBuffer.tileNeeded(flooredZoom, position.x + x, position.y - y);
+      this.tileBuffer.tileNeeded(flooredZoom, position.x - x, position.y + y);
+      this.tileBuffer.tileNeeded(flooredZoom, position.x + x, position.y + y);
+    }
+  }*/
 };
 
 
@@ -238,17 +297,22 @@ we.scene.Scene.prototype.draw = function() {
   var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
   this.context.translate(0, 0, -1 - d);
   this.context.rotate(this.latitude, 1, 0, 0);
-  this.context.rotate(
-      -(this.longitude / (Math.PI) * this.tileCount % 1.0) / this.tileCount *
-      (2 * Math.PI), 0, 1, 0);
-
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, we.texture);
-  gl.uniform1i(we.program.samplerUniform, 0);
-
-  var mvpm = this.context.getMVPM();
+  this.context.rotate(-(goog.math.modulo(this.longitude / (Math.PI) *
+      this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI), 0, 1, 0);
 
   gl.useProgram(we.program);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.bufferTexture);
+  gl.uniform1i(we.program.tileBufferUniform, 0);
+
+  //gl.activeTexture(gl.TEXTURE1);
+  //gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.metaBufferTexture);
+  //gl.uniform1i(we.program.metaBufferUniform, 1);
+
+  gl.uniform3fv(we.program.metaBufferUniform, this.tileBuffer.metaBuffer);
+
+  var mvpm = this.context.getMVPM();
 
   gl.bindBuffer(gl.ARRAY_BUFFER, we.plane.vertexBuffer);
   gl.vertexAttribPointer(we.program.vertexPositionAttribute,
@@ -260,10 +324,12 @@ we.scene.Scene.prototype.draw = function() {
       we.plane.texCoordBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
+  gl.uniform2fv(we.program.metaBufferSizeUniform, [8, 8]);
+
   gl.uniformMatrix4fv(we.program.mvpMatrixUniform, false, mvpm);
   gl.uniform1f(we.program.zoomLevelUniform,
-      Math.min(Math.floor(this.zoomLevel)),
-      this.tileProvider.getMaxZoomLevel());
+      Math.min(Math.floor(this.zoomLevel),
+      32));//TODO: this.tileProvider.getMaxZoomLevel());
   gl.uniform1f(we.program.tileCountUniform, this.tileCount);
   var yOffset = Math.floor(this.projectLatitude(this.latitude) /
       (Math.PI * 2) * this.tileCount);

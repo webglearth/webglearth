@@ -150,6 +150,12 @@ WebGLRenderingContext.TEXTURE_MIN_FILTER = 0x2801;
 /**
  * @type {number}
  */
+WebGLRenderingContext.NEAREST = 0x2600;
+
+
+/**
+ * @type {number}
+ */
 WebGLRenderingContext.LINEAR = 0x2601;
 
 
@@ -356,6 +362,20 @@ WebGLRenderingContext.uniform1f = function(what, what2) {};
 
 
 /**
+ * @param {WebGLUniformLocation} what
+ * @param {Float32Array} what2
+ */
+WebGLRenderingContext.uniform2fv = function(what, what2) {};
+
+
+/**
+ * @param {WebGLUniformLocation} what
+ * @param {Float32Array} what2
+ */
+WebGLRenderingContext.uniform3fv = function(what, what2) {};
+
+
+/**
  * @param {number} what
  * @param {WebGLBuffer} buff
  */
@@ -455,6 +475,19 @@ WebGLRenderingContext.pixelStorei = function(what, what2) {};
  */
 WebGLRenderingContext.texImage2D = function(what, what2, what3,
                                             what4, what5, what6) {};
+
+
+/**
+ * @param {number} what
+ * @param {number} what2
+ * @param {number} what3
+ * @param {number} what4
+ * @param {number} what5
+ * @param {number} what6
+ * @param {Image} what7
+ */
+WebGLRenderingContext.texSubImage2D = function(what, what2, what3, what4,
+                                               what5, what6, what7) {};
 
 
 /**
