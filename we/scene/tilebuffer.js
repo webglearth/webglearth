@@ -38,7 +38,6 @@ we.scene.TileBuffer = function(tileprovider, context, width, height) {
   var gl = this.gl_;
 
   this.bufferTexture = gl.createTexture();
-  this.metaBuffer = new Float32Array(width * height * 3);
 
   this.bufferWidth_ = width;
   this.bufferHeight_ = height;
@@ -66,9 +65,11 @@ we.scene.TileBuffer = function(tileprovider, context, width, height) {
 
 
 
+  this.metaBuffer = [];
   this.slotList_ = [];
   for (var x = 0; x < width; ++x) {
-    for (var y = 0; y < width; ++y) {
+    for (var y = 0; y < height; ++y) {
+      this.metaBuffer.push([-1, 0, 0, y * this.bufferWidth_ + x]);
       this.slotList_.push(new we.scene.TileBuffer.Slot(x, y));
     }
   }
@@ -89,7 +90,7 @@ we.scene.TileBuffer.prototype.bufferTexture = null;
 
 
 /**
- * @type {Float32Array}
+ * @type {Array.<Array.<number>>}
  */
 we.scene.TileBuffer.prototype.metaBuffer = null;
 
@@ -193,11 +194,16 @@ we.scene.TileBuffer.prototype.bufferTile = function(tile) {
       gl.UNSIGNED_BYTE, tile.image);
 
 
-  var slotId = (slot.y * this.bufferWidth_ + slot.x) * 3;
+  var slotId = slot.y * this.bufferWidth_ + slot.x;
 
-  this.metaBuffer[slotId] = tile.x;
-  this.metaBuffer[slotId + 1] = tile.y;
-  this.metaBuffer[slotId + 2] = tile.zoom;
+  var metaSlot = goog.array.find(this.metaBuffer,
+      function(slot, index, array) {
+        return slot[3] == slotId;
+      });
+
+  metaSlot[0] = tile.zoom;
+  metaSlot[1] = tile.x;
+  metaSlot[2] = tile.y;
 
   slot.tile = tile;
   slot.lastUse = goog.now();

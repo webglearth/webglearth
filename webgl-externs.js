@@ -376,6 +376,13 @@ WebGLRenderingContext.uniform3fv = function(what, what2) {};
 
 
 /**
+ * @param {WebGLUniformLocation} what
+ * @param {Float32Array} what2
+ */
+WebGLRenderingContext.uniform4fv = function(what, what2) {};
+
+
+/**
  * @param {number} what
  * @param {WebGLBuffer} buff
  */

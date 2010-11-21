@@ -9,6 +9,7 @@
 goog.provide('we.texturing.TileCache');
 
 goog.require('goog.debug.Logger');
+goog.require('goog.structs');
 goog.require('goog.structs.Map');
 
 goog.require('we.texturing.Tile');
@@ -84,8 +85,11 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y) {
  */
 we.texturing.TileCache.prototype.cacheTile = function(tile) {
   //TODO: something smarter !!
-  if (this.tileMap_.getCount() > 32)
+  if (this.tileMap_.getCount() > 32) {
+    goog.structs.forEach(this.tileMap_,
+        function(value, key, col) {goog.dispose(value);});
     this.tileMap_.clear();
+  }
   this.tileMap_.set(tile.getKey(), tile);
   //this.delayedLoadHandler(tile);
 };

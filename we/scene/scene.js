@@ -48,7 +48,7 @@ we.scene.Scene = function(context) {
   this.tileBuffer = new we.scene.TileBuffer(
       new we.texturing.OSMTileProvider(), context, 8, 8);
 
-  this.updateTilesTimer = new goog.Timer(300);
+  this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(
       this.updateTilesTimer,
       goog.Timer.TICK,
@@ -166,10 +166,10 @@ we.scene.Scene = function(context) {
       gl.getUniformLocation(shaderProgram, 'uMVPMatrix');
   shaderProgram.tileBufferUniform =
       gl.getUniformLocation(shaderProgram, 'uTileBuffer');
+  shaderProgram.tileBufferSizeUniform =
+      gl.getUniformLocation(shaderProgram, 'uTileBufferSize');
   shaderProgram.metaBufferUniform =
       gl.getUniformLocation(shaderProgram, 'uMetaBuffer');
-  shaderProgram.metaBufferSizeUniform =
-      gl.getUniformLocation(shaderProgram, 'uMetaBufferSize');
 
   shaderProgram.zoomLevelUniform =
       gl.getUniformLocation(shaderProgram, 'uZoomLevel');
@@ -182,7 +182,7 @@ we.scene.Scene = function(context) {
 
   we.program = shaderProgram;
 
-  we.plane = new we.scene.SegmentedPlane(context, 12, 12, 3);
+  we.plane = new we.scene.SegmentedPlane(context, 8, 8, 2);
   we.texture = we.gl.Texture.load(context,
       'http://a.tile.openstreetmap.org/0/0/0.png');
 
@@ -230,11 +230,35 @@ we.scene.Scene.prototype.updateTiles = function() {
       (this.tileCount - 1) - (yOffset + this.tileCount / 2));
 
   var flooredZoom = Math.floor(this.zoomLevel);
+
+  if (flooredZoom < 6)
+    this.tileBuffer.tileNeeded(0, 0, 0);
+
+  this.tileBuffer.tileNeeded(flooredZoom - 2,
+      Math.floor(position.x / 4), Math.floor(position.y / 4));
+  this.tileBuffer.tileNeeded(flooredZoom - 1,
+      Math.floor(position.x / 2), Math.floor(position.y / 2));
   this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y);
-  this.tileBuffer.tileNeeded(flooredZoom, position.x - 1, position.y);
-  this.tileBuffer.tileNeeded(flooredZoom, position.x + 1, position.y);
-  this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y - 1);
-  this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y + 1);
+  this.tileBuffer.tileNeeded(flooredZoom,
+      goog.math.modulo(position.x - 1, this.tileCount), position.y);
+  this.tileBuffer.tileNeeded(flooredZoom,
+      goog.math.modulo(position.x + 1, this.tileCount), position.y);
+  this.tileBuffer.tileNeeded(flooredZoom,
+      position.x, goog.math.modulo(position.y - 1, this.tileCount));
+  this.tileBuffer.tileNeeded(flooredZoom,
+      position.x, goog.math.modulo(position.y + 1, this.tileCount));
+  this.tileBuffer.tileNeeded(flooredZoom,
+      goog.math.modulo(position.x - 1, this.tileCount),
+      goog.math.modulo(position.y - 1, this.tileCount));
+  this.tileBuffer.tileNeeded(flooredZoom,
+      goog.math.modulo(position.x - 1, this.tileCount),
+      goog.math.modulo(position.y + 1, this.tileCount));
+  this.tileBuffer.tileNeeded(flooredZoom,
+      goog.math.modulo(position.x + 1, this.tileCount),
+      goog.math.modulo(position.y - 1, this.tileCount));
+  this.tileBuffer.tileNeeded(flooredZoom,
+      goog.math.modulo(position.x + 1, this.tileCount),
+      goog.math.modulo(position.y + 1, this.tileCount));
   /*this.tileBuffer.tileNeeded(0, 0, 0);
   this.tileBuffer.tileNeeded(1, 1, 1);
   this.tileBuffer.tileNeeded(2, 0, 0);
@@ -310,7 +334,21 @@ we.scene.Scene.prototype.draw = function() {
   //gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.metaBufferTexture);
   //gl.uniform1i(we.program.metaBufferUniform, 1);
 
-  gl.uniform3fv(we.program.metaBufferUniform, this.tileBuffer.metaBuffer);
+  var metaBuffer = goog.array.clone(this.tileBuffer.metaBuffer);
+
+  var metaSlotComparer = function(metaSlot1, metaSlot2) {
+    return metaSlot1[0] == metaSlot2[0] ?
+        (metaSlot1[1] == metaSlot2[1] ?
+        (metaSlot1[2] - metaSlot2[2]) : metaSlot1[1] - metaSlot2[1]
+        ) : metaSlot1[0] - metaSlot2[0];
+  };
+
+  goog.array.sort(metaBuffer, metaSlotComparer);
+
+
+  var flat = goog.array.flatten(metaBuffer);
+
+  gl.uniform4fv(we.program.metaBufferUniform, new Float32Array(flat));
 
   var mvpm = this.context.getMVPM();
 
@@ -324,7 +362,7 @@ we.scene.Scene.prototype.draw = function() {
       we.plane.texCoordBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
-  gl.uniform2fv(we.program.metaBufferSizeUniform, [8, 8]);
+  gl.uniform2fv(we.program.tileBufferSizeUniform, [8, 8]);
 
   gl.uniformMatrix4fv(we.program.mvpMatrixUniform, false, mvpm);
   gl.uniform1f(we.program.zoomLevelUniform,

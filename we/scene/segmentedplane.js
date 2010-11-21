@@ -39,8 +39,8 @@ we.scene.SegmentedPlane = function(context, width, height, opt_subdiv) {
   this.texCoordBuffer = this.gl.createBuffer();
 
   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
-  var numItems = width * height * 6 * 3;
-  var vertices = new Float32Array(numItems * 3);
+  var numItems = width * height * 6 * 2;
+  var vertices = new Float32Array(numItems * 2);
   var coords = new Float32Array(numItems * 2);
 
   for (var y = 0; y < height; ++y)
@@ -49,9 +49,8 @@ we.scene.SegmentedPlane = function(context, width, height, opt_subdiv) {
     {
       var addVertex = function(i_, x_, y_) {
         var baseIndex = ((x * width + y) * 6 + i_);
-        vertices[baseIndex * 3 + 0] = (x - width / 2 + x_) / opt_subdiv;
-        vertices[baseIndex * 3 + 1] = (y - height / 2 + y_) / opt_subdiv;
-        vertices[baseIndex * 3 + 2] = 0;
+        vertices[baseIndex * 2 + 0] = (x - width / 2 + x_) / opt_subdiv;
+        vertices[baseIndex * 2 + 1] = (y - height / 2 + y_) / opt_subdiv;
 
         coords[baseIndex * 2 + 0] =
             (x % opt_subdiv) / opt_subdiv + x_ / opt_subdiv;
@@ -71,7 +70,7 @@ we.scene.SegmentedPlane = function(context, width, height, opt_subdiv) {
       vertices,
       this.gl.STATIC_DRAW
   );
-  this.vertexBuffer.itemSize = 3;
+  this.vertexBuffer.itemSize = 2;
   this.vertexBuffer.numItems = numItems;
 
   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);

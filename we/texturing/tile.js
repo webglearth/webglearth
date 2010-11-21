@@ -8,13 +8,19 @@
 
 goog.provide('we.texturing.Tile');
 
+goog.require('goog.Disposable');
+
 
 
 /**
  * Object representing tile
  * @constructor
+ * @extends {goog.Disposable}
  */
-we.texturing.Tile = function() {};
+we.texturing.Tile = function() {
+  //goog.base(this);
+};
+goog.inherits(we.texturing.Tile, goog.Disposable);
 
 
 /**
@@ -58,3 +64,10 @@ we.texturing.Tile.prototype.y = 0;
  * @type {Image}
  */
 we.texturing.Tile.prototype.image = null;
+
+
+/** @inheritDoc */
+we.texturing.Tile.prototype.disposeInternal = function() {
+  goog.base(this, 'disposeInternal');
+  delete this.image;
+};

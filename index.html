@@ -29,6 +29,10 @@
   
   <script src="closure-library/closure/goog/base.js"></script>
   
+  <script>
+    goog.require('goog.Disposable');
+  </script>
+  
   <script src="we/webgl-debug.js"></script>
   
   <script src="we/debug.js"></script>
@@ -57,31 +61,12 @@
     precision highp float;
     #endif
     
-    //const float PI = 3.1415926535;
-    //const float MAX_PHI = 1.4844222297453;
     varying vec2 vTextureCoord;
     
     uniform sampler2D uTileBuffer;
     
     void main(void) {
-      //float phi = PI*(vTextureCoord.t-0.5); //phi: -PI/2 -> PI/2
-                                            //uhel, pro ktery chci vypocitat barvu
-      //gl_FragColor = texture2D(uSampler,
-      //  vec2(vTextureCoord.s, clamp((log(tan(phi/2.0 + PI/4.0))/PI)/2.0 + 0.5,0.0,1.0))
-      //);
-      //if (distance(vCoord,vec2(POINTX,POINTY)) < (1.567889621e+1/3.0))
-      //{
-      //  gl_FragColor = vec4(0.0,0.0,1.0,1.0);
-      ///*} else */if (min(vTextureCoord.x,vTextureCoord.y) < 4.0/256.0)
-      //{
-      //  gl_FragColor = vec4(0.0,0.0,0.0,1.0); //BORDER
-      //} else {
-      //  discard;
-        //gl_FragColor = vec4(0.0,0.0,0.0,0.0); //vec4(vTextureCoord.x,vTextureCoord.y,0.0,1.0);
-      //}
-        //gl_FragColor = mix(vec4(vTextureCoord.x,vTextureCoord.y,0.0,1.0),texture2D(uTileBuffer, vTextureCoord),0.9); //texture2D(uSampler, vTextureCoord);//vec4(vTextureCoord.x,vTextureCoord.y,vTextureCoord.z,1.0); //vec4(0.0,0.0,0.0,1.0);
-        gl_FragColor = texture2D(uTileBuffer, vTextureCoord);
-      //}
+      gl_FragColor = texture2D(uTileBuffer, vTextureCoord);
     }
   </script>
    
@@ -95,23 +80,25 @@
     const float PIhalf = 1.5707963;
     const float MAX_PHI = 1.4844222;
     
-    attribute vec3 aVertexPosition;
+    attribute vec2 aVertexPosition;
     attribute vec2 aTextureCoord;
     
     uniform mat4 uMVPMatrix;
     
     uniform float uZoomLevel;
     uniform float uTileCount;
-    //uniform float uLatitude;
     uniform float uYOffset;
     uniform float uXOffset;
         
     uniform sampler2D uTileBuffer;
+    uniform vec2 uTileBufferSize;
     
-    uniform vec3 uMetaBuffer[64];
-    uniform vec2 uMetaBufferSize;
+    uniform vec4 uMetaBuffer[64];
     varying vec2 vTextureCoord;
-    //varying vec2 vCoord;
+    
+    float compareMeta(vec4 a, float zoom, float x, float y) {
+      return ((a.r == zoom) ? ((a.g == x) ? ((a.b == y) ? 0.0 : (a.b - y)) : (a.g - x)) : (a.r - zoom));
+    }
     
     void main(void) {
       float phix = (aVertexPosition.x)/uTileCount*PI2;
@@ -135,41 +122,39 @@
       float tiley = (uTileCount-1.0) - (aVertexPosition.y - aTextureCoord.y + uYOffset + uTileCount/2.0);
       float xoff = 0.0, yoff = 0.0;
       
-      for (int z = int(uZoomLevel); z >= 0; z--) {
-        for (int i = 0; i < 64; i++) {
-          //for (float y = 0.0; y < uMetaBufferSize.y; y++) {
-            //vec4 metahi = texture2D(uMetaBuffer, vec2(0.0,0.0));//x/uMetaBufferSize.x, y/uMetaBufferSize.y));
-            //vec4 metalo = texture2D(uMetaBuffer, vec2((x+1.0)/uMetaBufferSize.x, y/uMetaBufferSize.y));
-            if (int(uMetaBuffer[i].z) == z) {
-              //float metatilex = metahi.b * 65536.0 + metahi.a * 256.0 + metalo.r;
-              //float metatiley = metalo.g * 65536.0 + metalo.b * 256.0 + metalo.a;
-              if (uMetaBuffer[i].x == tilex && uMetaBuffer[i].y == tiley) {
-                float reduction = pow(2.0,uZoomLevel - float(z));
-                vTextureCoord.x = ((mod(float(i), uMetaBufferSize.x)) + xoff/2.0  + (aTextureCoord.x)/reduction)/uMetaBufferSize.x;
-                vTextureCoord.y = ((floor(float(i) / uMetaBufferSize.x)) + yoff/2.0 + (aTextureCoord.y)/reduction)/uMetaBufferSize.y;
-                return;
-              }
-            }
-          //}
-        }
-        
-        xoff = xoff/2.0 + mod(tilex, 2.0);
-        yoff = yoff/2.0 + 1.0-mod(tiley, 2.0);
-        tilex = floor(tilex/2.0);
-        tiley = floor(tiley/2.0);
-        //zoom--;
+      
+      int size = int(uTileBufferSize.x*uTileBufferSize.y);
+      int mid = 1, min = 1, max = size;
+      float z = uZoomLevel;
+      while (z >= 0.0 && (compareMeta(uMetaBuffer[mid-1],z,tilex,tiley) != 0.0)) {
+          if (min > max) {
+            z--;
+            min = 1;
+            max = size;
+            xoff = xoff/2.0 + mod(tilex, 2.0);
+            yoff = yoff/2.0 + 1.0-mod(tiley, 2.0);
+            tilex = floor(tilex/2.0);
+            tiley = floor(tiley/2.0);
+          }
+          
+          mid = (min + max) / 2;
+          if (compareMeta(uMetaBuffer[mid-1],z,tilex,tiley) > 0.0) {
+            max = mid - 1;
+          } else {
+            min = mid + 1;
+          }
       }
       
-      vTextureCoord = aTextureCoord; //aVertexPosition.x/4.0,aVertexPosition.y/4.0,0.0); //vec2(aTextureCoord.x*aTextureCoord.y,pos.z);//aTextureCoord;
-      //vCoord = vec2(uXOffset+aVertexPosition.x-aTextureCoord.x,-(uYOffset+aVertexPosition.y-aTextureCoord.y));
-      //TODO: vCoord (vse) se musi pocitat z uhlu, aVertexPosition.xy nereflektuje zatoceni bodu kolem dokola cele koule..
-      //      vCoord se nemusi posilat do fragmentu, tam se budou posilat uz primo koordinaty
-      //if (max(abs(pos.x),abs(pos.y)) > n/2.0)
-      //  vTextureCoord=vec3(1.0,1.0,aTextureCoord.x); //DEBUG
-      //TODO: vypocet texturovych coordinatu podle phix, phiy:
-      //        prepocet phi.xy na tile.xy
-      //        odecet vTextureCoord.xy (aby cely ctverecek mel stejny tile)
-      //        lookup tilu v texture
+      if (compareMeta(uMetaBuffer[mid-1],z,tilex,tiley) == 0.0) {
+        float i = uMetaBuffer[mid-1].a;
+        float reduction = pow(2.0,uZoomLevel - z);
+        vTextureCoord.x = ((mod(i, uTileBufferSize.x)) + xoff/2.0  + (aTextureCoord.x)/reduction)/uTileBufferSize.x;
+        vTextureCoord.y = ((floor(i / uTileBufferSize.x)) + yoff/2.0 + (aTextureCoord.y)/reduction)/uTileBufferSize.y;
+        return;
+      }
+      
+      vTextureCoord = vec2(0.0,0.0);//aTextureCoord;
+      
       if ((abs(phiy) - MAX_PHI) > 0.01)
         vTextureCoord=vec2(0.5,0.5); //DEBUG
     }
