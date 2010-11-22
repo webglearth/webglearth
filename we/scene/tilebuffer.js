@@ -37,10 +37,36 @@ we.scene.TileBuffer = function(tileprovider, context, width, height) {
 
   var gl = this.gl_;
 
-  this.bufferTexture = gl.createTexture();
-
   this.bufferWidth_ = width;
   this.bufferHeight_ = height;
+
+  this.recreateBuffers_();
+};
+
+
+/**
+ * Change TileProvider on-the-fly
+ * @param {!we.texturing.TileProvider} tileprovider TileProvider to be set.
+ */
+we.scene.TileBuffer.prototype.changeTileProvider = function(tileprovider) {
+  this.tileProvider_ = tileprovider;
+  this.tileSize_ = this.tileProvider_.getTileSize();
+  this.recreateBuffers_();
+  this.tileCache_.setTileProvider(tileprovider);
+};
+
+
+/**
+ * Recreates internal buffers. Useful when changing TileProvider.
+ * @private
+ */
+we.scene.TileBuffer.prototype.recreateBuffers_ = function() {
+  var gl = this.gl_;
+
+  if (this.bufferTexture)
+    gl.deleteTexture(this.bufferTexture);
+
+  this.bufferTexture = gl.createTexture();
 
   if (goog.DEBUG)
     we.scene.TileBuffer.logger.info('Creating buffer ' +
@@ -55,20 +81,10 @@ we.scene.TileBuffer = function(tileprovider, context, width, height) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
-
-  /*gl.bindTexture(gl.TEXTURE_2D, this.metaBufferTexture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-      this.tileSize_ * 2, this.tileSize_, 0, gl.RGBA,
-      gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);*/
-
-
-
   this.metaBuffer = [];
   this.slotList_ = [];
-  for (var x = 0; x < width; ++x) {
-    for (var y = 0; y < height; ++y) {
+  for (var x = 0; x < this.bufferWidth_; ++x) {
+    for (var y = 0; y < this.bufferHeight_; ++y) {
       this.metaBuffer.push([-1, 0, 0, y * this.bufferWidth_ + x]);
       this.slotList_.push(new we.scene.TileBuffer.Slot(x, y));
     }
@@ -152,7 +168,7 @@ we.scene.TileBuffer.prototype.tileNeeded = function(zoom, x, y) {
   if (!goog.isNull(slot)) {
     slot.lastUse = goog.now();
   } else {
-    this.bufferTileFromCache(zoom, x, y);
+    this.bufferTileFromCache_(zoom, x, y);
   }
 };
 
@@ -162,11 +178,12 @@ we.scene.TileBuffer.prototype.tileNeeded = function(zoom, x, y) {
  * @param {number} zoom Zoom.
  * @param {number} x X.
  * @param {number} y Y.
+ * @private
  */
-we.scene.TileBuffer.prototype.bufferTileFromCache = function(zoom, x, y) {
+we.scene.TileBuffer.prototype.bufferTileFromCache_ = function(zoom, x, y) {
   var tile = this.tileCache_.retrieveTile(zoom, x, y);
   if (!goog.isNull(tile)) {
-    this.bufferTile(tile);
+    this.bufferTile_(tile);
   }
 };
 
@@ -174,8 +191,9 @@ we.scene.TileBuffer.prototype.bufferTileFromCache = function(zoom, x, y) {
 /**
  * Puts the tile into buffer
  * @param {!we.texturing.Tile} tile Tile to be buffered.
+ * @private
  */
-we.scene.TileBuffer.prototype.bufferTile = function(tile) {
+we.scene.TileBuffer.prototype.bufferTile_ = function(tile) {
   //if (goog.DEBUG)
   //  we.scene.TileBuffer.logger.info('Buffering tile ' + tile.getKey());
 

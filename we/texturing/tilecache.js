@@ -23,9 +23,19 @@ goog.require('we.texturing.TileProvider');
  * @constructor
  */
 we.texturing.TileCache = function(tileprovider) {
-  this.tileProvider_ = tileprovider;
-  this.tileProvider_.tileLoadedHandler = goog.bind(this.cacheTile, this);
   this.tileMap_ = new goog.structs.Map();
+  this.setTileProvider(tileprovider);
+};
+
+
+/**
+ * Change TileProvider on-the-fly
+ * @param {!we.texturing.TileProvider} tileprovider TileProvider to be set.
+ */
+we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
+  this.tileProvider_ = tileprovider;
+  this.tileProvider_.tileLoadedHandler = goog.bind(this.cacheTile_, this);
+  this.tileMap_.clear();
 };
 
 
@@ -41,12 +51,6 @@ we.texturing.TileCache.prototype.tileProvider_ = null;
  * @private
  */
 we.texturing.TileCache.prototype.tileMap_ = null;
-
-
-/**
- * @type {function(!we.texturing.Tile)}
- */
-//we.texturing.TileCache.prototype.delayedLoadHandler = goog.nullFunction;
 
 
 /**
@@ -82,8 +86,9 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y) {
 /**
  * Puts the tile into cache //(and calls its bufferCallback function if set)
  * @param {!we.texturing.Tile} tile Tile to be cached.
+ * @private
  */
-we.texturing.TileCache.prototype.cacheTile = function(tile) {
+we.texturing.TileCache.prototype.cacheTile_ = function(tile) {
   //TODO: something smarter !!
   if (this.tileMap_.getCount() > 32) {
     goog.structs.forEach(this.tileMap_,

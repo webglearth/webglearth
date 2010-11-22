@@ -10,10 +10,14 @@ goog.provide('we.scene.Scene');
 
 goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
+goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.MouseWheelHandler');
 goog.require('goog.math');
 goog.require('goog.math.Coordinate');
+goog.require('goog.ui.Component.EventType');
+goog.require('goog.ui.MenuItem');
+goog.require('goog.ui.Select');
 goog.require('goog.ui.Slider');
 
 goog.require('we.gl.Context');
@@ -48,6 +52,21 @@ we.scene.Scene = function(context) {
    */
   this.tileBuffer = new we.scene.TileBuffer(
       new we.texturing.MapQuestTileProvider(), context, 8, 8);
+
+  var tileProviderSelect = new goog.ui.Select('...');
+  tileProviderSelect.addItem(new goog.ui.MenuItem('MapQuest OSM',
+      we.texturing.MapQuestTileProvider));
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Open Street Maps',
+      we.texturing.OSMTileProvider));
+  tileProviderSelect.setSelectedIndex(0);
+  tileProviderSelect.render(goog.dom.getElement('tileprovider'));
+
+  goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
+      function(tilebuffer) { return (function(e) {
+        var value = e.target.getValue();
+        tilebuffer.changeTileProvider(new value());
+      });
+      }(this.tileBuffer));
 
   this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(

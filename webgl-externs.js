@@ -459,6 +459,12 @@ WebGLRenderingContext.createTexture = function() {};
 
 
 /**
+ * @param {WebGLTexture} what
+ */
+WebGLRenderingContext.deleteTexture = function(what) {};
+
+
+/**
  * @param {number} what
  * @param {WebGLTexture} tex
  */

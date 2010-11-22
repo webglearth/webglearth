@@ -26,6 +26,11 @@
       height: 100%;
     }
   </style>
+  <link rel="stylesheet" href="closure-library/closure/goog/css/common.css"> 
+  <link rel="stylesheet" href="closure-library/closure/goog/css/menubutton.css"> 
+  <link rel="stylesheet" href="closure-library/closure/goog/css/menu.css"> 
+  <link rel="stylesheet" href="closure-library/closure/goog/css/menuitem.css"> 
+  
   <script src="compiled.js"></script>
   
   <script id="shader-fs" type="x-shader/x-fragment"> 
@@ -134,6 +139,7 @@
  </head> 
  <body onload="javascript:we.init(document.getElementById('glcanvas'));">
    <div id="fpsbox"></div><div id="coordbox"></div>
+   <div id="tileprovider">Select TileProvider: </div>
    <canvas id="glcanvas" width="640" height="480">
     Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
    </canvas>
