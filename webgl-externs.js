@@ -150,6 +150,24 @@ WebGLRenderingContext.TEXTURE_MIN_FILTER = 0x2801;
 /**
  * @type {number}
  */
+WebGLRenderingContext.TEXTURE_WRAP_S = 0x2802;
+
+
+/**
+ * @type {number}
+ */
+WebGLRenderingContext.TEXTURE_WRAP_T = 0x2803;
+
+
+/**
+ * @type {number}
+ */
+WebGLRenderingContext.CLAMP_TO_EDGE = 0x812F;
+
+
+/**
+ * @type {number}
+ */
 WebGLRenderingContext.NEAREST = 0x2600;
 
 
