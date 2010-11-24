@@ -166,9 +166,19 @@ we.scene.Scene = function(context) {
       'void main(){gl_FragColor=texture2D(uTileBuffer,vTC);}';
 
 
+  var vertexShaderCode = we.utils.getFile('vs.glsl');
+
+  var dims = this.tileBuffer.getDimensions();
+  vertexShaderCode = vertexShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
+      dims.width.toFixed(1));
+  vertexShaderCode = vertexShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
+      dims.height.toFixed(1));
+  vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_INT%',
+      (dims.width * dims.height).toFixed(0));
+
   var fsshader = we.gl.Shader.create(context, fragmentShaderCode,
       gl.FRAGMENT_SHADER);
-  var vsshader = we.gl.Shader.create(context, we.utils.getFile('vs.glsl'),
+  var vsshader = we.gl.Shader.create(context, vertexShaderCode,
       gl.VERTEX_SHADER);
 
   var shaderProgram = gl.createProgram();
@@ -194,8 +204,6 @@ we.scene.Scene = function(context) {
       gl.getUniformLocation(shaderProgram, 'uMVPMatrix');
   shaderProgram.tileBufferUniform =
       gl.getUniformLocation(shaderProgram, 'uTileBuffer');
-  shaderProgram.tileBufferSizeUniform =
-      gl.getUniformLocation(shaderProgram, 'uTileBufferSize');
   shaderProgram.metaBufferUniform =
       gl.getUniformLocation(shaderProgram, 'uMetaBuffer');
 
@@ -203,10 +211,8 @@ we.scene.Scene = function(context) {
       gl.getUniformLocation(shaderProgram, 'uZoomLevel');
   shaderProgram.tileCountUniform =
       gl.getUniformLocation(shaderProgram, 'uTileCount');
-  shaderProgram.yOffsetUniform =
-      gl.getUniformLocation(shaderProgram, 'uYOffset');
-  shaderProgram.xOffsetUniform =
-      gl.getUniformLocation(shaderProgram, 'uXOffset');
+  shaderProgram.offsetUniform =
+      gl.getUniformLocation(shaderProgram, 'uOffset');
 
   this.shaderProgram = shaderProgram;
 
@@ -390,18 +396,15 @@ we.scene.Scene.prototype.draw = function() {
       this.segmentedPlane.texCoordBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
-  gl.uniform2fv(this.shaderProgram.tileBufferSizeUniform, [8, 8]);
-
   gl.uniformMatrix4fv(this.shaderProgram.mvpMatrixUniform, false, mvpm);
   gl.uniform1f(this.shaderProgram.zoomLevelUniform,
       Math.min(Math.floor(this.zoomLevel),
       32));//TODO: this.tileProvider.getMaxZoomLevel());
   gl.uniform1f(this.shaderProgram.tileCountUniform, this.tileCount);
-  var yOffset = Math.floor(this.projectLatitude(this.latitude) /
-      (Math.PI * 2) * this.tileCount);
-  gl.uniform1f(this.shaderProgram.yOffsetUniform, yOffset);
-  gl.uniform1f(this.shaderProgram.xOffsetUniform,
-      Math.floor(this.longitude / (Math.PI) * this.tileCount));
+  var offset = [Math.floor(this.longitude / (Math.PI) * this.tileCount),
+        Math.floor(this.projectLatitude(this.latitude) /
+            (Math.PI * 2) * this.tileCount)];
+  gl.uniform2fv(this.shaderProgram.offsetUniform, offset);
 
   gl.drawArrays(gl.TRIANGLES, 0, this.segmentedPlane.vertexBuffer.numItems);
   //gl.drawArrays(gl.LINES, 0, we.plane.vertexBuffer.numItems);

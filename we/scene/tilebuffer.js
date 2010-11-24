@@ -114,6 +114,7 @@ we.scene.TileBuffer.prototype.metaBuffer = null;
 
 
 /**
+ * Buffer width in tiles.
  * @type {number}
  * @private
  */
@@ -121,10 +122,19 @@ we.scene.TileBuffer.prototype.bufferWidth_ = 0;
 
 
 /**
+ * Buffer height in tiles.
  * @type {number}
  * @private
  */
 we.scene.TileBuffer.prototype.bufferHeight_ = 0;
+
+
+/**
+ * @return {!Object} Object containing "width" and "height" keys.
+ */
+we.scene.TileBuffer.prototype.getDimensions = function() {
+  return {width: this.bufferWidth_, height: this.bufferHeight_};
+};
 
 
 /**

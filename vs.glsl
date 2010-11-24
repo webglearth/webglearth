@@ -1,6 +1,8 @@
-#ifdef GL_ES
+#define BUFFER_WIDTH %BUFFER_WIDTH_FLOAT%
+#define BUFFER_HEIGHT %BUFFER_HEIGHT_FLOAT%
+#define BUFFER_SIZE %BUFFER_SIZE_INT%
+
 precision highp float;
-#endif
 
 const float PI  = 3.1415927;
 const float PI2 = 6.2831855;
@@ -14,13 +16,11 @@ uniform mat4 uMVPMatrix;
 
 uniform float uZoomLevel;
 uniform float uTileCount;
-uniform float uYOffset;
-uniform float uXOffset;
+uniform vec2 uOffset;
     
 uniform sampler2D uTileBuffer;
-uniform vec2 uTileBufferSize;
 
-uniform vec4 uMetaBuffer[64];
+uniform vec4 uMetaBuffer[BUFFER_SIZE];
 varying vec2 vTC;
 
 float compareMeta(vec4 a, float zoom, float x, float y) {
@@ -29,7 +29,7 @@ float compareMeta(vec4 a, float zoom, float x, float y) {
 
 void main(void) {
   float phix = (aVertexPosition.x)/uTileCount*PI2;
-  float phiy = (uYOffset+aVertexPosition.y)/uTileCount*PI2;
+  float phiy = (uOffset.y+aVertexPosition.y)/uTileCount*PI2;
   
   //this version has better accuracy than 2.0*atan(exp(uLatitude + phiy)) - PI/2.0
   // (is more numerically stable)
@@ -45,19 +45,17 @@ void main(void) {
   
   gl_Position = uMVPMatrix * vec4(sin(phix)*cos(phiy), sin(phiy), cos(abs(phix))*cos(abs(phiy)), 1.0);      
   
-  float tilex = mod((aVertexPosition.x - aTextureCoord.x  + uXOffset + uTileCount/2.0), uTileCount);
-  float tiley = (uTileCount-1.0) - (aVertexPosition.y - aTextureCoord.y + uYOffset + uTileCount/2.0);
+  float tilex = mod((aVertexPosition.x - aTextureCoord.x  + uOffset.x + uTileCount/2.0), uTileCount);
+  float tiley = (uTileCount-1.0) - (aVertexPosition.y - aTextureCoord.y + uOffset.y + uTileCount/2.0);
   float xoff = 0.0, yoff = 0.0;
   
-  
-  int size = int(uTileBufferSize.x*uTileBufferSize.y);
-  int mid = 1, min = 1, max = size;
+  int mid = 1, min = 1, max = BUFFER_SIZE;
   float z = uZoomLevel;
   while (z >= 0.0 && (compareMeta(uMetaBuffer[mid-1],z,tilex,tiley) != 0.0)) {
       if (min > max) {
         z--;
         min = 1;
-        max = size;
+        max = BUFFER_SIZE;
         xoff = xoff/2.0 + mod(tilex, 2.0);
         yoff = yoff/2.0 + 1.0-mod(tiley, 2.0);
         tilex = floor(tilex/2.0);
@@ -75,8 +73,8 @@ void main(void) {
   if (compareMeta(uMetaBuffer[mid-1],z,tilex,tiley) == 0.0) {
     float i = uMetaBuffer[mid-1].a;
     float reduction = pow(2.0,uZoomLevel - z);
-    vTC.x = ((mod(i, uTileBufferSize.x)) + xoff/2.0  + (aTextureCoord.x)/reduction)/uTileBufferSize.x;
-    vTC.y = ((floor(i / uTileBufferSize.x)) + yoff/2.0 + (aTextureCoord.y)/reduction)/uTileBufferSize.y;
+    vTC.x = ((mod(i, BUFFER_WIDTH)) + xoff/2.0  + (aTextureCoord.x)/reduction)/BUFFER_WIDTH;
+    vTC.y = ((floor(i / BUFFER_WIDTH)) + yoff/2.0 + (aTextureCoord.y)/reduction)/BUFFER_HEIGHT;
     return;
   }
   
