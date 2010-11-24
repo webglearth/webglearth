@@ -349,8 +349,9 @@ we.scene.Scene.prototype.draw = function() {
   var gl = this.context.gl;
 
   document.getElementById('coordbox').innerHTML =
-      goog.math.toDegrees(this.longitude) + '; ' +
-      goog.math.toDegrees(this.latitude) + ' @ ' + this.zoomLevel;
+      goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
+      goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
+      this.zoomLevel.toFixed(2);
 
   var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
   this.context.translate(0, 0, -1 - d);

@@ -14,8 +14,6 @@ goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 
-goog.require('goog.i18n.NumberFormat');
-
 goog.require('goog.math');
 goog.require('goog.math.Matrix');
 goog.require('goog.math.Vec3');
@@ -152,16 +150,6 @@ we.gl.Context = function(canvas) {
      * @private
      */
     this.frameTimeSinceLastFpsCalc_ = 0;
-
-    /**
-     * Instance of formatter used to format frame time / fps
-     * - it seems stupid recreating it every 2 seconds.
-     * @type {!goog.i18n.NumberFormat}
-     * @private
-     */
-    this.decimalFormatter_ = new goog.i18n.NumberFormat(
-        goog.i18n.NumberFormat.Format.DECIMAL
-        );
   }
 
   if (goog.DEBUG)
@@ -272,9 +260,9 @@ we.gl.Context.prototype.renderFrame = function() {
       this.frameTimeSinceLastFpsCalc_ = 0;
 
       goog.dom.getElement('fpsbox').innerHTML =
-          this.decimalFormatter_.format(this.averageFrameTime) +
+          this.averageFrameTime.toFixed(2) +
           ' ms / fps: ' +
-          this.decimalFormatter_.format(this.fps);
+          this.fps.toFixed(2);
     }
 
     this.framesSinceLastFpsCalc_++;
