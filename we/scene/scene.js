@@ -21,16 +21,14 @@ goog.require('goog.ui.Select');
 goog.require('goog.ui.Slider');
 
 goog.require('we.gl.Context');
-//goog.require('we.gl.Plane');
 goog.require('we.gl.Shader');
-//goog.require('we.gl.Texture');
 goog.require('we.scene.SegmentedPlane');
 goog.require('we.scene.TileBuffer');
-
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
+goog.require('we.utils');
 
 
 
@@ -158,8 +156,20 @@ we.scene.Scene = function(context) {
       }(this));
   longitudeSlider.setValue(0);
 
-  var fsshader = we.gl.Shader.createFromElement(context, 'shader-fs');
-  var vsshader = we.gl.Shader.createFromElement(context, 'shader-vs');
+  /**
+   * This is (partially) minified fragment shader that
+   * just samples from uTileBuffer according to vTC.
+   * @type {!string}
+   */
+  var fragmentShaderCode =
+      'precision highp float;varying vec2 vTC;uniform sampler2D uTileBuffer;' +
+      'void main(){gl_FragColor=texture2D(uTileBuffer,vTC);}';
+
+
+  var fsshader = we.gl.Shader.create(context, fragmentShaderCode,
+      gl.FRAGMENT_SHADER);
+  var vsshader = we.gl.Shader.create(context, we.utils.getFile('vs.glsl'),
+      gl.VERTEX_SHADER);
 
   var shaderProgram = gl.createProgram();
   gl.attachShader(shaderProgram, vsshader);
