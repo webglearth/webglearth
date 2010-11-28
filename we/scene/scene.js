@@ -24,11 +24,21 @@ goog.require('we.gl.Context');
 goog.require('we.gl.Shader');
 goog.require('we.scene.SegmentedPlane');
 goog.require('we.scene.TileBuffer');
+goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
 goog.require('we.utils');
+
+
+/**
+ * This Bings Map key is registered for domain 'http://localhost'
+ * and is ideal for local development and testing.
+ * @type {string}
+ */
+we.scene.BINGS_KEY =
+    'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
 
 
 
@@ -53,16 +63,21 @@ we.scene.Scene = function(context) {
 
   var tileProviderSelect = new goog.ui.Select('...');
   tileProviderSelect.addItem(new goog.ui.MenuItem('MapQuest OSM',
-      we.texturing.MapQuestTileProvider));
+      new we.texturing.MapQuestTileProvider()));
   tileProviderSelect.addItem(new goog.ui.MenuItem('Open Street Maps',
-      we.texturing.OSMTileProvider));
+      new we.texturing.OSMTileProvider()));
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing Aerial',
+      new we.texturing.BingTileProvider(we.scene.BINGS_KEY, 'Aerial')));
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing AerialWithLabels',
+      new we.texturing.BingTileProvider(we.scene.BINGS_KEY,
+      'AerialWithLabels')));
   tileProviderSelect.setSelectedIndex(0);
   tileProviderSelect.render(goog.dom.getElement('tileprovider'));
 
   goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
       function(tilebuffer) { return (function(e) {
         var value = e.target.getValue();
-        tilebuffer.changeTileProvider(new value());
+        tilebuffer.changeTileProvider(value);
       });
       }(this.tileBuffer));
 
