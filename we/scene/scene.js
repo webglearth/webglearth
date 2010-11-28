@@ -84,7 +84,7 @@ we.scene.Scene = function(context) {
 
   /**
    * @type {number}
-   * This should always equal Math.pow(2, this.zoomLevel) !
+   * This should always equal 2 << this.zoomLevel !
    */
   this.tileCount = 1;
 
@@ -243,10 +243,10 @@ we.scene.Scene = function(context) {
  */
 we.scene.Scene.prototype.setZoom = function(zoom) {
   this.zoomLevel = zoom;
-  this.tileCount = Math.pow(2, Math.min(Math.floor(this.zoomLevel), 32));
+  this.tileCount = 2 << Math.min(Math.floor(this.zoomLevel), 32);
   //TODO:    this.tileProvider.getMaxZoomLevel()));
   //document.getElementById('fpsbox').innerHTML = this.zoomLevel;
-  this.distance = Math.pow(2, zoom);
+  this.distance = 2 << zoom;
 };
 
 
@@ -333,7 +333,7 @@ we.scene.Scene.prototype.projectLatitude = function(latitude) {
 we.scene.Scene.prototype.calcDistanceSoThatISeeXTilesOfTextureVertical =
     function(tiles) {
   var o = Math.cos(Math.abs(this.latitude)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.zoomLevel);
+  var thisPosDeformation = o / (2 << this.zoomLevel);
   var sizeIWannaSee = thisPosDeformation * tiles;
   //document.getElementById('fpsbox').innerHTML =
   //    "thisPosDeformation: " + thisPosDeformation;
