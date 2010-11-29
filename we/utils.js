@@ -8,6 +8,8 @@
 
 goog.provide('we.utils');
 
+goog.require('goog.math');
+
 
 /**
  * Downloads content of the file.
@@ -31,4 +33,14 @@ we.utils.getFile = function(url, opt_callback) {
   request.send(null);
 
   return async ? '' : request.responseText;
+};
+
+
+/**
+ * Chooses random element from the array.
+ * @param {Array.<*>} source Source array.
+ * @return {*} Random element.
+ */
+we.utils.randomElement = function(source) {
+  return source[goog.math.randomInt(source.length)];
 };

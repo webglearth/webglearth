@@ -8,10 +8,10 @@
 
 goog.provide('we.texturing.OSMTileProvider');
 
-goog.require('goog.math');
 goog.require('goog.string.StringBuffer');
 
 goog.require('we.texturing.TileProvider');
+goog.require('we.utils');
 
 
 
@@ -42,6 +42,17 @@ we.texturing.OSMTileProvider.prototype.getTileSize = function() {
 /** @inheritDoc */
 we.texturing.OSMTileProvider.prototype.getTileURL = function(zoom, x, y) {
   return new goog.string.StringBuffer('http://',
-      ['a', 'b', 'c'][goog.math.randomInt(3)],
+      /** @type {string} */(we.utils.randomElement(['a', 'b', 'c'])),
       '.tile.openstreetmap.org/', zoom, '/', x, '/', y, '.png').toString();
+};
+
+
+/** @inheritDoc */
+we.texturing.OSMTileProvider.prototype.appendCopyrightContent =
+    function(element) {
+  goog.dom.append(element, '© ',
+      goog.dom.createDom('a',
+      {href: 'http://www.openstreetmap.org/'},
+      'OpenStreetMap'),
+      ' contributors, CC-BY-SA');
 };

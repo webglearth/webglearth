@@ -22,6 +22,12 @@ we.texturing.TileProvider = function() {};
 
 
 /**
+ * @return {number} Minimum zoom level of this TileProvider.
+ */
+we.texturing.TileProvider.prototype.getMinZoomLevel = function() {return 0;};
+
+
+/**
  * @return {number} Maximum zoom level of this TileProvider.
  */
 we.texturing.TileProvider.prototype.getMaxZoomLevel = goog.abstractMethod;
@@ -70,6 +76,29 @@ we.texturing.TileProvider.prototype.loadTile = function(zoom, x, y) {
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 };
+
+
+/**
+ * Fills given Element with copyright info.
+ * @param {!Element} element Element where the copyright info
+ * should be appended to.
+ */
+we.texturing.TileProvider.prototype.appendCopyrightContent =
+    function(element) {};
+
+
+/**
+ * Returns URL of the logo that should be displayed somewhere.
+ * @return {?string} Url of the logo or null if not required.
+ */
+we.texturing.TileProvider.prototype.getLogoUrl = function() {return null;};
+
+
+/**
+ * @type {!function(we.texturing.TileProvider)}
+ */
+we.texturing.TileProvider.prototype.copyrightInfoChangedHandler =
+    goog.nullFunction;
 
 if (goog.DEBUG) {
   /**

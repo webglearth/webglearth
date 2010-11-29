@@ -33,11 +33,12 @@ goog.require('we.utils');
 
 
 /**
- * This Bings Map key is registered for domain 'http://localhost'
+ * This Bing Maps key is registered for domain 'http://localhost'
  * and is ideal for local development and testing.
  * @type {string}
+ * @const
  */
-we.scene.BINGS_KEY =
+we.scene.BING_MAPS_KEY =
     'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
 
 
@@ -55,29 +56,48 @@ we.scene.Scene = function(context) {
   var gl = context.gl;
 
 
+  var defaultTP = new we.texturing.MapQuestTileProvider();
+
   /**
    * @type {!we.scene.TileBuffer}
    */
-  this.tileBuffer = new we.scene.TileBuffer(
-      new we.texturing.MapQuestTileProvider(), context, 8, 8);
+  this.tileBuffer = new we.scene.TileBuffer(defaultTP, context, 8, 8);
 
   var tileProviderSelect = new goog.ui.Select('...');
   tileProviderSelect.addItem(new goog.ui.MenuItem('MapQuest OSM',
       new we.texturing.MapQuestTileProvider()));
   tileProviderSelect.addItem(new goog.ui.MenuItem('Open Street Maps',
       new we.texturing.OSMTileProvider()));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing Aerial',
-      new we.texturing.BingTileProvider(we.scene.BINGS_KEY, 'Aerial')));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing AerialWithLabels',
-      new we.texturing.BingTileProvider(we.scene.BINGS_KEY,
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - Aerial',
+      new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY, 'Aerial')));
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - AerialWithLabels',
+      new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY,
       'AerialWithLabels')));
-  tileProviderSelect.setSelectedIndex(0);
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - Road',
+      new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY, 'Road')));
   tileProviderSelect.render(goog.dom.getElement('tileprovider'));
+
+  tileProviderSelect.setSelectedIndex(0);
+
+  var updateCopyrights = function(tileprovider) {
+    var copyrightEl = goog.dom.getElement('tileprovidercopyright');
+    goog.dom.removeChildren(copyrightEl);
+    tileprovider.appendCopyrightContent(copyrightEl);
+    if (!goog.isNull(tileprovider.getLogoUrl())) {
+      goog.dom.getElement('tileproviderlogo').src = tileprovider.getLogoUrl();
+      goog.dom.getElement('tileproviderlogo').style.visibility = 'visible';
+    } else {
+      goog.dom.getElement('tileproviderlogo').style.visibility = 'hidden';
+    }
+  }
+  updateCopyrights(defaultTP);
 
   goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
       function(tilebuffer) { return (function(e) {
         var value = e.target.getValue();
         tilebuffer.changeTileProvider(value);
+        value.copyrightInfoChangedHandler = updateCopyrights;
+        updateCopyrights(value);
       });
       }(this.tileBuffer));
 

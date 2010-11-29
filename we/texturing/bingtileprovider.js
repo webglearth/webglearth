@@ -8,12 +8,10 @@
 
 goog.provide('we.texturing.BingTileProvider');
 
-goog.require('goog.ds.JsonDataSource');
 goog.require('goog.functions');
-goog.require('goog.math');
-goog.require('goog.string.StringBuffer');
 
 goog.require('we.texturing.TileProvider');
+goog.require('we.utils');
 
 
 
@@ -28,23 +26,22 @@ goog.require('we.texturing.TileProvider');
 we.texturing.BingTileProvider = function(key, opt_imageryset) {
   goog.base(this);
 
-  this.imagerySet_ = opt_imageryset || 'AerialWithLabels';
-  this.key_ = key;
+  var imagerySet = opt_imageryset || 'AerialWithLabels';
 
-  this.callbackFunc_ = 'bingsCallback_' + this.imagerySet_;
+  var callbackFunc = 'bingsCallback_' + imagerySet;
 
   var uriToCall = 'http://dev.virtualearth.net/REST/V1/Imagery/Metadata/' +
-      this.imagerySet_ + '?key=' + this.key_ + '&jsonp=' + this.callbackFunc_;
+      imagerySet + '?key=' + key + '&jsonp=' + callbackFunc;
 
-  goog.global[this.callbackFunc_] =
-      goog.isDef(goog.global[this.callbackFunc_]) ?
+  goog.global[callbackFunc] = goog.isDef(goog.global[callbackFunc]) ?
       goog.functions.sequence(goog.bind(this.setMetadata_, this),
-      goog.global[this.callbackFunc_]) :
+      goog.global[callbackFunc]) :
       goog.bind(we.texturing.BingTileProvider.prototype.setMetadata_, this);
 
   var scriptEl = goog.dom.createElement('script');
   scriptEl.src = uriToCall;
-  goog.dom.getElementsByTagNameAndClass('body')[0].appendChild(scriptEl);
+  scriptEl.type = 'text/javascript';
+  goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
 
 };
 goog.inherits(we.texturing.BingTileProvider, we.texturing.TileProvider);
@@ -57,12 +54,19 @@ goog.inherits(we.texturing.BingTileProvider, we.texturing.TileProvider);
  */
 we.texturing.BingTileProvider.prototype.setMetadata_ = function(data) {
   this.metaData_ = data;
+  this.resource_ = this.metaData_['resourceSets'][0]['resources'][0];
+};
+
+
+/** @inheritDoc */
+we.texturing.BingTileProvider.prototype.getMinZoomLevel = function() {
+  return goog.isNull(this.resource_) ? 0 : this.resource_['zoomMin'];
 };
 
 
 /** @inheritDoc */
 we.texturing.BingTileProvider.prototype.getMaxZoomLevel = function() {
-  return 18;
+  return goog.isNull(this.resource_) ? 18 : this.resource_['zoomMax'];
 };
 
 
@@ -91,12 +95,10 @@ we.texturing.BingTileProvider.prototype.getQuadKey_ = function(zoom, x, y) {
 
 /** @inheritDoc */
 we.texturing.BingTileProvider.prototype.getTileURL = function(zoom, x, y) {
-  if (goog.isDef(this.metaData_)) {
-    var resource = this.metaData_['resourceSets'][0]['resources'][0];
-
-    var index = goog.math.randomInt(resource['imageUrlSubdomains'].length);
-    return resource['imageUrl']
-    .replace('{subdomain}', resource['imageUrlSubdomains'][index])
+  if (!goog.isNull(this.metaData_)) {
+    return this.resource_['imageUrl']
+    .replace('{subdomain}',
+        we.utils.randomElement(this.resource_['imageUrlSubdomains']))
     .replace('{quadkey}', this.getQuadKey_(zoom, x, y));
   } else {
     return '';
@@ -112,9 +114,35 @@ we.texturing.BingTileProvider.prototype.loadTile = function(zoom, x, y) {
 };
 
 
+/** @inheritDoc */
+we.texturing.BingTileProvider.prototype.appendCopyrightContent =
+    function(element) {
+  if (!goog.isNull(this.metaData_)) {
+    goog.dom.append(element, this.metaData_['copyright']);
+  }
+};
+
+
+/** @inheritDoc */
+we.texturing.BingTileProvider.prototype.getLogoUrl =
+    function(element) {
+  if (!goog.isNull(this.metaData_)) {
+    return this.metaData_['brandLogoUri'];
+  }
+};
+
+
 /**
  * Downloaded metadata
  * @type {Object}
  * @private
  */
 we.texturing.BingTileProvider.prototype.metaData_ = null;
+
+
+/**
+ * Extracted resource from metadata
+ * @type {Object}
+ * @private
+ */
+we.texturing.BingTileProvider.prototype.resource_ = null;
