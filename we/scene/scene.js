@@ -251,7 +251,7 @@ we.scene.Scene = function(context) {
 
   this.shaderProgram = shaderProgram;
 
-  this.segmentedPlane = new we.scene.SegmentedPlane(context, 8, 8, 2);
+  this.segmentedPlane = new we.scene.SegmentedPlane(context, 10, 10, 2);
   //we.texture = we.gl.Texture.load(context,
   //    'http://a.tile.openstreetmap.org/0/0/0.png');
 
@@ -346,6 +346,8 @@ we.scene.Scene.prototype.updateTiles = function() {
       this.tileBuffer.tileNeeded(flooredZoom, position.x + x, position.y + y);
     }
   }*/
+  //this.tileBuffer.purgeQueue(5000);
+  this.tileBuffer.bufferSomeTiles(2);
 };
 
 
@@ -386,7 +388,8 @@ we.scene.Scene.prototype.draw = function() {
   document.getElementById('coordbox').innerHTML =
       goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
       goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
-      this.zoomLevel.toFixed(2);
+      this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
+      this.tileBuffer.bufferQueueSize();
 
   var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
   this.context.translate(0, 0, -1 - d);

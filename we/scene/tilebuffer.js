@@ -28,17 +28,54 @@ goog.require('we.texturing.TileProvider');
  * @constructor
  */
 we.scene.TileBuffer = function(tileprovider, context, width, height) {
-  this.tileProvider_ = tileprovider;
-  this.tileSize_ = this.tileProvider_.getTileSize();
-  this.tileCache_ = new we.texturing.TileCache(tileprovider);
-  //this.tileCache.delayedLoadHandler = goog.bing(this.bufferTile, this);
-
+  /**
+   * @type {!WebGLRenderingContext}
+   * @private
+   */
   this.gl_ = context.gl;
-
   var gl = this.gl_;
 
+  /**
+   * Array of buffer requests - ordered by request time
+   * (most recent request are at the end)
+   * @type {!Array.<we.texturing.Tile>}
+   * @private
+   */
+  this.bufferRequests_ = [];
+
+  /**
+   * Buffer width in tiles.
+   * @type {number}
+   * @private
+   */
   this.bufferWidth_ = width;
+
+  /**
+   * Buffer height in tiles.
+   * @type {number}
+   * @private
+   */
   this.bufferHeight_ = height;
+
+  /**
+   * @type {!we.texturing.TileProvider}
+   * @private
+   */
+  this.tileProvider_ = tileprovider;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.tileSize_ = this.tileProvider_.getTileSize();
+
+
+  /**
+   * @type {we.texturing.TileCache}
+   * @private
+   */
+  this.tileCache_ = new we.texturing.TileCache(tileprovider);
+  this.tileCache_.tileCachedHandler = this.bufferRequests_.push;
 
   this.recreateBuffers_();
 };
@@ -95,13 +132,6 @@ we.scene.TileBuffer.prototype.recreateBuffers_ = function() {
 
 
 /**
- * @type {WebGLRenderingContext}
- * @private
- */
-we.scene.TileBuffer.prototype.gl_ = null;
-
-
-/**
  * @type {WebGLTexture}
  */
 we.scene.TileBuffer.prototype.bufferTexture = null;
@@ -114,22 +144,6 @@ we.scene.TileBuffer.prototype.metaBuffer = null;
 
 
 /**
- * Buffer width in tiles.
- * @type {number}
- * @private
- */
-we.scene.TileBuffer.prototype.bufferWidth_ = 0;
-
-
-/**
- * Buffer height in tiles.
- * @type {number}
- * @private
- */
-we.scene.TileBuffer.prototype.bufferHeight_ = 0;
-
-
-/**
  * @return {!Object} Object containing "width" and "height" keys.
  */
 we.scene.TileBuffer.prototype.getDimensions = function() {
@@ -138,31 +152,25 @@ we.scene.TileBuffer.prototype.getDimensions = function() {
 
 
 /**
- * @type {we.texturing.TileProvider}
- * @private
- */
-we.scene.TileBuffer.prototype.tileProvider_ = null;
-
-
-/**
- * @type {number}
- * @private
- */
-we.scene.TileBuffer.prototype.tileSize_ = 0;
-
-
-/**
- * @type {we.texturing.TileCache}
- * @private
- */
-we.scene.TileBuffer.prototype.tileCache_ = null;
-
-
-/**
+ * Array of slots in this TileBuffer. This is "nearly" sorted according so
+ * that least recently used slots are at the beginning.
  * @type {Array.<we.scene.TileBuffer.Slot>}
  * @private
  */
 we.scene.TileBuffer.prototype.slotList_ = null;
+
+
+/**
+ * Finds slot where the tile is stored.
+ * @param {!string} key Key of the tile.
+ * @return {we.scene.TileBuffer.Slot} Slot where the tile is buffered. Or null.
+ */
+we.scene.TileBuffer.prototype.findTile = function(key) {
+  return /** @type {we.scene.TileBuffer.Slot} */ (
+      goog.array.findRight(this.slotList_, function(slot, index, array) {
+        return (!goog.isNull(slot.tile)) && (slot.tile.getKey() == key);
+      }));
+};
 
 
 /**
@@ -172,15 +180,24 @@ we.scene.TileBuffer.prototype.slotList_ = null;
  */
 we.scene.TileBuffer.prototype.tileNeeded = function(zoom, x, y) {
   var key = we.texturing.Tile.createKey(zoom, x, y);
-  var slot = goog.array.findRight(this.slotList_,
-      function(slot, index, array) {
-        return (!goog.isNull(slot.tile)) && (slot.tile.getKey() == key);
-      });
+  var slot = this.findTile(key);
 
-  if (!goog.isNull(slot)) {
-    slot.lastUse = goog.now();
+  if (goog.isNull(slot)) {
+    var queuePos = goog.array.findIndexRight(this.bufferRequests_,
+        function(tile, index, array) {
+          return (tile.getKey() == key);
+        });
+    if (queuePos >= 0) {
+      //Tile is already in the queue -> update its position (prioritize it)
+      this.bufferRequests_.push(this.bufferRequests_[queuePos]);
+      goog.array.removeAt(this.bufferRequests_, queuePos);
+    } else {
+      //Tile is not in the buffer or queue -> try to retrieve it from cache
+      this.bufferTileFromCache_(zoom, x, y);
+    }
   } else {
-    this.bufferTileFromCache_(zoom, x, y);
+    //Tile is already in the buffer -> just update lastUse
+    slot.lastUse = goog.now();
   }
 };
 
@@ -195,7 +212,43 @@ we.scene.TileBuffer.prototype.tileNeeded = function(zoom, x, y) {
 we.scene.TileBuffer.prototype.bufferTileFromCache_ = function(zoom, x, y) {
   var tile = this.tileCache_.retrieveTile(zoom, x, y);
   if (!goog.isNull(tile)) {
-    this.bufferTile_(tile);
+    //Tile is in the cache -> add it to bufferRequests_
+    goog.array.binaryInsert(this.bufferRequests_, tile, function(t1, t2) {
+      return t1.requestTime - t2.requestTime;
+    });
+  }
+};
+
+
+/**
+ * Removes old tiles from queue
+ * @param {number} ageLimit Age limit in ms.
+ */
+we.scene.TileBuffer.prototype.purgeQueue = function(ageLimit) {
+  var timeLimit = goog.now() - ageLimit;
+  while (this.bufferRequests_.length > 0 &&
+      this.bufferRequests_[0].requestTime < timeLimit) {
+    this.bufferTile_.shift();
+  }
+};
+
+
+/**
+ * Returns queue size
+ * @return {number} Length of the queue.
+ */
+we.scene.TileBuffer.prototype.bufferQueueSize = function() {
+  return this.bufferRequests_.length;
+};
+
+
+/**
+ * Buffers some tiles.
+ * @param {number} count Number of tiles to be buffered.
+ */
+we.scene.TileBuffer.prototype.bufferSomeTiles = function(count) {
+  for (var i = 0; i < count && this.bufferRequests_.length > 0; i++) {
+    this.bufferTile_(this.bufferRequests_.pop());
   }
 };
 

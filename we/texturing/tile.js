@@ -19,6 +19,7 @@ goog.require('goog.Disposable');
  */
 we.texturing.Tile = function() {
   //goog.base(this);
+  this.requestTime = goog.now();
 };
 goog.inherits(we.texturing.Tile, goog.Disposable);
 
@@ -64,6 +65,12 @@ we.texturing.Tile.prototype.y = 0;
  * @type {Image}
  */
 we.texturing.Tile.prototype.image = null;
+
+
+/**
+ * @type {number}
+ */
+we.texturing.Tile.prototype.requestTime = 0;
 
 
 /** @inheritDoc */

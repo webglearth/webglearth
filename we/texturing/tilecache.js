@@ -54,6 +54,12 @@ we.texturing.TileCache.prototype.tileMap_ = null;
 
 
 /**
+ * @type {!function(we.texturing.Tile)}
+ */
+we.texturing.TileCache.prototype.tileCachedHandler = goog.nullFunction;
+
+
+/**
  * Returns the tile that best matches the arguments and starts downloading
  * all better matches.
  * @param {number} zoom Zoom.
@@ -90,13 +96,13 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y) {
  */
 we.texturing.TileCache.prototype.cacheTile_ = function(tile) {
   //TODO: something smarter !!
-  if (this.tileMap_.getCount() > 32) {
+  /*if (this.tileMap_.getCount() > 32) {
     goog.structs.forEach(this.tileMap_,
         function(value, key, col) {goog.dispose(value);});
     this.tileMap_.clear();
-  }
+  }*/
   this.tileMap_.set(tile.getKey(), tile);
-  //this.delayedLoadHandler(tile);
+  this.tileCachedHandler(tile);
 };
 
 if (goog.DEBUG) {
