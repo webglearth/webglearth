@@ -300,53 +300,61 @@ we.scene.Scene.prototype.updateTiles = function() {
 
   var flooredZoom = Math.floor(this.zoomLevel);
 
-  if (flooredZoom < 6)
-    this.tileBuffer.tileNeeded(0, 0, 0);
+  for (var z = flooredZoom - 1; z >= 0; z--) {
+    var zFactor = (flooredZoom - z) + 1; //difference of zooms + 1
+    // x >> zFactor = x >> ((flooredZoom - z) + 1) =
+    // = Math.floor(x / (2 << (flooredZoom - z)))
+    this.tileBuffer.keepTile(z, position.x >> zFactor, position.y >> zFactor);
+  }
 
-  this.tileBuffer.tileNeeded(flooredZoom - 2,
+  if (flooredZoom < 6)
+    this.tileBuffer.needTile(0, 0, 0);
+
+  this.tileBuffer.needTile(flooredZoom - 2,
       Math.floor(position.x / 4), Math.floor(position.y / 4));
-  this.tileBuffer.tileNeeded(flooredZoom - 1,
+  this.tileBuffer.needTile(flooredZoom - 1,
       Math.floor(position.x / 2), Math.floor(position.y / 2));
-  this.tileBuffer.tileNeeded(flooredZoom, position.x, position.y);
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom, position.x, position.y);
+  this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x - 1, this.tileCount), position.y);
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x + 1, this.tileCount), position.y);
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       position.x, goog.math.modulo(position.y - 1, this.tileCount));
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       position.x, goog.math.modulo(position.y + 1, this.tileCount));
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x - 1, this.tileCount),
       goog.math.modulo(position.y - 1, this.tileCount));
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x - 1, this.tileCount),
       goog.math.modulo(position.y + 1, this.tileCount));
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x + 1, this.tileCount),
       goog.math.modulo(position.y - 1, this.tileCount));
-  this.tileBuffer.tileNeeded(flooredZoom,
+  this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x + 1, this.tileCount),
       goog.math.modulo(position.y + 1, this.tileCount));
-  /*this.tileBuffer.tileNeeded(0, 0, 0);
-  this.tileBuffer.tileNeeded(1, 1, 1);
-  this.tileBuffer.tileNeeded(2, 0, 0);
-  this.tileBuffer.tileNeeded(2, 1, 2);
-  this.tileBuffer.tileNeeded(2, 3, 2);
-  this.tileBuffer.tileNeeded(3, 3, 2);
-  this.tileBuffer.tileNeeded(8, 3, 2);
-  this.tileBuffer.tileNeeded(9, 3, 2);
-  this.tileBuffer.tileNeeded(13, 3, 2);*/
+  /*this.tileBuffer.needTile(0, 0, 0);
+  this.tileBuffer.needTile(1, 1, 1);
+  this.tileBuffer.needTile(2, 0, 0);
+  this.tileBuffer.needTile(2, 1, 2);
+  this.tileBuffer.needTile(2, 3, 2);
+  this.tileBuffer.needTile(3, 3, 2);
+  this.tileBuffer.needTile(8, 3, 2);
+  this.tileBuffer.needTile(9, 3, 2);
+  this.tileBuffer.needTile(13, 3, 2);*/
   /*for (var x = 1; x < 2; ++x) {
-    this.tileBuffer.tileNeeded(flooredZoom, position.x - x, position.y);
+    this.tileBuffer.needTile(flooredZoom, position.x - x, position.y);
     for (var y = 1; y < 2; ++y) {
-      this.tileBuffer.tileNeeded(flooredZoom, position.x - x, position.y - y);
-      this.tileBuffer.tileNeeded(flooredZoom, position.x + x, position.y - y);
-      this.tileBuffer.tileNeeded(flooredZoom, position.x - x, position.y + y);
-      this.tileBuffer.tileNeeded(flooredZoom, position.x + x, position.y + y);
+      this.tileBuffer.needTile(flooredZoom, position.x - x, position.y - y);
+      this.tileBuffer.needTile(flooredZoom, position.x + x, position.y - y);
+      this.tileBuffer.needTile(flooredZoom, position.x - x, position.y + y);
+      this.tileBuffer.needTile(flooredZoom, position.x + x, position.y + y);
     }
   }*/
-  //this.tileBuffer.purgeQueue(5000);
+
+  //this.tileBuffer.purgeQueue(goog.now() - 2000);
   this.tileBuffer.bufferSomeTiles(2);
 };
 

@@ -33,6 +33,7 @@ we.texturing.TileCache = function(tileprovider) {
  * @param {!we.texturing.TileProvider} tileprovider TileProvider to be set.
  */
 we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
+  this.tileProviderResetTime_ = goog.now();
   this.tileProvider_ = tileprovider;
   this.tileProvider_.tileLoadedHandler = goog.bind(this.cacheTile_, this);
   this.tileMap_.clear();
@@ -44,6 +45,13 @@ we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
  * @private
  */
 we.texturing.TileCache.prototype.tileProvider_ = null;
+
+
+/**
+ * @type {number}
+ * @private
+ */
+we.texturing.TileCache.prototype.tileProviderResetTime_ = 0;
 
 
 /**
@@ -95,6 +103,13 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y) {
  * @private
  */
 we.texturing.TileCache.prototype.cacheTile_ = function(tile) {
+  // To prevent caching late-arriving tiles.
+  if (tile.requestTime < this.tileProviderResetTime_) {
+    if (goog.DEBUG) {
+      we.texturing.TileCache.logger.info('Ignoring late tile..');
+    }
+    return;
+  }
   //TODO: something smarter !!
   /*if (this.tileMap_.getCount() > 32) {
     goog.structs.forEach(this.tileMap_,
