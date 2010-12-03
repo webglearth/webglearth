@@ -97,7 +97,7 @@ we.scene.Scene = function(context) {
       function(scene) { return (function(e) {
         scene.currentTileProvider_ = e.target.getValue();
         scene.tileBuffer.changeTileProvider(scene.currentTileProvider_);
-        this.currentTileProvider_.
+        scene.currentTileProvider_.
             copyrightInfoChangedHandler = updateCopyrights;
         updateCopyrights(scene.currentTileProvider_);
       });
@@ -182,8 +182,8 @@ we.scene.Scene = function(context) {
   longitudeSliderEl.style.height = '20px';
   longitudeSlider.render(document.body);
   longitudeSlider.setStep(null);
-  longitudeSlider.setMinimum(-Math.PI / 2);
-  longitudeSlider.setMaximum(Math.PI / 2);
+  longitudeSlider.setMinimum(-Math.PI);
+  longitudeSlider.setMaximum(Math.PI);
   longitudeSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
       function(scene) {
         return (function() {
@@ -270,6 +270,15 @@ we.scene.Scene = function(context) {
   var mwh = new goog.events.MouseWheelHandler(this.context.canvas);
   goog.events.listen(mwh, goog.events.MouseWheelHandler.EventType.MOUSEWHEEL,
       mouseWheelHandler(this));
+
+  if (navigator.geolocation) {
+    var setPosition = function(longsli, latsli) { return (function(position) {
+      latsli.setValue(goog.math.toRadians(position.coords.latitude));
+      longsli.setValue(goog.math.toRadians(position.coords.longitude));
+    })};
+    navigator.geolocation.getCurrentPosition(setPosition(longitudeSlider,
+                                                         latitudeSlider));
+  }
 };
 
 
@@ -295,7 +304,7 @@ we.scene.Scene.prototype.updateTiles = function() {
   var yOffset = Math.floor(this.projectLatitude(this.latitude) /
       (Math.PI * 2) * this.tileCount);
   var xOffset =
-      Math.floor(this.longitude / (Math.PI) * this.tileCount);
+      Math.floor(this.longitude / (2 * Math.PI) * this.tileCount);
 
   var position = new goog.math.Coordinate(xOffset + this.tileCount / 2,
       (this.tileCount - 1) - (yOffset + this.tileCount / 2));
@@ -408,7 +417,7 @@ we.scene.Scene.prototype.draw = function() {
   var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
   this.context.translate(0, 0, -1 - d);
   this.context.rotate(this.latitude, 1, 0, 0);
-  this.context.rotate(-(goog.math.modulo(this.longitude / (Math.PI) *
+  this.context.rotate(-(goog.math.modulo(this.longitude / (2 * Math.PI) *
       this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI), 0, 1, 0);
 
   gl.useProgram(this.shaderProgram);
@@ -454,7 +463,7 @@ we.scene.Scene.prototype.draw = function() {
       Math.min(Math.floor(this.zoomLevel),
       32));//TODO: this.tileProvider.getMaxZoomLevel());
   gl.uniform1f(this.shaderProgram.tileCountUniform, this.tileCount);
-  var offset = [Math.floor(this.longitude / (Math.PI) * this.tileCount),
+  var offset = [Math.floor(this.longitude / (2 * Math.PI) * this.tileCount),
         Math.floor(this.projectLatitude(this.latitude) /
             (Math.PI * 2) * this.tileCount)];
   gl.uniform2fv(this.shaderProgram.offsetUniform, offset);
