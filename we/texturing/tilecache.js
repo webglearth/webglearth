@@ -13,6 +13,7 @@ goog.require('goog.structs');
 goog.require('goog.structs.Map');
 
 goog.require('we.texturing.Tile');
+goog.require('we.texturing.Tile.State');
 goog.require('we.texturing.TileProvider');
 
 
@@ -35,7 +36,7 @@ we.texturing.TileCache = function(tileprovider) {
 we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
   this.tileProviderResetTime_ = goog.now();
   this.tileProvider_ = tileprovider;
-  this.tileProvider_.tileLoadedHandler = goog.bind(this.cacheTile_, this);
+  this.tileProvider_.tileLoadedHandler = goog.bind(this.tileLoaded_, this);
   this.tileMap_.clear();
 };
 
@@ -68,41 +69,43 @@ we.texturing.TileCache.prototype.tileCachedHandler = goog.nullFunction;
 
 
 /**
- * Returns the tile that best matches the arguments and starts downloading
- * all better matches.
- * @param {number} zoom Zoom.
- * @param {number} x X.
- * @param {number} y Y.
- * @return {we.texturing.Tile} Best available match.
+ * Returns the tile from cache if available.
+ * @param {string} key Key.
+ * @return {we.texturing.Tile} Tile from cache.
  */
-we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y) {
-  var first = true;
-  zoom = Math.min(zoom, this.tileProvider_.getMaxZoomLevel());
-  while (zoom >= 0) {
-    //for (var i = Math.min(zoom, this.tileProvider_.getMaxZoomLevel());
-    //    i >= 0; ++i) {
-    var key = we.texturing.Tile.createKey(zoom, x, y);
-    if (this.tileMap_.containsKey(key)) {
-      return /** @type {we.texturing.Tile} */ (this.tileMap_.get(key));
-    } else if (first) {
-      this.tileProvider_.loadTile(zoom, x, y);
-    }
-
-    zoom -= 1;
-    x = Math.floor(x / 2);
-    y = Math.floor(y / 2);
-    first = false;
-  }
-  return null;
+we.texturing.TileCache.prototype.getTileFromCache = function(key) {
+  return /** @type {we.texturing.Tile} */ (this.tileMap_.get(key));
 };
 
 
 /**
- * Puts the tile into cache //(and calls its bufferCallback function if set)
- * @param {!we.texturing.Tile} tile Tile to be cached.
+ * Returns tile from cache or starts loading it if not available
+ * @param {number} zoom Zoom.
+ * @param {number} x X.
+ * @param {number} y Y.
+ * @param {number} requestTime Time of the request, used as priority.
+ * @return {!we.texturing.Tile} Requested tile.
+ */
+we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
+                                                         requestTime) {
+  var key = we.texturing.Tile.createKey(zoom, x, y);
+  var tile = this.getTileFromCache(key);
+  if (!goog.isDefAndNotNull(tile)) {
+    tile = this.tileProvider_.loadTile(zoom, x, y, requestTime);
+    this.tileMap_.set(key, tile);
+  } else {
+    tile.requestTime = requestTime;
+  }
+  return tile;
+};
+
+
+/**
+ * Callback for loaded tiles.
+ * @param {!we.texturing.Tile} tile Loaded tile.
  * @private
  */
-we.texturing.TileCache.prototype.cacheTile_ = function(tile) {
+we.texturing.TileCache.prototype.tileLoaded_ = function(tile) {
   // To prevent caching late-arriving tiles.
   if (tile.requestTime < this.tileProviderResetTime_) {
     if (goog.DEBUG) {
@@ -116,7 +119,7 @@ we.texturing.TileCache.prototype.cacheTile_ = function(tile) {
         function(value, key, col) {goog.dispose(value);});
     this.tileMap_.clear();
   }*/
-  this.tileMap_.set(tile.getKey(), tile);
+
   this.tileCachedHandler(tile);
 };
 

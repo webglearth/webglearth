@@ -11,6 +11,7 @@ goog.provide('we.texturing.TileProvider');
 goog.require('goog.debug.Logger');
 
 goog.require('we.texturing.Tile');
+goog.require('we.texturing.Tile.State');
 
 
 
@@ -55,26 +56,53 @@ we.texturing.TileProvider.prototype.tileLoadedHandler = goog.nullFunction;
 
 
 /**
+ * Number of currently loading tiles.
+ * @type {number}
+ */
+we.texturing.TileProvider.prototype.loadingTileCounter = 0;
+
+
+/**
  * Determines URL for given tile and starts loading it.
  * @param {number} zoom Zoom level.
  * @param {number} x X coordinate.
  * @param {number} y Y coordinate.
+ * @param {number} requestTime Time of the request, used as priority.
+ * @return {!we.texturing.Tile} Constructed tile.
  */
-we.texturing.TileProvider.prototype.loadTile = function(zoom, x, y) {
+we.texturing.TileProvider.prototype.loadTile = function(zoom, x, y,
+                                                        requestTime) {
   var tile = new we.texturing.Tile();
   tile.zoom = zoom;
   tile.x = x;
   tile.y = y;
+  tile.requestTime = requestTime;
   tile.image = new Image();
   var onload = function(tileprovider) {return (function() {
     //if (goog.DEBUG)
     //  we.texturing.TileProvider.logger.info('Loaded tile ' + tile.getKey());
+    tile.state = we.texturing.Tile.State.LOADED;
+    tileprovider.loadingTileCounter--;
     tileprovider.tileLoadedHandler(tile);
   })};
+  var onerror = function(tileprovider) {return (function() {
+    if (goog.DEBUG) {
+      we.texturing.TileProvider.logger.severe('Error loading tile: ' +
+                                              tile.getKey());
+    }
+    tile.state = we.texturing.Tile.State.ERROR;
+    tileprovider.loadingTileCounter--;
+  })};
   tile.image.onload = onload(this);
+  tile.image.onerror = onerror(this);
   tile.image.src = this.getTileURL(zoom, x, y);
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
+
+  tile.state = we.texturing.Tile.State.LOADING;
+  this.loadingTileCounter++;
+
+  return tile;
 };
 
 

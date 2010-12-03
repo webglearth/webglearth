@@ -107,9 +107,14 @@ we.texturing.BingTileProvider.prototype.getTileURL = function(zoom, x, y) {
 
 
 /** @inheritDoc */
-we.texturing.BingTileProvider.prototype.loadTile = function(zoom, x, y) {
+we.texturing.BingTileProvider.prototype.loadTile = function(zoom, x, y,
+                                                            requestTime) {
   if (!goog.isNull(this.metaData_)) {
-    goog.base(this, 'loadTile', zoom, x, y);
+    return goog.base(this, 'loadTile', zoom, x, y, requestTime);
+  } else {
+    var tile = new we.texturing.Tile();
+    tile.state = we.texturing.Tile.State.ERROR;
+    return tile;
   }
 };
 

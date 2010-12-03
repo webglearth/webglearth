@@ -7,6 +7,7 @@
  */
 
 goog.provide('we.texturing.Tile');
+goog.provide('we.texturing.Tile.State');
 
 goog.require('goog.Disposable');
 
@@ -19,7 +20,42 @@ goog.require('goog.Disposable');
  */
 we.texturing.Tile = function() {
   //goog.base(this);
-  this.requestTime = goog.now();
+
+  /**
+   * @type {number}
+   */
+  this.zoom = 0;
+
+
+  /**
+   * @type {number}
+   */
+  this.x = 0;
+
+
+  /**
+   * @type {number}
+   */
+  this.y = 0;
+
+
+  /**
+   * @type {Image}
+   */
+  this.image = null;
+
+
+  /**
+   * @type {!we.texturing.Tile.State}
+   */
+  this.state = we.texturing.Tile.State.PREPARING;
+
+
+  /**
+   * @type {number}
+   */
+  this.requestTime = 0;
+
 };
 goog.inherits(we.texturing.Tile, goog.Disposable);
 
@@ -43,38 +79,22 @@ we.texturing.Tile.prototype.getKey = function() {
 };
 
 
-/**
- * @type {number}
- */
-we.texturing.Tile.prototype.zoom = 0;
-
-
-/**
- * @type {number}
- */
-we.texturing.Tile.prototype.x = 0;
-
-
-/**
- * @type {number}
- */
-we.texturing.Tile.prototype.y = 0;
-
-
-/**
- * @type {Image}
- */
-we.texturing.Tile.prototype.image = null;
-
-
-/**
- * @type {number}
- */
-we.texturing.Tile.prototype.requestTime = 0;
-
-
 /** @inheritDoc */
 we.texturing.Tile.prototype.disposeInternal = function() {
   goog.base(this, 'disposeInternal');
   delete this.image;
+};
+
+
+/**
+ * State of tile.
+ * @enum {number}
+ */
+we.texturing.Tile.State = {
+  ERROR: -10,
+  PREPARING: 0,
+  LOADING: 10,
+  LOADED: 20,
+  QUEUED_FOR_BUFFERING: 30,
+  BUFFERED: 40
 };

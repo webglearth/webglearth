@@ -56,12 +56,13 @@ we.scene.Scene = function(context) {
   var gl = context.gl;
 
 
-  var defaultTP = new we.texturing.MapQuestTileProvider();
+  this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
 
   /**
    * @type {!we.scene.TileBuffer}
    */
-  this.tileBuffer = new we.scene.TileBuffer(defaultTP, context, 8, 8);
+  this.tileBuffer = new we.scene.TileBuffer(this.currentTileProvider_, context,
+                                            8, 8);
 
   var tileProviderSelect = new goog.ui.Select('...');
   tileProviderSelect.addItem(new goog.ui.MenuItem('MapQuest OSM',
@@ -90,16 +91,17 @@ we.scene.Scene = function(context) {
       goog.dom.getElement('tileproviderlogo').style.visibility = 'hidden';
     }
   }
-  updateCopyrights(defaultTP);
+  updateCopyrights(this.currentTileProvider_);
 
   goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
-      function(tilebuffer) { return (function(e) {
-        var value = e.target.getValue();
-        tilebuffer.changeTileProvider(value);
-        value.copyrightInfoChangedHandler = updateCopyrights;
-        updateCopyrights(value);
+      function(scene) { return (function(e) {
+        scene.currentTileProvider_ = e.target.getValue();
+        scene.tileBuffer.changeTileProvider(scene.currentTileProvider_);
+        this.currentTileProvider_.
+            copyrightInfoChangedHandler = updateCopyrights;
+        updateCopyrights(scene.currentTileProvider_);
       });
-      }(this.tileBuffer));
+      }(this));
 
   this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(
@@ -300,41 +302,44 @@ we.scene.Scene.prototype.updateTiles = function() {
 
   var flooredZoom = Math.floor(this.zoomLevel);
 
+  var batchTime = goog.now();
+
   for (var z = flooredZoom - 1; z >= 0; z--) {
     var zFactor = (flooredZoom - z) + 1; //difference of zooms + 1
     // x >> zFactor = x >> ((flooredZoom - z) + 1) =
     // = Math.floor(x / (2 << (flooredZoom - z)))
-    this.tileBuffer.keepTile(z, position.x >> zFactor, position.y >> zFactor);
+    this.tileBuffer.needTile(z, position.x >> zFactor, position.y >> zFactor,
+                             batchTime + 1, true);
   }
 
-  if (flooredZoom < 6)
-    this.tileBuffer.needTile(0, 0, 0);
+  //if (flooredZoom < 6)
+  //  this.tileBuffer.needTile(0, 0, 0, batchTime);
 
   this.tileBuffer.needTile(flooredZoom - 2,
-      Math.floor(position.x / 4), Math.floor(position.y / 4));
+      Math.floor(position.x / 4), Math.floor(position.y / 4), batchTime);
   this.tileBuffer.needTile(flooredZoom - 1,
-      Math.floor(position.x / 2), Math.floor(position.y / 2));
-  this.tileBuffer.needTile(flooredZoom, position.x, position.y);
+      Math.floor(position.x / 2), Math.floor(position.y / 2), batchTime);
+  this.tileBuffer.needTile(flooredZoom, position.x, position.y, batchTime);
   this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x - 1, this.tileCount), position.y);
+      goog.math.modulo(position.x - 1, this.tileCount), position.y, batchTime);
   this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x + 1, this.tileCount), position.y);
+      goog.math.modulo(position.x + 1, this.tileCount), position.y, batchTime);
   this.tileBuffer.needTile(flooredZoom,
-      position.x, goog.math.modulo(position.y - 1, this.tileCount));
+      position.x, goog.math.modulo(position.y - 1, this.tileCount), batchTime);
   this.tileBuffer.needTile(flooredZoom,
-      position.x, goog.math.modulo(position.y + 1, this.tileCount));
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x - 1, this.tileCount),
-      goog.math.modulo(position.y - 1, this.tileCount));
+      position.x, goog.math.modulo(position.y + 1, this.tileCount), batchTime);
   this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x - 1, this.tileCount),
-      goog.math.modulo(position.y + 1, this.tileCount));
+      goog.math.modulo(position.y - 1, this.tileCount), batchTime);
+  this.tileBuffer.needTile(flooredZoom,
+      goog.math.modulo(position.x - 1, this.tileCount),
+      goog.math.modulo(position.y + 1, this.tileCount), batchTime);
   this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x + 1, this.tileCount),
-      goog.math.modulo(position.y - 1, this.tileCount));
+      goog.math.modulo(position.y - 1, this.tileCount), batchTime);
   this.tileBuffer.needTile(flooredZoom,
       goog.math.modulo(position.x + 1, this.tileCount),
-      goog.math.modulo(position.y + 1, this.tileCount));
+      goog.math.modulo(position.y + 1, this.tileCount), batchTime);
   /*this.tileBuffer.needTile(0, 0, 0);
   this.tileBuffer.needTile(1, 1, 1);
   this.tileBuffer.needTile(2, 0, 0);
@@ -355,7 +360,7 @@ we.scene.Scene.prototype.updateTiles = function() {
   }*/
 
   //this.tileBuffer.purgeQueue(goog.now() - 2000);
-  this.tileBuffer.bufferSomeTiles(2);
+  this.tileBuffer.bufferSomeTiles(3);
 };
 
 
@@ -397,7 +402,8 @@ we.scene.Scene.prototype.draw = function() {
       goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
       goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
       this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
-      this.tileBuffer.bufferQueueSize();
+      this.tileBuffer.bufferQueueSize() + '; Currently loading tiles: ' +
+      this.currentTileProvider_.loadingTileCounter;
 
   var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
   this.context.translate(0, 0, -1 - d);

@@ -77,7 +77,8 @@ we.scene.TileBuffer = function(tileprovider, context, width, height) {
    * @private
    */
   this.tileCache_ = new we.texturing.TileCache(tileprovider);
-  this.tileCache_.tileCachedHandler = this.bufferRequests_.push;
+  this.tileCache_.tileCachedHandler = goog.bind(this.requestTileBuffering_,
+                                                this);
 
   this.recreateBuffers_();
 };
@@ -168,11 +169,25 @@ we.scene.TileBuffer.prototype.slotList_ = null;
  * @return {we.scene.TileBuffer.Slot} Slot where the tile is buffered. Or null.
  * @private
  */
-we.scene.TileBuffer.prototype.findSlotWithTile_ = function(key) {
+we.scene.TileBuffer.prototype.findInBuffer_ = function(key) {
   return /** @type {we.scene.TileBuffer.Slot} */ (
       goog.array.findRight(this.slotList_, function(slot, index, array) {
         return (!goog.isNull(slot.tile)) && (slot.tile.getKey() == key);
       }));
+};
+
+
+/**
+ * Finds tile in buffer requests.
+ * @param {!string} key Key of the tile.
+ * @return {number} Position in queue. Or -1 if not present.
+ * @private
+ */
+we.scene.TileBuffer.prototype.findInQueue_ = function(key) {
+  return goog.array.findIndexRight(this.bufferRequests_,
+      function(tile, index, array) {
+        return (tile.getKey() == key);
+      });
 };
 
 
@@ -182,32 +197,46 @@ we.scene.TileBuffer.prototype.findSlotWithTile_ = function(key) {
  * @param {number} zoom Zoom.
  * @param {number} x X.
  * @param {number} y Y.
+ * @param {number} requestTime Time of the request, used as priority.
+ * @param {boolean=} opt_dontLoad If true, don't load the tile if
+                                 it's not present in buffer or queue.
  */
-we.scene.TileBuffer.prototype.needTile = function(zoom, x, y) {
-  var key = we.texturing.Tile.createKey(zoom, x, y);
-  var slot = this.findSlotWithTile_(key);
+we.scene.TileBuffer.prototype.needTile = function(zoom, x, y,
+                                                  requestTime, opt_dontLoad) {
 
-  if (goog.isNull(slot)) {
-    var queuePos = goog.array.findIndexRight(this.bufferRequests_,
-        function(tile, index, array) {
-          return (tile.getKey() == key);
-        });
+  if (zoom < this.tileProvider_.getMinZoomLevel() ||
+      zoom > this.tileProvider_.getMaxZoomLevel())
+    return;
+
+  var key = we.texturing.Tile.createKey(zoom, x, y);
+
+  var slot = this.findInBuffer_(key);
+
+  if (!goog.isNull(slot)) {
+    //Tile is already in the buffer -> just update requestTime
+    slot.tile.requestTime = requestTime;
+  } else {
+    var queuePos = this.findInQueue_(key);
     if (queuePos >= 0) {
       //Tile is already in the queue -> update its position (prioritize it)
-      this.bufferRequests_.push(this.bufferRequests_[queuePos]);
+      var tile = this.bufferRequests_[queuePos];
       goog.array.removeAt(this.bufferRequests_, queuePos);
-    } else {
+      tile.requestTime = requestTime;
+      this.requestTileBuffering_(tile);
+    } else if (!opt_dontLoad) {
       //Tile is not in the buffer or queue -> try to retrieve it from cache
-      this.bufferTileFromCache_(zoom, x, y);
+      if (!this.getTileFromCache_(zoom, x, y, requestTime)) {
+        //Tile is not yet loaded in cache -> try to buffer it's "parent"
+        if (zoom > 0) {
+          this.needTile(zoom - 1, x >> 2, y >> 2, requestTime - 1);
+        }
+      }
     }
-  } else {
-    //Tile is already in the buffer -> just update lastUse
-    slot.lastUse = goog.now();
   }
 };
 
 
-/**
+/*
  * If the tile is [soon-to-be] in buffer, this function
  *  ensures that it won't be thrown out (soon).
  * This is useful for long-distance tiles - they don't get thrown out, but
@@ -215,28 +244,37 @@ we.scene.TileBuffer.prototype.needTile = function(zoom, x, y) {
  * @param {number} zoom Zoom.
  * @param {number} x X.
  * @param {number} y Y.
+ * @param {number=} opt_requestTime Time of the request.
  */
-we.scene.TileBuffer.prototype.keepTile = function(zoom, x, y) {
+/*we.scene.TileBuffer.prototype.keepTile = function(zoom, x, y,
+opt_requestTime) {
   //TODO: consider merging this with needTile and diverge via argument.
 
   var key = we.texturing.Tile.createKey(zoom, x, y);
   var slot = this.findSlotWithTile_(key);
 
   if (goog.isNull(slot)) {
-    var queuePos = goog.array.findIndexRight(this.bufferRequests_,
-        function(tile, index, array) {
-          return (tile.getKey() == key);
-        });
-    if (queuePos >= 0) {
-      //Tile is already in the queue -> update its position (prioritize it)
-      this.bufferRequests_.push(this.bufferRequests_[queuePos]);
-      goog.array.removeAt(this.bufferRequests_, queuePos);
+    var inCache = this.tileCache_.getTileFromCache(key);
+    if (goog.isDef(inCache)) {
+      inCache.requestTime = opt_requestTime || goog.now();
+    } else {
+      var queuePos = goog.array.findIndexRight(this.bufferRequests_,
+          function(tile, index, array) {
+            return (tile.getKey() == key);
+          });
+      if (queuePos >= 0) {
+        //Tile is already in the queue -> update its position (prioritize it)
+        var tile = this.bufferRequests_[queuePos];
+        goog.array.removeAt(this.bufferRequests_, queuePos);
+        tile.requestTime = opt_requestTime || goog.now();
+        this.bufferRequest_(tile);
+      }
     }
   } else {
-    //Tile is already in the buffer -> just update lastUse
-    slot.lastUse = goog.now();
+    //Tile is already in the buffer -> just update requestTime
+    slot.tile.requestTime = opt_requestTime || goog.now();
   }
-};
+};*/
 
 
 /**
@@ -244,16 +282,32 @@ we.scene.TileBuffer.prototype.keepTile = function(zoom, x, y) {
  * @param {number} zoom Zoom.
  * @param {number} x X.
  * @param {number} y Y.
+ * @param {number} requestTime Time of the request, used as priority.
+ * @return {boolean} True if tile is loaded in cache, false otherwise.
  * @private
  */
-we.scene.TileBuffer.prototype.bufferTileFromCache_ = function(zoom, x, y) {
-  var tile = this.tileCache_.retrieveTile(zoom, x, y);
-  if (!goog.isNull(tile)) {
-    //Tile is in the cache -> add it to bufferRequests_
-    goog.array.binaryInsert(this.bufferRequests_, tile, function(t1, t2) {
-      return t1.requestTime - t2.requestTime;
-    });
+we.scene.TileBuffer.prototype.getTileFromCache_ = function(zoom, x, y,
+                                                           requestTime) {
+  var tile = this.tileCache_.retrieveTile(zoom, x, y, requestTime);
+  if (tile.state >= we.texturing.Tile.State.LOADED) {
+    //Tile is in the cache -> put it into buffering queue
+    this.requestTileBuffering_(tile);
+    return true;
   }
+  return false;
+};
+
+
+/**
+ * Adds tile to the queue for buffering
+ * @param {!we.texturing.Tile} tile Tile to add.
+ * @private
+ */
+we.scene.TileBuffer.prototype.requestTileBuffering_ = function(tile) {
+  tile.state = we.texturing.Tile.State.QUEUED_FOR_BUFFERING;
+  goog.array.binaryInsert(this.bufferRequests_, tile, function(t1, t2) {
+    return t1.requestTime - t2.requestTime;
+  });
 };
 
 
@@ -305,7 +359,7 @@ we.scene.TileBuffer.prototype.bufferTile_ = function(tile) {
 
   goog.array.sort(this.slotList_,
       function(slot1, slot2) {
-        return slot1.lastUse - slot2.lastUse;
+        return slot1.getRequestTime() - slot2.getRequestTime();
       });
 
   var slot = this.slotList_[0];
@@ -334,8 +388,11 @@ we.scene.TileBuffer.prototype.bufferTile_ = function(tile) {
   metaSlot[1] = tile.x;
   metaSlot[2] = tile.y;
 
+  if (!goog.isNull(slot.tile)) {
+    slot.tile.state = we.texturing.Tile.State.LOADED;
+  }
   slot.tile = tile;
-  slot.lastUse = goog.now();
+  slot.tile.state = we.texturing.Tile.State.BUFFERED;
 };
 
 
@@ -354,16 +411,18 @@ we.scene.TileBuffer.Slot = function(x, y) {
 
 /**
  * Last use of this tile
- * @type {number}
- */
-we.scene.TileBuffer.Slot.prototype.lastUse = 0;
-
-
-/**
- * Last use of this tile
  * @type {we.texturing.Tile}
  */
 we.scene.TileBuffer.Slot.prototype.tile = null;
+
+
+/**
+ * Returns time of last request for the tile stored in this slot or 0 if empty.
+ * @return {number} Last request time.
+ */
+we.scene.TileBuffer.Slot.prototype.getRequestTime = function() {
+  return goog.isNull(this.tile) ? 0 : this.tile.requestTime;
+};
 
 if (goog.DEBUG) {
   /**
