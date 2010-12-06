@@ -210,13 +210,44 @@ we.gl.Context.prototype.translate = function(x, y, z) {
  * @param {number} z Z translation.
  */
 we.gl.Context.prototype.rotate = function(angle, x, y, z) {
-  var vec = (new goog.math.Vec3(x, y, z)).toArray();
   var c = Math.cos(angle);
   var s = Math.sin(angle);
   this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
     [x * x * (1 - c) + c, x * y * (1 - c) - z * s, x * z * (1 - c) + y * s, 0],
     [y * x * (1 - c) + z * s, y * y * (1 - c) + c, y * z * (1 - c) - x * s, 0],
     [z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, z * z * (1 - c) + c, 0],
+    [0, 0, 0, 1]
+  ]));
+};
+
+
+/**
+ * Optimized function for rotating around (0, 1, 0).
+ * @param {number} angle Angle to rotate in radians.
+ */
+we.gl.Context.prototype.rotate010 = function(angle) {
+  var c = Math.cos(angle);
+  var s = Math.sin(angle);
+  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
+    [c, 0, s, 0],
+    [0, 1, 0, 0],
+    [-s, 0, c, 0],
+    [0, 0, 0, 1]
+  ]));
+};
+
+
+/**
+ * Optimized function for rotating around (1, 0, 0).
+ * @param {number} angle Angle to rotate in radians.
+ */
+we.gl.Context.prototype.rotate100 = function(angle) {
+  var c = Math.cos(angle);
+  var s = Math.sin(angle);
+  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
+    [1, 0, 0, 0],
+    [0, c, -s, 0],
+    [0, s, c, 0],
     [0, 0, 0, 1]
   ]));
 };

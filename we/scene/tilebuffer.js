@@ -199,7 +199,7 @@ we.scene.TileBuffer.prototype.findInQueue_ = function(key) {
  * @param {number} y Y.
  * @param {number} requestTime Time of the request, used as priority.
  * @param {boolean=} opt_dontLoad If true, don't load the tile if
-                                 it's not present in buffer or queue.
+                                  it's not already present in buffer or queue.
  */
 we.scene.TileBuffer.prototype.needTile = function(zoom, x, y,
                                                   requestTime, opt_dontLoad) {
@@ -234,47 +234,6 @@ we.scene.TileBuffer.prototype.needTile = function(zoom, x, y,
     }
   }
 };
-
-
-/*
- * If the tile is [soon-to-be] in buffer, this function
- *  ensures that it won't be thrown out (soon).
- * This is useful for long-distance tiles - they don't get thrown out, but
- *  they don't block slots if more detailed tiles has to be buffered.
- * @param {number} zoom Zoom.
- * @param {number} x X.
- * @param {number} y Y.
- * @param {number=} opt_requestTime Time of the request.
- */
-/*we.scene.TileBuffer.prototype.keepTile = function(zoom, x, y,
-opt_requestTime) {
-  //TODO: consider merging this with needTile and diverge via argument.
-
-  var key = we.texturing.Tile.createKey(zoom, x, y);
-  var slot = this.findSlotWithTile_(key);
-
-  if (goog.isNull(slot)) {
-    var inCache = this.tileCache_.getTileFromCache(key);
-    if (goog.isDef(inCache)) {
-      inCache.requestTime = opt_requestTime || goog.now();
-    } else {
-      var queuePos = goog.array.findIndexRight(this.bufferRequests_,
-          function(tile, index, array) {
-            return (tile.getKey() == key);
-          });
-      if (queuePos >= 0) {
-        //Tile is already in the queue -> update its position (prioritize it)
-        var tile = this.bufferRequests_[queuePos];
-        goog.array.removeAt(this.bufferRequests_, queuePos);
-        tile.requestTime = opt_requestTime || goog.now();
-        this.bufferRequest_(tile);
-      }
-    }
-  } else {
-    //Tile is already in the buffer -> just update requestTime
-    slot.tile.requestTime = opt_requestTime || goog.now();
-  }
-};*/
 
 
 /**

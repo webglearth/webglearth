@@ -22,10 +22,35 @@ goog.require('we.scene.Scene');
  * @constructor
  */
 we.scene.Dragger = function(scene) {
+  /**
+   * @type {!we.scene.Scene}
+   * @private
+   */
   this.scene_ = scene;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
   this.dragging_ = false;
+
+  /**
+   * @type {number}
+   * @private
+   */
   this.oldX_ = 0;
+
+  /**
+   * @type {number}
+   * @private
+   */
   this.oldY_ = 0;
+
+  /**
+   * @type {?number}
+   * @private
+   */
+  this.listenKey_ = null;
 
   goog.events.listen(this.scene_.context.canvas,
                      goog.events.EventType.MOUSEDOWN,
@@ -38,7 +63,6 @@ we.scene.Dragger = function(scene) {
   goog.events.listen(this.scene_.context.canvas,
                      goog.events.EventType.MOUSEOUT,
                      goog.bind(this.onMouseUp_, this));
-
 
 };
 

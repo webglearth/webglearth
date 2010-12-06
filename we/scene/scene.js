@@ -49,7 +49,7 @@ we.scene.BING_MAPS_KEY =
  * @type {number}
  * @const
  */
-we.scene.TILES_VERTICALLY = 2.5;
+we.scene.TILES_VERTICALLY = 2.2;
 
 
 
@@ -180,8 +180,6 @@ we.scene.Scene = function(context) {
   gl.attachShader(shaderProgram, fsshader);
   gl.linkProgram(shaderProgram);
 
-  // alert('b');
-
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
     throw Error('Could not initialise shaders');
   }
@@ -211,17 +209,11 @@ we.scene.Scene = function(context) {
   this.shaderProgram = shaderProgram;
 
   this.segmentedPlane = new we.scene.SegmentedPlane(context, 10, 10, 2);
-  //we.texture = we.gl.Texture.load(context,
-  //    'http://a.tile.openstreetmap.org/0/0/0.png');
 
   var mouseWheelHandler = function(scene) {
     return (function(e) {
-      scene.zoomLevel -= e.deltaY / 12;
-      scene.zoomLevel = Math.max(scene.currentTileProvider_.getMinZoomLevel(),
-          Math.min(scene.currentTileProvider_.getMaxZoomLevel(),
-              scene.zoomLevel));
-      scene.setZoom(scene.zoomLevel);
-      //zoomSlider.setValue(scene.zoomLevel);
+      var newLevel = scene.zoomLevel - e.deltaY / 12;
+      scene.setZoom(newLevel);
       e.preventDefault();
     });
   }
@@ -243,15 +235,13 @@ we.scene.Scene = function(context) {
 
 /**
  * Sets zoom level and calculates other appropriate cached variables
- * Note: This does not update zoomSlider!
  * @param {number} zoom New zoom level.
  */
 we.scene.Scene.prototype.setZoom = function(zoom) {
-  this.zoomLevel = zoom;
-  this.tileCount = 1 << Math.min(Math.floor(this.zoomLevel), 32);
-  //TODO:    this.tileProvider.getMaxZoomLevel()));
-  //document.getElementById('fpsbox').innerHTML = this.zoomLevel;
-  //this.distance = Math.pow(2, zoom);
+  this.zoomLevel = goog.math.clamp(zoom,
+                                   this.currentTileProvider_.getMinZoomLevel(),
+                                   this.currentTileProvider_.getMaxZoomLevel());
+  this.tileCount = 1 << Math.floor(this.zoomLevel);
 };
 
 
@@ -260,7 +250,7 @@ we.scene.Scene.prototype.setZoom = function(zoom) {
  */
 we.scene.Scene.prototype.updateTiles = function() {
 
-  var yOffset = Math.floor(this.projectLatitude(this.latitude) /
+  var yOffset = Math.floor(this.projectLatitude_(this.latitude) /
       (Math.PI * 2) * this.tileCount);
   var xOffset =
       Math.floor(this.longitude / (2 * Math.PI) * this.tileCount);
@@ -336,8 +326,9 @@ we.scene.Scene.prototype.updateTiles = function() {
  * Project latitude from Unprojected to Mercator
  * @param {number} latitude Unprojected latitude.
  * @return {number} Latitude projected to Mercator.
+ * @private
  */
-we.scene.Scene.prototype.projectLatitude = function(latitude) {
+we.scene.Scene.prototype.projectLatitude_ = function(latitude) {
   return Math.log(Math.tan(latitude / 2.0 + Math.PI / 4.0));
 };
 
@@ -347,14 +338,13 @@ we.scene.Scene.prototype.projectLatitude = function(latitude) {
  * settings so, that requested number of tiles can fit vertically on the canvas.
  * @param {number} tiles Requested amount of tiles.
  * @return {number} Calculated distance.
+ * @private
  */
-we.scene.Scene.prototype.calcDistance =
+we.scene.Scene.prototype.calcDistance_ =
     function(tiles) {
   var o = Math.cos(Math.abs(this.latitude)) * 2 * Math.PI;
   var thisPosDeformation = o / Math.pow(2, this.zoomLevel);
   var sizeIWannaSee = thisPosDeformation * tiles;
-  //document.getElementById('fpsbox').innerHTML =
-  //    "thisPosDeformation: " + thisPosDeformation;
   return Math.min(3,
       (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2));
 };
@@ -373,11 +363,11 @@ we.scene.Scene.prototype.draw = function() {
       this.tileBuffer.bufferQueueSize() + '; Currently loading tiles: ' +
       this.currentTileProvider_.loadingTileCounter;
 
-  this.distance = this.calcDistance(we.scene.TILES_VERTICALLY);
+  this.distance = this.calcDistance_(we.scene.TILES_VERTICALLY);
   this.context.translate(0, 0, -1 - this.distance);
-  this.context.rotate(this.latitude, 1, 0, 0);
-  this.context.rotate(-(goog.math.modulo(this.longitude / (2 * Math.PI) *
-      this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI), 0, 1, 0);
+  this.context.rotate100(this.latitude);
+  this.context.rotate010(-(goog.math.modulo(this.longitude / (2 * Math.PI) *
+      this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI));
 
   gl.useProgram(this.shaderProgram);
 
@@ -418,17 +408,14 @@ we.scene.Scene.prototype.draw = function() {
       gl.FLOAT, false, 0, 0);
 
   gl.uniformMatrix4fv(this.shaderProgram.mvpMatrixUniform, false, mvpm);
-  gl.uniform1f(this.shaderProgram.zoomLevelUniform,
-      Math.min(Math.floor(this.zoomLevel),
-      32));//TODO: this.tileProvider.getMaxZoomLevel());
+  gl.uniform1f(this.shaderProgram.zoomLevelUniform, Math.floor(this.zoomLevel));
   gl.uniform1f(this.shaderProgram.tileCountUniform, this.tileCount);
   var offset = [Math.floor(this.longitude / (2 * Math.PI) * this.tileCount),
-        Math.floor(this.projectLatitude(this.latitude) /
+        Math.floor(this.projectLatitude_(this.latitude) /
             (Math.PI * 2) * this.tileCount)];
   gl.uniform2fv(this.shaderProgram.offsetUniform, offset);
 
   gl.drawArrays(gl.TRIANGLES, 0, this.segmentedPlane.vertexBuffer.numItems);
-  //gl.drawArrays(gl.LINES, 0, we.plane.vertexBuffer.numItems);
 };
 
 if (goog.DEBUG) {
