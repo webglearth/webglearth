@@ -107,17 +107,17 @@ we.scene.Dragger.prototype.onMouseMove_ = function(e) {
     this.scene_.latitude = this.scene_.latitude + yDiff * factor;
 
 
-    if (this.scene_.latitude > Math.PI / 2) {
-      this.scene_.latitude = Math.PI - this.scene_.latitude;
-      this.scene_.longitude += Math.PI;
+    if (Math.abs(this.scene_.latitude) > Math.PI / 2.1) {
+      this.scene_.latitude = goog.math.sign(this.scene_.latitude) *
+          (Math.PI / 2.1);
     }
 
     if (this.scene_.longitude > Math.PI) {
-      this.scene_.longitude -= Math.PI;
+      this.scene_.longitude -= 2 * Math.PI;
     }
 
     if (this.scene_.longitude < -Math.PI) {
-      this.scene_.longitude += Math.PI;
+      this.scene_.longitude += 2 * Math.PI;
     }
 
     this.oldX_ = e.offsetX;
