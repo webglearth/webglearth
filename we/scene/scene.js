@@ -18,7 +18,6 @@ goog.require('goog.math.Coordinate');
 goog.require('goog.ui.Component.EventType');
 goog.require('goog.ui.MenuItem');
 goog.require('goog.ui.Select');
-goog.require('goog.ui.Slider');
 
 goog.require('we.gl.Context');
 goog.require('we.gl.Shader');
@@ -40,6 +39,17 @@ goog.require('we.utils');
  */
 we.scene.BING_MAPS_KEY =
     'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
+
+
+/**
+ * How many tiles should be visible on screen vertically. This should be near
+ * (or little lower to make text better readable)
+ * scene.context.canvas.height / scene.currentTileProvider_.getTileSize()) ->
+ * TODO: Should this be calculated dynamically?
+ * @type {number}
+ * @const
+ */
+we.scene.TILES_VERTICALLY = 2.5;
 
 
 
@@ -128,7 +138,7 @@ we.scene.Scene = function(context) {
   /**
    * @type {number}
    */
-  this.distance = -2;
+  this.distance = 0;
 
   /**
    * @type {number}
@@ -139,59 +149,6 @@ we.scene.Scene = function(context) {
    * @type {number}
    */
   this.longitude = 0;
-
-  var zoomSlider = new goog.ui.Slider;
-  zoomSlider.createDom();
-  var zoomSliderEl = zoomSlider.getElement();
-  zoomSliderEl.style.width = '640px';
-  zoomSliderEl.style.height = '20px';
-  zoomSlider.render(document.body);
-  zoomSlider.setStep(null);
-  zoomSlider.setMinimum(0);
-  zoomSlider.setMaximum(20.99);
-  zoomSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
-      function(scene) {
-        return (function() {
-          scene.setZoom(zoomSlider.getValue());
-        });
-      }(this));
-  zoomSlider.setValue(4);
-
-  var latitudeSlider = new goog.ui.Slider;
-  latitudeSlider.createDom();
-  var latitudeSliderEl = latitudeSlider.getElement();
-  latitudeSliderEl.style.width = '640px';
-  latitudeSliderEl.style.height = '20px';
-  latitudeSlider.render(document.body);
-  latitudeSlider.setStep(null);
-  latitudeSlider.setMinimum(-Math.PI / 2);
-  latitudeSlider.setMaximum(Math.PI / 2);
-  latitudeSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
-      function(scene) {
-        return (function() {
-          scene.latitude = latitudeSlider.getValue();
-          //document.getElementById('fpsbox').innerHTML = scene.latitude;
-        });
-      }(this));
-  latitudeSlider.setValue(0);
-
-  var longitudeSlider = new goog.ui.Slider;
-  longitudeSlider.createDom();
-  var longitudeSliderEl = longitudeSlider.getElement();
-  longitudeSliderEl.style.width = '640px';
-  longitudeSliderEl.style.height = '20px';
-  longitudeSlider.render(document.body);
-  longitudeSlider.setStep(null);
-  longitudeSlider.setMinimum(-Math.PI);
-  longitudeSlider.setMaximum(Math.PI);
-  longitudeSlider.addEventListener(goog.ui.Component.EventType.CHANGE,
-      function(scene) {
-        return (function() {
-          scene.longitude = longitudeSlider.getValue();
-          //document.getElementById('fpsbox').innerHTML = scene.longitude;
-        });
-      }(this));
-  longitudeSlider.setValue(0);
 
   /**
    * This is (partially) minified fragment shader that
@@ -260,10 +217,11 @@ we.scene.Scene = function(context) {
   var mouseWheelHandler = function(scene) {
     return (function(e) {
       scene.zoomLevel -= e.deltaY / 12;
-      scene.zoomLevel = Math.max(zoomSlider.getMinimum(),
-          Math.min(zoomSlider.getMaximum(), scene.zoomLevel));
-      //scene.setZoom(scene.zoomLevel);
-      zoomSlider.setValue(scene.zoomLevel);
+      scene.zoomLevel = Math.max(scene.currentTileProvider_.getMinZoomLevel(),
+          Math.min(scene.currentTileProvider_.getMaxZoomLevel(),
+              scene.zoomLevel));
+      scene.setZoom(scene.zoomLevel);
+      //zoomSlider.setValue(scene.zoomLevel);
       e.preventDefault();
     });
   }
@@ -272,13 +230,14 @@ we.scene.Scene = function(context) {
       mouseWheelHandler(this));
 
   if (navigator.geolocation) {
-    var setPosition = function(longsli, latsli) { return (function(position) {
-      latsli.setValue(goog.math.toRadians(position.coords.latitude));
-      longsli.setValue(goog.math.toRadians(position.coords.longitude));
+    var setPosition = function(scene) { return (function(position) {
+      scene.latitude = goog.math.toRadians(position.coords.latitude);
+      scene.longitude = goog.math.toRadians(position.coords.longitude);
     })};
-    navigator.geolocation.getCurrentPosition(setPosition(longitudeSlider,
-                                                         latitudeSlider));
+    navigator.geolocation.getCurrentPosition(setPosition(this));
   }
+
+  this.setZoom(2);
 };
 
 
@@ -292,7 +251,7 @@ we.scene.Scene.prototype.setZoom = function(zoom) {
   this.tileCount = 1 << Math.min(Math.floor(this.zoomLevel), 32);
   //TODO:    this.tileProvider.getMaxZoomLevel()));
   //document.getElementById('fpsbox').innerHTML = this.zoomLevel;
-  this.distance = Math.pow(2, zoom);
+  //this.distance = Math.pow(2, zoom);
 };
 
 
@@ -389,7 +348,7 @@ we.scene.Scene.prototype.projectLatitude = function(latitude) {
  * @param {number} tiles Requested amount of tiles.
  * @return {number} Calculated distance.
  */
-we.scene.Scene.prototype.calcDistanceSoThatISeeXTilesOfTextureVertical =
+we.scene.Scene.prototype.calcDistance =
     function(tiles) {
   var o = Math.cos(Math.abs(this.latitude)) * 2 * Math.PI;
   var thisPosDeformation = o / Math.pow(2, this.zoomLevel);
@@ -414,8 +373,8 @@ we.scene.Scene.prototype.draw = function() {
       this.tileBuffer.bufferQueueSize() + '; Currently loading tiles: ' +
       this.currentTileProvider_.loadingTileCounter;
 
-  var d = this.calcDistanceSoThatISeeXTilesOfTextureVertical(3);
-  this.context.translate(0, 0, -1 - d);
+  this.distance = this.calcDistance(we.scene.TILES_VERTICALLY);
+  this.context.translate(0, 0, -1 - this.distance);
   this.context.rotate(this.latitude, 1, 0, 0);
   this.context.rotate(-(goog.math.modulo(this.longitude / (2 * Math.PI) *
       this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI), 0, 1, 0);

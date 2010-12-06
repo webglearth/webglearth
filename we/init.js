@@ -15,6 +15,7 @@ goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('we.debug');
 goog.require('we.gl.Context');
+goog.require('we.scene.Dragger');
 goog.require('we.scene.Scene');
 
 //Dummy dependencies
@@ -46,6 +47,7 @@ we.init = function(canvas) {
     );
 
     context.scene = new we.scene.Scene(context);
+    var dragger = new we.scene.Dragger(context.scene);
 
     if (goog.DEBUG) {
       we.logger.info('Done');
