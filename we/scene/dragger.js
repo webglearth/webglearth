@@ -19,6 +19,7 @@ goog.require('goog.ui.Component.EventType');
 goog.require('we.scene.Scene');
 
 
+
 /**
  * Creates new dragger for the given scene.
  * @param {!we.scene.Scene} scene Scene.
@@ -145,6 +146,7 @@ we.scene.Dragger.prototype.onMouseUp_ = function(e) {
   }
 };
 
+
 /**
  * Move the scene in fiven direction defined in actial window pixel coordinates
  * @param {number} xDiff Difference of position in pixels in x-axis.
@@ -175,6 +177,7 @@ we.scene.Dragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
     this.scene_.longitude += 2 * Math.PI;
   }
 };
+
 
 /**
  * @param {!goog.events.BrowserEvent} e Event object.
@@ -226,11 +229,12 @@ we.scene.Dragger.prototype.onDragEndTick_ = function(e) {
       this.inertialStart_(500 * xFactor, 500 * yFactor);
     else if (diffLength < 100)
       this.inertialStart_(1000 * xFactor, 100 * yFactor);
-      else
-        this.inertialStart_(1500 * xFactor, 1500 * yFactor);
+    else
+      this.inertialStart_(1500 * xFactor, 1500 * yFactor);
   }
 
 };
+
 
 /**
  * Inertial scrolling (aka kinetic scrolling) animation with easing
