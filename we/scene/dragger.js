@@ -56,12 +56,8 @@ we.scene.Dragger = function(scene) {
                      goog.events.EventType.MOUSEDOWN,
                      goog.bind(this.onMouseDown_, this));
 
-  goog.events.listen(this.scene_.context.canvas,
+  goog.events.listen(goog.dom.getOwnerDocument(this.scene_.context.canvas),
                      goog.events.EventType.MOUSEUP,
-                     goog.bind(this.onMouseUp_, this));
-
-  goog.events.listen(this.scene_.context.canvas,
-                     goog.events.EventType.MOUSEOUT,
                      goog.bind(this.onMouseUp_, this));
 
 };
@@ -82,9 +78,10 @@ we.scene.Dragger.prototype.onMouseDown_ = function(e) {
     //  we.scene.Scene.logger.info('Registering MOUSEMOVE');
 
     //Register onMouseMove_
-    this.listenKey_ = goog.events.listen(this.scene_.context.canvas,
-                                         goog.events.EventType.MOUSEMOVE,
-                                         goog.bind(this.onMouseMove_, this));
+    this.listenKey_ = goog.events.listen(
+        goog.dom.getOwnerDocument(this.scene_.context.canvas),
+        goog.events.EventType.MOUSEMOVE,
+        goog.bind(this.onMouseMove_, this));
 
     e.preventDefault();
   }
