@@ -11,6 +11,7 @@ goog.provide('we.scene.Dragger');
 
 goog.require('goog.events');
 goog.require('goog.fx.Animation');
+goog.require('goog.fx.AnimationEvent');
 goog.require('goog.fx.easing');
 
 goog.require('goog.math');
@@ -104,7 +105,7 @@ we.scene.Dragger.prototype.onMouseDown_ = function(e) {
     // Stop inertial animation
     if (this.inertialAnimation_) {
       this.inertialAnimation_.stop(false);
-      this.inertialAnimation_.disposeInternal();
+      this.inertialAnimation_.dispose();
       this.inertialAnimation_ = null;
     }
 
@@ -240,7 +241,7 @@ we.scene.Dragger.prototype.onDragEndTick_ = function(e) {
  * Inertial scrolling (aka kinetic scrolling) animation with easing
  * @param {number} xDiff Difference of position in pixels in x-axis.
  * @param {number} yDiff Difference of position in pixels in y-axis.
- * @param {number} opt_duration Duration of the animation.
+ * @param {number=} opt_duration Duration of the animation.
  * @private
  */
 we.scene.Dragger.prototype.inertialStart_ =
@@ -262,7 +263,7 @@ we.scene.Dragger.prototype.inertialStart_ =
 
 /**
  * The animation tick for inertial scrolling
- * @param {!goog.events.BrowserEvent} e Event object.
+ * @param {!goog.fx.AnimationEvent} e Event object.
  * @private
  */
 we.scene.Dragger.prototype.inertialMoveTick_ = function(e) {
