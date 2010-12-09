@@ -220,9 +220,19 @@ we.scene.Scene = function(context) {
   shaderProgram.offsetUniform =
       gl.getUniformLocation(shaderProgram, 'uOffset');
 
+  /**
+   * @type {!WebGLProgram}
+   */
   this.shaderProgram = shaderProgram;
 
-  this.segmentedPlane = new we.scene.SegmentedPlane(context, 10, 10, 2);
+  /**
+   * @type {!Array.<!we.scene.SegmentedPlane>}
+   */
+  this.segmentedPlanes = [new we.scene.SegmentedPlane(context, 2, 3, 18),   //0
+                          new we.scene.SegmentedPlane(context, 4, 4, 10),   //1
+                          new we.scene.SegmentedPlane(context, 4, 6, 7),    //2
+                          new we.scene.SegmentedPlane(context, 8, 8, 5),    //3
+                          new we.scene.SegmentedPlane(context, 10, 10, 2)];
 
   var mouseWheelHandler = function(scene) {
     return (function(e) {
@@ -359,8 +369,7 @@ we.scene.Scene.prototype.calcDistance_ =
   var o = Math.cos(Math.abs(this.latitude)) * 2 * Math.PI;
   var thisPosDeformation = o / Math.pow(2, this.zoomLevel);
   var sizeIWannaSee = thisPosDeformation * tiles;
-  return Math.min(3,
-      (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2));
+  return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2);
 };
 
 
@@ -378,7 +387,7 @@ we.scene.Scene.prototype.draw = function() {
       this.currentTileProvider_.loadingTileCounter;
 
   this.distance = this.calcDistance_(we.scene.TILES_VERTICALLY);
-  this.context.translate(0, 0, -1 - this.distance);
+  this.context.translate(0, 0, -1 - Math.min(3, this.distance));
   this.context.rotate100(this.latitude);
   this.context.rotate010(-(goog.math.modulo(this.longitude / (2 * Math.PI) *
       this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI));
@@ -402,6 +411,8 @@ we.scene.Scene.prototype.draw = function() {
         ) : metaSlot1[0] - metaSlot2[0];
   };
 
+  //TODO: This does not have to be done every frame,
+  //only after TileBuffer.bufferSomeTiles() is called.
   goog.array.sort(metaBuffer, metaSlotComparer);
 
 
@@ -411,14 +422,17 @@ we.scene.Scene.prototype.draw = function() {
 
   var mvpm = this.context.getMVPM();
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.segmentedPlane.vertexBuffer);
+  var plane = this.segmentedPlanes[Math.min(Math.floor(this.zoomLevel),
+                                            this.segmentedPlanes.length - 1)];
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, plane.vertexBuffer);
   gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute,
-      this.segmentedPlane.vertexBuffer.itemSize,
+      plane.vertexBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.segmentedPlane.texCoordBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, plane.texCoordBuffer);
   gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute,
-      this.segmentedPlane.texCoordBuffer.itemSize,
+      plane.texCoordBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
   gl.uniformMatrix4fv(this.shaderProgram.mvpMatrixUniform, false, mvpm);
@@ -429,7 +443,7 @@ we.scene.Scene.prototype.draw = function() {
             (Math.PI * 2) * this.tileCount)];
   gl.uniform2fv(this.shaderProgram.offsetUniform, offset);
 
-  gl.drawArrays(gl.TRIANGLES, 0, this.segmentedPlane.vertexBuffer.numItems);
+  gl.drawArrays(gl.TRIANGLES, 0, plane.vertexBuffer.numItems);
 };
 
 if (goog.DEBUG) {
