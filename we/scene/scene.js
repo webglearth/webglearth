@@ -52,6 +52,16 @@ we.scene.BING_MAPS_KEY =
 we.scene.TILES_VERTICALLY = 2.2;
 
 
+/**
+ * Maximum number of zoom levels, the shader should fall back when
+ * looking up appropriate tile. This is the bottleneck of shader
+ * compilation and performance and should be chosen very carefully.
+ * @type {number}
+ * @const
+ */
+we.scene.LOOKUP_FALLBACK_LEVELS = 5;
+
+
 
 /**
  * Object handling scene data
@@ -169,6 +179,10 @@ we.scene.Scene = function(context) {
       dims.height.toFixed(1));
   vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_INT%',
       (dims.width * dims.height).toFixed(0));
+  vertexShaderCode = vertexShaderCode.replace('%BINARY_SEARCH_CYCLES_INT%',
+      (Math.log(dims.width * dims.height) / Math.LN2).toFixed(0));
+  vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_INT%',
+      (we.scene.LOOKUP_FALLBACK_LEVELS + 1).toFixed(0));
 
   var fsshader = we.gl.Shader.create(context, fragmentShaderCode,
       gl.FRAGMENT_SHADER);

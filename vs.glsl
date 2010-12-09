@@ -1,6 +1,8 @@
 #define BUFFER_WIDTH %BUFFER_WIDTH_FLOAT%
 #define BUFFER_HEIGHT %BUFFER_HEIGHT_FLOAT%
 #define BUFFER_SIZE %BUFFER_SIZE_INT%
+#define BINARY_SEARCH_CYCLES %BINARY_SEARCH_CYCLES_INT%
+#define LOOKUP_LEVELS %LOOKUP_LEVELS_INT%
 
 #ifdef GL_ES
 precision highp float;
@@ -53,23 +55,27 @@ void main(void) {
   vec3 key = vec3(uZoomLevel, tilex, tiley);
   
   const float last = float(BUFFER_SIZE)-1.0;
+  float lastZoomLevel = max(0.0, uZoomLevel - float(LOOKUP_LEVELS) + 1.0);
   int mid = 1; float min = 0.0, max = last;
-  while (key.r >= 0.0 && (compareMeta(uMetaBuffer[mid].xyz,key) != 0.0)) {
+  for (int _i=0; _i < BINARY_SEARCH_CYCLES*LOOKUP_LEVELS; ++_i) {
       if (min > max) {
+        if (key.r <= lastZoomLevel) break;
         key.r--;
         min = 0.0;
         max = last;
         off.x = off.x*0.5 + mod(key.g, 2.0);
         off.y = off.y*0.5 + 1.0-mod(key.b, 2.0);
         key.gb = floor(key.gb/2.0);
-        //key.b = floor(key.b/2.0);
       }
       
       mid = int((min + max) * 0.5);
-      if (compareMeta(uMetaBuffer[mid].xyz,key) > 0.0) {
+      float res = compareMeta(uMetaBuffer[mid].xyz,key);
+      if (res > 0.0) {
         max = float(mid) - 1.0;
-      } else {
+      } else if (res < 0.0) {
         min = float(mid) + 1.0;
+      } else {
+        break;
       }
   }
   
