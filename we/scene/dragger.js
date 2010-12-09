@@ -73,7 +73,7 @@ we.scene.Dragger = function(scene) {
    * @type {goog.Timer}
    * @private
    */
-  this.dragEndTimer_ = new goog.Timer(20);
+  this.dragEndTimer_ = new goog.Timer(15);
 
   /**
    * @type {goog.fx.Animation}
@@ -201,10 +201,9 @@ we.scene.Dragger.prototype.onMouseMove_ = function(e) {
 /**
  * Method fired 20ms after MOUSEUP event. It calculates the move direction
  * and lenght and starts the inertial animation.
- * @param {!goog.events.BrowserEvent} e Event object.
  * @private
  */
-we.scene.Dragger.prototype.onDragEndTick_ = function(e) {
+we.scene.Dragger.prototype.onDragEndTick_ = function() {
 
   this.dragEndTimer_.stop();
 
