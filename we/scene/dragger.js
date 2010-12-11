@@ -73,7 +73,7 @@ we.scene.Dragger = function(scene) {
    * @type {goog.Timer}
    * @private
    */
-  this.dragEndTimer_ = new goog.Timer(15);
+  this.dragEndTimer_ = new goog.Timer(25);
 
   /**
    * @type {goog.fx.Animation}
@@ -136,7 +136,6 @@ we.scene.Dragger.prototype.onMouseDown_ = function(e) {
 we.scene.Dragger.prototype.onMouseUp_ = function(e) {
   if (this.dragging_ && (e.type != goog.events.EventType.MOUSEDOWN ||
       e.isButton(goog.events.BrowserEvent.MouseButton.LEFT))) {
-    this.dragging_ = false;
 
     this.dragEndX_ = e.offsetX;
     this.dragEndY_ = e.offsetY;
@@ -204,8 +203,9 @@ we.scene.Dragger.prototype.onMouseMove_ = function(e) {
  * @private
  */
 we.scene.Dragger.prototype.onDragEndTick_ = function() {
-
   this.dragEndTimer_.stop();
+
+  this.dragging_ = false;
 
   //Unregister onMouseMove_
   if (!goog.isNull(this.listenKey_)) {
@@ -214,23 +214,21 @@ we.scene.Dragger.prototype.onDragEndTick_ = function() {
     goog.events.unlistenByKey(this.listenKey_);
   }
 
+  //Position change since dragEnd
   var xDiff = this.oldX_ - this.dragEndX_;
   var yDiff = this.oldY_ - this.dragEndY_;
 
-  // Initialize the inertial move
   var diffLength = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
 
-  if (diffLength > 10) {
+  if (diffLength > 6) {
 
-    var xFactor = xDiff / Math.max(Math.abs(xDiff), Math.abs(yDiff));
-    var yFactor = yDiff / Math.max(Math.abs(xDiff), Math.abs(yDiff));
+    //Normalization
+    var xFactor = xDiff / diffLength;
+    var yFactor = yDiff / diffLength;
 
-    if (diffLength < 50)
-      this.inertialStart_(500 * xFactor, 500 * yFactor);
-    else if (diffLength < 100)
-      this.inertialStart_(1000 * xFactor, 100 * yFactor);
-    else
-      this.inertialStart_(1500 * xFactor, 1500 * yFactor);
+    var moveFactor = Math.max(15, diffLength) * 8;
+
+    this.inertialStart_(moveFactor * xFactor, moveFactor * yFactor);
   }
 
 };
@@ -249,8 +247,8 @@ we.scene.Dragger.prototype.inertialStart_ =
   var duration = opt_duration || 1300;
 
   this.inertialAnimation_ = new goog.fx.Animation(
-      [this.dragEndX_, this.dragEndY_],
-      [this.dragEndX_ + xDiff, this.dragEndY_ + yDiff],
+      [this.oldX_, this.oldY_],
+      [this.oldX_ + xDiff, this.oldY_ + yDiff],
       duration, goog.fx.easing.easeOut);
 
   goog.events.listen(this.inertialAnimation_,
