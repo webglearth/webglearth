@@ -208,6 +208,10 @@ we.scene.TileBuffer.prototype.needTile = function(zoom, x, y,
       zoom > this.tileProvider_.getMaxZoomLevel())
     return;
 
+  var count = 1 << zoom;
+  x = goog.math.modulo(x, count);
+  y = goog.math.modulo(y, count);
+
   var key = we.texturing.Tile.createKey(zoom, x, y);
 
   var slot = this.findInBuffer_(key);
@@ -223,13 +227,12 @@ we.scene.TileBuffer.prototype.needTile = function(zoom, x, y,
       goog.array.removeAt(this.bufferRequests_, queuePos);
       tile.requestTime = requestTime;
       this.requestTileBuffering_(tile);
-    } else if (!opt_dontLoad) {
-      //Tile is not in the buffer or queue -> try to retrieve it from cache
-      if (!this.getTileFromCache_(zoom, x, y, requestTime)) {
-        //Tile is not yet loaded in cache -> try to buffer it's "parent"
-        if (zoom > 0) {
-          this.needTile(zoom - 1, x >> 2, y >> 2, requestTime - 1);
-        }
+    } else {
+      if (opt_dontLoad) {
+        this.tileCache_.updateRequestTime(key, requestTime);
+      } else {
+        //Tile is not in the buffer or queue -> try to retrieve it from cache
+        this.getTileFromCache_(zoom, x, y, requestTime);
       }
     }
   }
@@ -271,14 +274,20 @@ we.scene.TileBuffer.prototype.requestTileBuffering_ = function(tile) {
 
 
 /**
- * Removes old tiles from queue
- * @param {number} timeLimit Time limit in ms.
+ * Removes old tiles
+ * @param {number} bufferQueueLimit Time limit in ms for buffer requests.
+ * @param {number=} opt_notLoadedLimit Time limit in ms for load requests,
+ *                                     otherwise same as bufferQueueLimit.
  */
-we.scene.TileBuffer.prototype.purgeQueue = function(timeLimit) {
+we.scene.TileBuffer.prototype.purge = function(bufferQueueLimit, 
+                                               opt_notLoadedLimit) {
+  var time = goog.now() - bufferQueueLimit;
   while (this.bufferRequests_.length > 0 &&
-      this.bufferRequests_[0].requestTime < timeLimit) {
+      this.bufferRequests_[0].requestTime < time) {
     this.bufferRequests_.shift();
   }
+
+  this.tileCache_.purgeNotLoadedTiles(opt_notLoadedLimit || bufferQueueLimit);
 };
 
 
@@ -292,16 +301,28 @@ we.scene.TileBuffer.prototype.bufferQueueSize = function() {
 
 
 /**
- * Buffers some tiles.
- * @param {number} count Number of tiles to be buffered.
+ * Processes tiles - Buffers some tiles and ensures
+ * that the right amount of tiles is loading into the TileCache.
+ * @param {number} tilesToBuffer Number of tiles to be buffered.
+ * @param {number} tilesToBeLoading Number of tiles to be should be loading.
  */
-we.scene.TileBuffer.prototype.bufferSomeTiles = function(count) {
+we.scene.TileBuffer.prototype.processTiles = function(tilesToBuffer,
+                                                      tilesToBeLoading) {
   if (this.bufferRequests_.length > 0) {
-    var last = Math.max(this.bufferRequests_.length - count, 0);
-    for (var i = 0; i < count && this.bufferRequests_.length > 0; i++) {
+    var n = Math.min(this.bufferRequests_.length, tilesToBuffer);
+    for (var i = 0; i < n; i++) {
       this.bufferTile_(this.bufferRequests_.pop());
     }
   }
+
+  goog.array.sort(this.metaBuffer, function(metaSlot1, metaSlot2) {
+    return metaSlot1[0] == metaSlot2[0] ?
+        (metaSlot1[1] == metaSlot2[1] ?
+        (metaSlot1[2] - metaSlot2[2]) : metaSlot1[1] - metaSlot2[1]
+        ) : metaSlot1[0] - metaSlot2[0];
+  });
+
+  this.tileCache_.processLoadRequests(tilesToBeLoading);
 };
 
 

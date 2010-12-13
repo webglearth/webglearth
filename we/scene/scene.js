@@ -14,7 +14,6 @@ goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.MouseWheelHandler');
 goog.require('goog.math');
-goog.require('goog.math.Coordinate');
 goog.require('goog.ui.Component.EventType');
 goog.require('goog.ui.MenuItem');
 goog.require('goog.ui.Select');
@@ -276,73 +275,50 @@ we.scene.Scene.prototype.updateTiles = function() {
 
   var yOffset = Math.floor(this.projectLatitude_(this.latitude) /
       (Math.PI * 2) * this.tileCount);
-  var xOffset =
-      Math.floor(this.longitude / (2 * Math.PI) * this.tileCount);
+  var xOffset = Math.floor(this.longitude / (2 * Math.PI) * this.tileCount);
 
-  var position = new goog.math.Coordinate(xOffset + this.tileCount / 2,
-      (this.tileCount - 1) - (yOffset + this.tileCount / 2));
+  var position = {x: xOffset + this.tileCount / 2,
+    y: (this.tileCount - 1) - (yOffset + this.tileCount / 2)};
 
   var flooredZoom = Math.floor(this.zoomLevel);
 
   var batchTime = goog.now();
 
-  for (var z = flooredZoom - 1; z >= 0; z--) {
-    var zFactor = (flooredZoom - z) + 1; //difference of zooms + 1
-    // x >> zFactor = x >> ((flooredZoom - z) + 1) =
-    // = Math.floor(x / (2 << (flooredZoom - z)))
-    this.tileBuffer.needTile(z, position.x >> zFactor, position.y >> zFactor,
-                             batchTime + 1, true);
+  var getPointsAround = function(x, y, d, zoom, batchTime, scene) {
+    var result = [];
+    for (var i = -d; i <= d; i++) {
+      var absi = Math.abs(i);
+      scene.tileBuffer.needTile(zoom, x + i, y - d, batchTime - absi);
+      scene.tileBuffer.needTile(zoom, x + i, y + d, batchTime - absi);
+      if (absi != d) {
+        scene.tileBuffer.needTile(zoom, x - d, y + i, batchTime - absi);
+        scene.tileBuffer.needTile(zoom, x + d, y + i, batchTime - absi);
+      }
+    }
+  };
+
+  for (var i = 1; i <= we.scene.LOOKUP_FALLBACK_LEVELS; i++) {
+    //Request "parent" tiles.
+    var need = 4;
+    this.tileBuffer.needTile(flooredZoom - i, position.x >> i, position.y >> i,
+                             batchTime + i, i > need);
   }
 
-  //if (flooredZoom < 6)
-  //  this.tileBuffer.needTile(0, 0, 0, batchTime);
+  //Request tiles close to "parent" tile.
+  getPointsAround(position.x >> 1,
+                  position.y >> 1,
+                  1, flooredZoom - 1, batchTime, this);
 
-  this.tileBuffer.needTile(flooredZoom - 2,
-      Math.floor(position.x / 4), Math.floor(position.y / 4), batchTime);
-  this.tileBuffer.needTile(flooredZoom - 1,
-      Math.floor(position.x / 2), Math.floor(position.y / 2), batchTime);
-  this.tileBuffer.needTile(flooredZoom, position.x, position.y, batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x - 1, this.tileCount), position.y, batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x + 1, this.tileCount), position.y, batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      position.x, goog.math.modulo(position.y - 1, this.tileCount), batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      position.x, goog.math.modulo(position.y + 1, this.tileCount), batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x - 1, this.tileCount),
-      goog.math.modulo(position.y - 1, this.tileCount), batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x - 1, this.tileCount),
-      goog.math.modulo(position.y + 1, this.tileCount), batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x + 1, this.tileCount),
-      goog.math.modulo(position.y - 1, this.tileCount), batchTime);
-  this.tileBuffer.needTile(flooredZoom,
-      goog.math.modulo(position.x + 1, this.tileCount),
-      goog.math.modulo(position.y + 1, this.tileCount), batchTime);
-  /*this.tileBuffer.needTile(0, 0, 0);
-  this.tileBuffer.needTile(1, 1, 1);
-  this.tileBuffer.needTile(2, 0, 0);
-  this.tileBuffer.needTile(2, 1, 2);
-  this.tileBuffer.needTile(2, 3, 2);
-  this.tileBuffer.needTile(3, 3, 2);
-  this.tileBuffer.needTile(8, 3, 2);
-  this.tileBuffer.needTile(9, 3, 2);
-  this.tileBuffer.needTile(13, 3, 2);*/
-  /*for (var x = 1; x < 2; ++x) {
-    this.tileBuffer.needTile(flooredZoom, position.x - x, position.y);
-    for (var y = 1; y < 2; ++y) {
-      this.tileBuffer.needTile(flooredZoom, position.x - x, position.y - y);
-      this.tileBuffer.needTile(flooredZoom, position.x + x, position.y - y);
-      this.tileBuffer.needTile(flooredZoom, position.x - x, position.y + y);
-      this.tileBuffer.needTile(flooredZoom, position.x + x, position.y + y);
-    }
-  }*/
 
-  //this.tileBuffer.purgeQueue(goog.now() - 2000);
-  this.tileBuffer.bufferSomeTiles(3);
+  //Request the best tile.
+  this.tileBuffer.needTile(flooredZoom, position.x, position.y, batchTime + 3);
+
+  //Request close tiles.
+  getPointsAround(position.x, position.y, 1, flooredZoom, batchTime + 2, this);
+  getPointsAround(position.x, position.y, 2, flooredZoom, batchTime - 5, this);
+
+  this.tileBuffer.purge(500);
+  this.tileBuffer.processTiles(2, 12);
 };
 
 
@@ -384,7 +360,9 @@ we.scene.Scene.prototype.draw = function() {
       goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
       this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
       this.tileBuffer.bufferQueueSize() + '; Currently loading tiles: ' +
-      this.currentTileProvider_.loadingTileCounter;
+      this.currentTileProvider_.loadingTileCounter + '; LoadQueue size: ' +
+      this.tileBuffer.tileCache_.loadRequests_.length + '; Cache size: ' +
+      this.tileBuffer.tileCache_.tileMap_.getCount();
 
   this.distance = this.calcDistance_(we.scene.TILES_VERTICALLY);
   this.context.translate(0, 0, -1 - Math.min(3, this.distance));
@@ -398,27 +376,10 @@ we.scene.Scene.prototype.draw = function() {
   gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.bufferTexture);
   gl.uniform1i(this.shaderProgram.tileBufferUniform, 0);
 
-  //gl.activeTexture(gl.TEXTURE1);
-  //gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.metaBufferTexture);
-  //gl.uniform1i(we.program.metaBufferUniform, 1);
+  var metaBufferFlat = goog.array.flatten(this.tileBuffer.metaBuffer);
 
-  var metaBuffer = goog.array.clone(this.tileBuffer.metaBuffer);
-
-  var metaSlotComparer = function(metaSlot1, metaSlot2) {
-    return metaSlot1[0] == metaSlot2[0] ?
-        (metaSlot1[1] == metaSlot2[1] ?
-        (metaSlot1[2] - metaSlot2[2]) : metaSlot1[1] - metaSlot2[1]
-        ) : metaSlot1[0] - metaSlot2[0];
-  };
-
-  //TODO: This does not have to be done every frame,
-  //only after TileBuffer.bufferSomeTiles() is called.
-  goog.array.sort(metaBuffer, metaSlotComparer);
-
-
-  var flat = goog.array.flatten(metaBuffer);
-
-  gl.uniform4fv(this.shaderProgram.metaBufferUniform, new Float32Array(flat));
+  gl.uniform4fv(this.shaderProgram.metaBufferUniform,
+                new Float32Array(metaBufferFlat));
 
   var mvpm = this.context.getMVPM();
 

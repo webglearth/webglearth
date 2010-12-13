@@ -8,6 +8,7 @@
 
 goog.provide('we.texturing.TileCache');
 
+goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.structs');
 goog.require('goog.structs.Map');
@@ -24,7 +25,18 @@ goog.require('we.texturing.TileProvider');
  * @constructor
  */
 we.texturing.TileCache = function(tileprovider) {
+  /**
+   * @type {!goog.structs.Map}
+   * @private
+   */
   this.tileMap_ = new goog.structs.Map();
+
+  /**
+   * @type {!Array.<we.texturing.Tile>}
+   * @private
+   */
+  this.loadRequests_ = [];
+
   this.setTileProvider(tileprovider);
 };
 
@@ -38,6 +50,7 @@ we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
   this.tileProvider_ = tileprovider;
   this.tileProvider_.tileLoadedHandler = goog.bind(this.tileLoaded_, this);
   this.tileMap_.clear();
+  this.loadRequests_ = [];
 };
 
 
@@ -53,13 +66,6 @@ we.texturing.TileCache.prototype.tileProvider_ = null;
  * @private
  */
 we.texturing.TileCache.prototype.tileProviderResetTime_ = 0;
-
-
-/**
- * @type {goog.structs.Map}
- * @private
- */
-we.texturing.TileCache.prototype.tileMap_ = null;
 
 
 /**
@@ -91,12 +97,28 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
   var key = we.texturing.Tile.createKey(zoom, x, y);
   var tile = this.getTileFromCache(key);
   if (!goog.isDefAndNotNull(tile)) {
-    tile = this.tileProvider_.loadTile(zoom, x, y, requestTime);
+    tile = new we.texturing.Tile(zoom, x, y, requestTime);
     this.tileMap_.set(key, tile);
+    this.loadRequests_.push(tile);
   } else {
     tile.requestTime = requestTime;
   }
   return tile;
+};
+
+
+/**
+ * Tries to update tile's request time. If the tile is
+ * not present in cache, this function has no sideeffect.
+ * @param {string} key Tile's key.
+ * @param {number} requestTime Request time to be set.
+ */
+we.texturing.TileCache.prototype.updateRequestTime = function(key,
+                                                              requestTime) {
+  var tile = this.getTileFromCache(key);
+  if (goog.isDefAndNotNull(tile)) {
+    tile.requestTime = requestTime;
+  }
 };
 
 
@@ -122,6 +144,43 @@ we.texturing.TileCache.prototype.tileLoaded_ = function(tile) {
 
   this.tileCachedHandler(tile);
 };
+
+
+/**
+ * Removes old tiles from queue
+ * @param {number} timeLimit Time limit in ms.
+ */
+we.texturing.TileCache.prototype.purgeNotLoadedTiles = function(timeLimit) {
+  var time = goog.now() - timeLimit;
+  while (this.loadRequests_.length > 0 &&
+      this.loadRequests_[0].requestTime < time) {
+    this.tileMap_.remove(this.loadRequests_.shift().getKey());
+  }
+};
+
+
+/**
+ * Ensures that the right amount of tiles is loading.
+ * @param {number} tilesToBeLoading Number of tiles to be should be loading.
+ */
+we.texturing.TileCache.prototype.processLoadRequests =
+    function(tilesToBeLoading) {
+
+  goog.array.sort(this.loadRequests_,
+                  function(tile1, tile2) {
+                    return tile1.requestTime - tile2.requestTime;
+                  });
+
+  var n = Math.min(this.loadRequests_.length,
+                   tilesToBeLoading - this.tileProvider_.loadingTileCounter);
+  for (var i = 0; i < n; i++) {
+    var tile = this.loadRequests_.pop();
+    if (!this.tileProvider_.loadTile(tile)) {
+      this.loadRequests_.push(tile);
+    }
+  }
+};
+
 
 if (goog.DEBUG) {
   /**

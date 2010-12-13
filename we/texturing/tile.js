@@ -15,28 +15,38 @@ goog.require('goog.Disposable');
 
 /**
  * Object representing tile
+ * @param {number=} opt_zoom Zoom.
+ * @param {number=} opt_x X.
+ * @param {number=} opt_y Y.
+ * @param {number=} opt_requestTime Request time.
  * @constructor
  * @extends {goog.Disposable}
  */
-we.texturing.Tile = function() {
+we.texturing.Tile = function(opt_zoom, opt_x, opt_y, opt_requestTime) {
   //goog.base(this);
 
   /**
    * @type {number}
    */
-  this.zoom = 0;
+  this.zoom = opt_zoom || 0;
 
 
   /**
    * @type {number}
    */
-  this.x = 0;
+  this.x = opt_x || 0;
 
 
   /**
    * @type {number}
    */
-  this.y = 0;
+  this.y = opt_y || 0;
+
+
+  /**
+   * @type {number}
+   */
+  this.requestTime = opt_requestTime || 0;
 
 
   /**
@@ -50,11 +60,6 @@ we.texturing.Tile = function() {
    */
   this.state = we.texturing.Tile.State.PREPARING;
 
-
-  /**
-   * @type {number}
-   */
-  this.requestTime = 0;
 
 };
 goog.inherits(we.texturing.Tile, goog.Disposable);

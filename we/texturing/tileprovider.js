@@ -64,19 +64,10 @@ we.texturing.TileProvider.prototype.loadingTileCounter = 0;
 
 /**
  * Determines URL for given tile and starts loading it.
- * @param {number} zoom Zoom level.
- * @param {number} x X coordinate.
- * @param {number} y Y coordinate.
- * @param {number} requestTime Time of the request, used as priority.
- * @return {!we.texturing.Tile} Constructed tile.
+ * @param {!we.texturing.Tile} tile Tile to be loaded.
+ * @return {boolean} Returns whether the TileProvider is ready to load the tile.
  */
-we.texturing.TileProvider.prototype.loadTile = function(zoom, x, y,
-                                                        requestTime) {
-  var tile = new we.texturing.Tile();
-  tile.zoom = zoom;
-  tile.x = x;
-  tile.y = y;
-  tile.requestTime = requestTime;
+we.texturing.TileProvider.prototype.loadTile = function(tile) {
   tile.image = new Image();
   var onload = function(tileprovider) {return (function() {
     //if (goog.DEBUG)
@@ -95,14 +86,14 @@ we.texturing.TileProvider.prototype.loadTile = function(zoom, x, y,
   })};
   tile.image.onload = onload(this);
   tile.image.onerror = onerror(this);
-  tile.image.src = this.getTileURL(zoom, x, y);
+  tile.image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 
   tile.state = we.texturing.Tile.State.LOADING;
   this.loadingTileCounter++;
 
-  return tile;
+  return true;
 };
 
 
