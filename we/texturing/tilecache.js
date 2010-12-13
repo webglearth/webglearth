@@ -37,6 +37,22 @@ we.texturing.TileCache = function(tileprovider) {
    */
   this.loadRequests_ = [];
 
+  /**
+   * @type {number}
+   */
+  this.targetSize = 1024;
+
+  /**
+   * @type {goog.Timer}
+   * @private
+   */
+  this.cleanTimer_ = new goog.Timer(20000);
+
+  goog.events.listen(this.cleanTimer_, goog.Timer.TICK,
+                     this.cleanCache, false, this);
+
+  this.cleanTimer_.start();
+
   this.setTileProvider(tileprovider);
 };
 
@@ -81,6 +97,38 @@ we.texturing.TileCache.prototype.tileCachedHandler = goog.nullFunction;
  */
 we.texturing.TileCache.prototype.getTileFromCache = function(key) {
   return /** @type {we.texturing.Tile} */ (this.tileMap_.get(key));
+};
+
+
+/**
+ * Removes LRU tiles from cache
+ */
+we.texturing.TileCache.prototype.cleanCache = function() {
+  if (goog.DEBUG) {
+    we.texturing.TileCache.logger.info('Cleaning cache..');
+  }
+
+  // The filtering is here just to be on the safe side. Buffered tiles wouldn't
+  // probably get removed due to high request times, but it would be VERY bad.
+  var cleanable = goog.array.filter(this.tileMap_.getValues(),
+      function(tile, i, array) {
+        return tile.state == we.texturing.Tile.State.LOADED ||
+            tile.state == we.texturing.Tile.State.PREPARING ||
+            tile.state == we.texturing.Tile.State.ERROR;
+      });
+
+  goog.array.sort(cleanable, function(tile1, tile2) {
+    return tile1.requestTime - tile2.requestTime;
+  });
+
+  while (this.tileMap_.getCount() > this.targetSize && cleanable.length > 0) {
+    var tile = cleanable.shift();
+    if (tile.state == we.texturing.Tile.State.PREPARING) {
+      goog.array.remove(this.loadRequests_, tile);
+    }
+    this.tileMap_.remove(tile.getKey());
+    tile.dispose();
+  }
 };
 
 
@@ -133,14 +181,9 @@ we.texturing.TileCache.prototype.tileLoaded_ = function(tile) {
     if (goog.DEBUG) {
       we.texturing.TileCache.logger.info('Ignoring late tile..');
     }
+    tile.state = we.texturing.Tile.State.ERROR;
     return;
   }
-  //TODO: something smarter !!
-  /*if (this.tileMap_.getCount() > 32) {
-    goog.structs.forEach(this.tileMap_,
-        function(value, key, col) {goog.dispose(value);});
-    this.tileMap_.clear();
-  }*/
 
   this.tileCachedHandler(tile);
 };
@@ -154,7 +197,9 @@ we.texturing.TileCache.prototype.purgeNotLoadedTiles = function(timeLimit) {
   var time = goog.now() - timeLimit;
   while (this.loadRequests_.length > 0 &&
       this.loadRequests_[0].requestTime < time) {
-    this.tileMap_.remove(this.loadRequests_.shift().getKey());
+    var tile = this.loadRequests_.shift();
+    this.tileMap_.remove(tile.getKey());
+    tile.dispose();
   }
 };
 

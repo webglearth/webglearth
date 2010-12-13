@@ -251,7 +251,7 @@ we.scene.TileBuffer.prototype.needTile = function(zoom, x, y,
 we.scene.TileBuffer.prototype.getTileFromCache_ = function(zoom, x, y,
                                                            requestTime) {
   var tile = this.tileCache_.retrieveTile(zoom, x, y, requestTime);
-  if (tile.state >= we.texturing.Tile.State.LOADED) {
+  if (tile.state == we.texturing.Tile.State.LOADED) {
     //Tile is in the cache -> put it into buffering queue
     this.requestTileBuffering_(tile);
     return true;
@@ -268,7 +268,8 @@ we.scene.TileBuffer.prototype.getTileFromCache_ = function(zoom, x, y,
 we.scene.TileBuffer.prototype.requestTileBuffering_ = function(tile) {
   tile.state = we.texturing.Tile.State.QUEUED_FOR_BUFFERING;
   goog.array.binaryInsert(this.bufferRequests_, tile, function(t1, t2) {
-    return t1.requestTime - t2.requestTime;
+    return t1.requestTime == t2.requestTime ?
+        we.texturing.Tile.compare(t1, t2) : t1.requestTime - t2.requestTime;
   });
 };
 
@@ -284,7 +285,7 @@ we.scene.TileBuffer.prototype.purge = function(bufferQueueLimit,
   var time = goog.now() - bufferQueueLimit;
   while (this.bufferRequests_.length > 0 &&
       this.bufferRequests_[0].requestTime < time) {
-    this.bufferRequests_.shift();
+    this.bufferRequests_.shift().state = we.texturing.Tile.State.LOADED;
   }
 
   this.tileCache_.purgeNotLoadedTiles(opt_notLoadedLimit || bufferQueueLimit);
@@ -348,6 +349,7 @@ we.scene.TileBuffer.prototype.bufferTile_ = function(tile) {
     if (goog.DEBUG) {
       we.scene.TileBuffer.logger.info('Prevented overwriting newer tile..');
     }
+    tile.state = we.texturing.Tile.State.LOADED;
     return;
   }
 

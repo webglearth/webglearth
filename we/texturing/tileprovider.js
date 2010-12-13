@@ -86,11 +86,11 @@ we.texturing.TileProvider.prototype.loadTile = function(tile) {
   })};
   tile.image.onload = onload(this);
   tile.image.onerror = onerror(this);
+  tile.state = we.texturing.Tile.State.LOADING;
   tile.image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 
-  tile.state = we.texturing.Tile.State.LOADING;
   this.loadingTileCounter++;
 
   return true;

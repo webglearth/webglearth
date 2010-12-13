@@ -84,6 +84,19 @@ we.texturing.Tile.prototype.getKey = function() {
 };
 
 
+/**
+ * Compares two tiles.
+ * @param {!we.texturing.Tile} t1 One tile.
+ * @param {!we.texturing.Tile} t2 Second tile.
+ * @return {number} Comparison result.
+ */
+we.texturing.Tile.compare = function(t1, t2) {
+  return t1.zoom == t2.zoom ?
+      (t1.x == t2.x ? t1.y - t2.y : t1.x - t2.x) :
+      t1.zoom - t2.zoom;
+};
+
+
 /** @inheritDoc */
 we.texturing.Tile.prototype.disposeInternal = function() {
   goog.base(this, 'disposeInternal');
