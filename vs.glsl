@@ -34,21 +34,16 @@ float compareMeta(in vec3 a, in vec3 b) {
 void main(void) {
   vec2 phi = PI2*vec2(aVertexPosition.x, aVertexPosition.y + uOffset.y)/uTileCount;
 
-  //phi.y = atan((exp(phi.y) - exp(-phi.y))*0.5);
-
-  //float exp_2y = exp(2.0*phi.y);
-  //phi.y = asin((exp_2y - 1.0)/(exp_2y + 1.0));
-  phi.y = 2.0*atan((exp(phi.y) - 1.0)/(exp(phi.y) + 1.0));
-
-  //if (abs(phiy) > MAX_PHI)
-  //  phiy = sign(phiy)*PIhalf;
-
   if (abs(phi.x) > PI)
     phi.x = PI;
-  if (abs(phi.y) > PI)
-    phi.y = PI;
 
-  gl_Position = uMVPMatrix * vec4(sin(phi.x)*cos(phi.y), sin(phi.y), cos(phi.x)*cos(phi.y), 1.0);
+  //if (abs(phi.y) > PI)
+  //  phi.y = PI;
+
+  float exp_2y = exp(2.0*phi.y);
+  float tanh = ((exp_2y - 1.0)/(exp_2y + 1.0));
+  float cosy = sqrt(1.0 - tanh*tanh);
+  gl_Position = uMVPMatrix * vec4(sin(phi.x)*cosy, tanh, cos(phi.x)*cosy, 1.0);
 
   float tilex = mod((aVertexPosition.x - aTextureCoord.x  + uOffset.x + uTileCount*0.5), uTileCount);
   float tiley = aTextureCoord.y - 1.0 - aVertexPosition.y - uOffset.y + uTileCount*0.5;
