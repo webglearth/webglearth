@@ -92,6 +92,7 @@ we.scene.TileBuffer.prototype.changeTileProvider = function(tileprovider) {
   this.tileProvider_ = tileprovider;
   this.tileCache_.setTileProvider(tileprovider);
   this.tileSize_ = this.tileProvider_.getTileSize();
+  this.bufferRequests_ = [];
   this.recreateBuffers_();
 };
 

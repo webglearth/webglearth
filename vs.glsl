@@ -88,6 +88,7 @@ void main(void) {
     return;
   }
 
+  vTile = vec2(0.0,0.0);
   vTC = vec2(0.0,0.0);//aTextureCoord;
 
   if ((abs(phi.y) - MAX_PHI) > 0.01)
