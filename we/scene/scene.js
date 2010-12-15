@@ -132,6 +132,7 @@ we.scene.Scene = function(context) {
         scene.tileBuffer.changeTileProvider(scene.currentTileProvider_);
         scene.currentTileProvider_.
             copyrightInfoChangedHandler = updateCopyrights;
+        scene.setZoom(scene.zoomLevel);
         updateCopyrights(scene.currentTileProvider_);
       });
       }(this));
