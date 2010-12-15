@@ -25,6 +25,7 @@ goog.require('we.scene.TileBuffer');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.TMSTileProvider');
 goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
 goog.require('we.utils');
@@ -92,6 +93,7 @@ we.scene.Scene = function(context) {
                                             8, 8);
 
   var tileProviderSelect = new goog.ui.Select('...');
+
   tileProviderSelect.addItem(new goog.ui.MenuItem('MapQuest OSM',
       new we.texturing.MapQuestTileProvider()));
   tileProviderSelect.addItem(new goog.ui.MenuItem('Open Street Maps',
@@ -103,6 +105,10 @@ we.scene.Scene = function(context) {
       'AerialWithLabels')));
   tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - Road',
       new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY, 'Road')));
+  tileProviderSelect.addItem(new goog.ui.MenuItem('Local TMS tiles',
+      new we.texturing.TMSTileProvider(
+      './natural-earth-III-balanced-001.merc/{z}/{x}/{y}.jpg', 0, 5, 256)));
+
   tileProviderSelect.render(goog.dom.getElement('tileprovider'));
 
   tileProviderSelect.setSelectedIndex(0);
