@@ -61,6 +61,14 @@ we.scene.TILES_VERTICALLY = 2.2;
 we.scene.LOOKUP_FALLBACK_LEVELS = 5;
 
 
+/**
+ * Minimum zoom level - really low zoom levels are useless.
+ * @type {number}
+ * @const
+ */
+we.scene.MIN_ZOOM = 2.5;
+
+
 
 /**
  * Object handling scene data
@@ -261,8 +269,9 @@ we.scene.Scene = function(context) {
  * @param {number} zoom New zoom level.
  */
 we.scene.Scene.prototype.setZoom = function(zoom) {
-  this.zoomLevel = goog.math.clamp(zoom,
-                                   this.currentTileProvider_.getMinZoomLevel(),
+  var minZoom = Math.max(we.scene.MIN_ZOOM,
+      this.currentTileProvider_.getMinZoomLevel());
+  this.zoomLevel = goog.math.clamp(zoom, minZoom,
                                    this.currentTileProvider_.getMaxZoomLevel());
   this.tileCount = 1 << Math.floor(this.zoomLevel);
 };
