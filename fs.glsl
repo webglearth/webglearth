@@ -5,7 +5,7 @@
 precision mediump float;
 #endif
 
-invariant varying vec2 vTile;
+varying vec2 vTile;
 varying vec2 vTC;
 
 uniform sampler2D uTileBuffer;

@@ -25,7 +25,7 @@ uniform vec2 uOffset;
 uniform vec4 uMetaBuffer[BUFFER_SIZE];
 
 //To fragment shader
-invariant varying vec2 vTile;
+varying vec2 vTile;
 varying vec2 vTC;
 
 float compareMeta(in vec3 a, in vec3 b) {

@@ -99,7 +99,7 @@ we.texturing.Tile.compare = function(t1, t2) {
 
 /** @inheritDoc */
 we.texturing.Tile.prototype.disposeInternal = function() {
-  goog.base(this, 'disposeInternal');
+  //goog.base(this, 'disposeInternal');
   delete this.image;
 };
 
