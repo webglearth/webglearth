@@ -12,6 +12,7 @@ const float PI  = 3.1415927;
 const float PI2 = 6.2831855;
 const float MAX_PHI = 1.4844222;
 
+//From application
 attribute vec2 aVertexPosition;
 attribute vec2 aTextureCoord;
 
@@ -21,9 +22,10 @@ uniform float uZoomLevel;
 uniform float uTileCount;
 uniform vec2 uOffset;
 
-uniform sampler2D uTileBuffer;
-
 uniform vec4 uMetaBuffer[BUFFER_SIZE];
+
+//To fragment shader
+invariant varying vec2 vTile;
 varying vec2 vTC;
 
 float compareMeta(in vec3 a, in vec3 b) {
@@ -79,8 +81,10 @@ void main(void) {
   if (compareMeta(uMetaBuffer[mid].xyz,key) == 0.0) {
     float i = uMetaBuffer[mid].a;
     float reduction = exp2(uZoomLevel - key.r);
-    vTC.x = ((mod(i, BUFFER_WIDTH)) + off.x*0.5  + (aTextureCoord.x)/reduction)/BUFFER_WIDTH;
-    vTC.y = ((floor(i / BUFFER_WIDTH)) + off.y*0.5 + (aTextureCoord.y)/reduction)/BUFFER_HEIGHT;
+    vTile.x = mod(i, BUFFER_WIDTH);
+    vTile.y = floor(i / BUFFER_WIDTH);
+    vTC.x = off.x*0.5 + (aTextureCoord.x)/reduction;
+    vTC.y = off.y*0.5 + (aTextureCoord.y)/reduction;
     return;
   }
 
