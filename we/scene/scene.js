@@ -130,24 +130,18 @@ we.scene.Scene = function(context) {
   updateCopyrights(this.currentTileProvider_);
 
   goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
-      function(scene) { return (function(e) {
-        scene.currentTileProvider_ = e.target.getValue();
-        scene.tileBuffer.changeTileProvider(scene.currentTileProvider_);
-        scene.currentTileProvider_.
+      goog.bind(function(e) {
+        this.currentTileProvider_ = e.target.getValue();
+        this.tileBuffer.changeTileProvider(this.currentTileProvider_);
+        this.currentTileProvider_.
             copyrightInfoChangedHandler = updateCopyrights;
-        scene.setZoom(scene.zoomLevel);
-        updateCopyrights(scene.currentTileProvider_);
-      });
-      }(this));
+        this.setZoom(this.zoomLevel);
+        updateCopyrights(this.currentTileProvider_);
+      }, this));
 
   this.updateTilesTimer = new goog.Timer(150);
-  goog.events.listen(
-      this.updateTilesTimer,
-      goog.Timer.TICK,
-      function(scene) {
-        return (function() {scene.updateTiles();});
-      }(this)
-  );
+  goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,
+                     goog.bind(this.updateTiles, this));
 
   this.updateTilesTimer.start();
 
@@ -200,10 +194,7 @@ we.scene.Scene = function(context) {
   renderShapeSelect.setSelectedIndex(0);
 
   goog.events.listen(renderShapeSelect, goog.ui.Component.EventType.ACTION,
-      function(scene) { return (function(e) {
-        scene.renderShape_ = e.target.getValue();
-      });
-      }(this));
+      goog.bind(function(e) {this.renderShape_ = e.target.getValue();}, this));
 
 
   /**
@@ -215,23 +206,20 @@ we.scene.Scene = function(context) {
                           new we.scene.SegmentedPlane(context, 8, 8, 5),    //3
                           new we.scene.SegmentedPlane(context, 10, 10, 2)];
 
-  var mouseWheelHandler = function(scene) {
-    return (function(e) {
-      var newLevel = scene.zoomLevel - e.deltaY / 12;
-      scene.setZoom(newLevel);
-      e.preventDefault();
-    });
-  }
   var mwh = new goog.events.MouseWheelHandler(this.context.canvas);
   goog.events.listen(mwh, goog.events.MouseWheelHandler.EventType.MOUSEWHEEL,
-      mouseWheelHandler(this));
+      goog.bind(function(e) {
+        var newLevel = this.zoomLevel - e.deltaY / 12;
+        this.setZoom(newLevel);
+        e.preventDefault();
+      }, this));
 
   if (navigator.geolocation) {
-    var setPosition = function(scene) { return (function(position) {
-      scene.latitude = goog.math.toRadians(position.coords.latitude);
-      scene.longitude = goog.math.toRadians(position.coords.longitude);
-    })};
-    navigator.geolocation.getCurrentPosition(setPosition(this));
+    navigator.geolocation.getCurrentPosition(
+        goog.bind(function(position) {
+          this.latitude = goog.math.toRadians(position.coords.latitude);
+          this.longitude = goog.math.toRadians(position.coords.longitude);
+        }, this));
   }
 
   this.setZoom(2);
@@ -313,22 +301,6 @@ we.scene.Scene.prototype.updateTiles = function() {
  */
 we.scene.Scene.prototype.projectLatitude_ = function(latitude) {
   return Math.log(Math.tan(latitude / 2.0 + Math.PI / 4.0));
-};
-
-
-/**
- * Calculates proper distance from the sphere according to current perspective
- * settings so, that requested number of tiles can fit vertically on the canvas.
- * @param {number} tiles Requested amount of tiles.
- * @return {number} Calculated distance.
- * @private
- */
-we.scene.Scene.prototype.calcDistance_ =
-    function(tiles) {
-  var o = Math.cos(Math.abs(this.latitude)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.zoomLevel);
-  var sizeIWannaSee = thisPosDeformation * tiles;
-  return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2);
 };
 
 
