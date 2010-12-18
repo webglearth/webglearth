@@ -42,10 +42,7 @@ void main(void) {
   //if (abs(phi.y) > PI)
   //  phi.y = PI;
 
-  float exp_2y = exp(2.0*phi.y);
-  float tanh = ((exp_2y - 1.0)/(exp_2y + 1.0));
-  float cosy = sqrt(1.0 - tanh*tanh);
-  gl_Position = uMVPMatrix * vec4(sin(phi.x)*cosy, tanh, cos(phi.x)*cosy, 1.0);
+%VERTEX_TRANSFORM%
 
   float tilex = mod((aVertexPosition.x - aTextureCoord.x  + uOffset.x + uTileCount*0.5), uTileCount);
   float tiley = aTextureCoord.y - 1.0 - aVertexPosition.y - uOffset.y + uTileCount*0.5;

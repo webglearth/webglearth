@@ -19,9 +19,12 @@ goog.require('goog.ui.MenuItem');
 goog.require('goog.ui.Select');
 
 goog.require('we.gl.Context');
-goog.require('we.gl.Shader');
+goog.require('we.scene.LocatedProgram');
 goog.require('we.scene.SegmentedPlane');
 goog.require('we.scene.TileBuffer');
+goog.require('we.scene.rendershapes.Plane');
+goog.require('we.scene.rendershapes.RenderShape');
+goog.require('we.scene.rendershapes.Sphere');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
@@ -174,70 +177,34 @@ we.scene.Scene = function(context) {
    */
   this.longitude = 0;
 
+  /**
+   * @type {!we.scene.rendershapes.RenderShape}
+   * @private
+   */
+  this.renderShape_ = new we.scene.rendershapes.Sphere(context);
+
   var bufferDims = this.tileBuffer.getDimensions();
 
-  var fragmentShaderCode = we.utils.getFile('fs.glsl');
+  this.renderShape_.compileProgram(bufferDims.width, bufferDims.height,
+                                   we.scene.LOOKUP_FALLBACK_LEVELS);
 
-  fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
-      bufferDims.width.toFixed(1));
-  fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
-      bufferDims.height.toFixed(1));
+  var planeShape = new we.scene.rendershapes.Plane(context);
+  planeShape.compileProgram(bufferDims.width, bufferDims.height,
+      we.scene.LOOKUP_FALLBACK_LEVELS);
 
-  var vertexShaderCode = we.utils.getFile('vs.glsl');
 
-  vertexShaderCode = vertexShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
-      bufferDims.width.toFixed(1));
-  vertexShaderCode = vertexShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
-      bufferDims.height.toFixed(1));
-  vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_INT%',
-      (bufferDims.width * bufferDims.height).toFixed(0));
-  vertexShaderCode = vertexShaderCode.replace('%BINARY_SEARCH_CYCLES_INT%',
-      (Math.log(bufferDims.width * bufferDims.height) / Math.LN2).toFixed(0));
-  vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_INT%',
-      (we.scene.LOOKUP_FALLBACK_LEVELS + 1).toFixed(0));
+  var renderShapeSelect = new goog.ui.Select('...');
+  renderShapeSelect.addItem(new goog.ui.MenuItem('Sphere', this.renderShape_));
+  renderShapeSelect.addItem(new goog.ui.MenuItem('Plane', planeShape));
+  renderShapeSelect.render(goog.dom.getElement('tileprovider'));
+  renderShapeSelect.setSelectedIndex(0);
 
-  var fsshader = we.gl.Shader.create(context, fragmentShaderCode,
-      gl.FRAGMENT_SHADER);
-  var vsshader = we.gl.Shader.create(context, vertexShaderCode,
-      gl.VERTEX_SHADER);
+  goog.events.listen(renderShapeSelect, goog.ui.Component.EventType.ACTION,
+      function(scene) { return (function(e) {
+        scene.renderShape_ = e.target.getValue();
+      });
+      }(this));
 
-  var shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vsshader);
-  gl.attachShader(shaderProgram, fsshader);
-  gl.linkProgram(shaderProgram);
-
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    throw Error('Could not initialise shaders');
-  }
-
-  shaderProgram.vertexPositionAttribute =
-      gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-  gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
-
-  shaderProgram.textureCoordAttribute =
-      gl.getAttribLocation(shaderProgram, 'aTextureCoord');
-  gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
-
-  shaderProgram.mvpMatrixUniform =
-      gl.getUniformLocation(shaderProgram, 'uMVPMatrix');
-  shaderProgram.tileBufferUniform =
-      gl.getUniformLocation(shaderProgram, 'uTileBuffer');
-  shaderProgram.metaBufferUniform =
-      gl.getUniformLocation(shaderProgram, 'uMetaBuffer');
-
-  shaderProgram.tileSizeUniform =
-      gl.getUniformLocation(shaderProgram, 'uTileSize');
-  shaderProgram.zoomLevelUniform =
-      gl.getUniformLocation(shaderProgram, 'uZoomLevel');
-  shaderProgram.tileCountUniform =
-      gl.getUniformLocation(shaderProgram, 'uTileCount');
-  shaderProgram.offsetUniform =
-      gl.getUniformLocation(shaderProgram, 'uOffset');
-
-  /**
-   * @type {!WebGLProgram}
-   */
-  this.shaderProgram = shaderProgram;
 
   /**
    * @type {!Array.<!we.scene.SegmentedPlane>}
@@ -380,21 +347,23 @@ we.scene.Scene.prototype.draw = function() {
       this.tileBuffer.tileCache_.loadRequests_.length + '; Cache size: ' +
       this.tileBuffer.tileCache_.tileMap_.getCount();
 
-  this.distance = this.calcDistance_(we.scene.TILES_VERTICALLY);
-  this.context.translate(0, 0, -1 - Math.min(3, this.distance));
-  this.context.rotate100(this.latitude);
-  this.context.rotate010(-(goog.math.modulo(this.longitude / (2 * Math.PI) *
-      this.tileCount, 1.0)) / this.tileCount * (2 * Math.PI));
+  this.distance = this.renderShape_.calcDistance(this.latitude, this.longitude,
+                                                 this.zoomLevel,
+                                                 we.scene.TILES_VERTICALLY);
+  this.renderShape_.transformContext(this.latitude, this.longitude,
+                                     this.distance, this.tileCount);
 
-  gl.useProgram(this.shaderProgram);
+  gl.useProgram(this.renderShape_.locatedProgram.program);
+
+  var locatedProgram = this.renderShape_.locatedProgram;
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.bufferTexture);
-  gl.uniform1i(this.shaderProgram.tileBufferUniform, 0);
+  gl.uniform1i(locatedProgram.tileBufferUniform, 0);
 
   var metaBufferFlat = goog.array.flatten(this.tileBuffer.metaBuffer);
 
-  gl.uniform4fv(this.shaderProgram.metaBufferUniform,
+  gl.uniform4fv(locatedProgram.metaBufferUniform,
                 new Float32Array(metaBufferFlat));
 
   var mvpm = this.context.getMVPM();
@@ -403,24 +372,24 @@ we.scene.Scene.prototype.draw = function() {
                                             this.segmentedPlanes.length - 1)];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, plane.vertexBuffer);
-  gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute,
+  gl.vertexAttribPointer(locatedProgram.vertexPositionAttribute,
       plane.vertexBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, plane.texCoordBuffer);
-  gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute,
+  gl.vertexAttribPointer(locatedProgram.textureCoordAttribute,
       plane.texCoordBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
-  gl.uniformMatrix4fv(this.shaderProgram.mvpMatrixUniform, false, mvpm);
-  gl.uniform1f(this.shaderProgram.tileSizeUniform,
+  gl.uniformMatrix4fv(locatedProgram.mvpMatrixUniform, false, mvpm);
+  gl.uniform1f(locatedProgram.tileSizeUniform,
       this.currentTileProvider_.getTileSize());
-  gl.uniform1f(this.shaderProgram.zoomLevelUniform, Math.floor(this.zoomLevel));
-  gl.uniform1f(this.shaderProgram.tileCountUniform, this.tileCount);
+  gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel));
+  gl.uniform1f(locatedProgram.tileCountUniform, this.tileCount);
   var offset = [Math.floor(this.longitude / (2 * Math.PI) * this.tileCount),
         Math.floor(this.projectLatitude_(this.latitude) /
             (Math.PI * 2) * this.tileCount)];
-  gl.uniform2fv(this.shaderProgram.offsetUniform, offset);
+  gl.uniform2fv(locatedProgram.offsetUniform, offset);
 
   gl.drawArrays(gl.TRIANGLES, 0, plane.vertexBuffer.numItems);
 };
