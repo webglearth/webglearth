@@ -19,8 +19,8 @@ goog.require('goog.ui.MenuItem');
 goog.require('goog.ui.Select');
 
 goog.require('we.gl.Context');
+goog.require('we.gl.SegmentedPlane');
 goog.require('we.scene.LocatedProgram');
-goog.require('we.scene.SegmentedPlane');
 goog.require('we.scene.TileBuffer');
 goog.require('we.scene.rendershapes.Plane');
 goog.require('we.scene.rendershapes.RenderShape');
@@ -198,13 +198,13 @@ we.scene.Scene = function(context) {
 
 
   /**
-   * @type {!Array.<!we.scene.SegmentedPlane>}
+   * @type {!Array.<!we.gl.SegmentedPlane>}
    */
-  this.segmentedPlanes = [new we.scene.SegmentedPlane(context, 2, 3, 18),   //0
-                          new we.scene.SegmentedPlane(context, 4, 4, 10),   //1
-                          new we.scene.SegmentedPlane(context, 4, 6, 7),    //2
-                          new we.scene.SegmentedPlane(context, 8, 8, 5),    //3
-                          new we.scene.SegmentedPlane(context, 10, 10, 2)];
+  this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 2, 3, 18),   //0
+                          new we.gl.SegmentedPlane(context, 4, 4, 10),   //1
+                          new we.gl.SegmentedPlane(context, 4, 6, 7),    //2
+                          new we.gl.SegmentedPlane(context, 8, 8, 5),    //3
+                          new we.gl.SegmentedPlane(context, 10, 10, 2)];
 
   var mwh = new goog.events.MouseWheelHandler(this.context.canvas);
   goog.events.listen(mwh, goog.events.MouseWheelHandler.EventType.MOUSEWHEEL,

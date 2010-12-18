@@ -6,7 +6,7 @@
  *
  */
 
-goog.provide('we.scene.SegmentedPlane');
+goog.provide('we.gl.SegmentedPlane');
 
 goog.require('we.gl.Mesh');
 
@@ -21,7 +21,7 @@ goog.require('we.gl.Mesh');
  * @constructor
  * @implements {we.gl.Mesh}
  */
-we.scene.SegmentedPlane = function(context, width, height, opt_subdiv) {
+we.gl.SegmentedPlane = function(context, width, height, opt_subdiv) {
   /**
    * WebGL context
    * @type {!WebGLRenderingContext}

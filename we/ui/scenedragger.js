@@ -7,7 +7,7 @@
  *
  */
 
-goog.provide('we.scene.Dragger');
+goog.provide('we.ui.SceneDragger');
 
 goog.require('goog.events');
 goog.require('goog.fx.Animation');
@@ -26,7 +26,7 @@ goog.require('we.scene.Scene');
  * @param {!we.scene.Scene} scene Scene.
  * @constructor
  */
-we.scene.Dragger = function(scene) {
+we.ui.SceneDragger = function(scene) {
   /**
    * @type {!we.scene.Scene}
    * @private
@@ -99,7 +99,7 @@ we.scene.Dragger = function(scene) {
  * @param {!goog.events.BrowserEvent} e Event object.
  * @private
  */
-we.scene.Dragger.prototype.onMouseDown_ = function(e) {
+we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
   if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT)) {
 
     // Stop inertial animation
@@ -133,7 +133,7 @@ we.scene.Dragger.prototype.onMouseDown_ = function(e) {
  * @param {!goog.events.BrowserEvent} e Event object.
  * @private
  */
-we.scene.Dragger.prototype.onMouseUp_ = function(e) {
+we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
   if (this.dragging_ && (e.type != goog.events.EventType.MOUSEDOWN ||
       e.isButton(goog.events.BrowserEvent.MouseButton.LEFT))) {
 
@@ -153,7 +153,7 @@ we.scene.Dragger.prototype.onMouseUp_ = function(e) {
  * @param {number} yDiff Difference of position in pixels in y-axis.
  * @private
  */
-we.scene.Dragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
+we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
 
   //TODO: more exact calculation (just vertically?)
   //PI * (How much is 1px on the screen?) * (How much is visible?)
@@ -183,7 +183,7 @@ we.scene.Dragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
  * @param {!goog.events.BrowserEvent} e Event object.
  * @private
  */
-we.scene.Dragger.prototype.onMouseMove_ = function(e) {
+we.ui.SceneDragger.prototype.onMouseMove_ = function(e) {
 
   var xDiff = e.offsetX - this.oldX_;
   var yDiff = e.offsetY - this.oldY_;
@@ -202,7 +202,7 @@ we.scene.Dragger.prototype.onMouseMove_ = function(e) {
  * and lenght and starts the inertial animation.
  * @private
  */
-we.scene.Dragger.prototype.onDragEndTick_ = function() {
+we.ui.SceneDragger.prototype.onDragEndTick_ = function() {
   this.dragEndTimer_.stop();
 
   this.dragging_ = false;
@@ -241,7 +241,7 @@ we.scene.Dragger.prototype.onDragEndTick_ = function() {
  * @param {number=} opt_duration Duration of the animation.
  * @private
  */
-we.scene.Dragger.prototype.inertialStart_ =
+we.ui.SceneDragger.prototype.inertialStart_ =
     function(xDiff, yDiff, opt_duration) {
 
   var duration = opt_duration || 1300;
@@ -263,7 +263,7 @@ we.scene.Dragger.prototype.inertialStart_ =
  * @param {!goog.fx.AnimationEvent} e Event object.
  * @private
  */
-we.scene.Dragger.prototype.inertialMoveTick_ = function(e) {
+we.ui.SceneDragger.prototype.inertialMoveTick_ = function(e) {
   this.scenePixelMove_(e.x - this.oldX_, e.y - this.oldY_);
   this.oldX_ = e.x;
   this.oldY_ = e.y;
