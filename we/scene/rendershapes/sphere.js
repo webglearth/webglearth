@@ -25,11 +25,10 @@ goog.inherits(we.scene.rendershapes.Sphere, we.scene.rendershapes.RenderShape);
 
 /** @inheritDoc */
 we.scene.rendershapes.Sphere.prototype.vertexTransform_ =
-  'float exp_2y = exp(2.0*phi.y);' +
-  'float tanh = ((exp_2y - 1.0)/(exp_2y + 1.0));' +
-  'float cosy = sqrt(1.0 - tanh*tanh);' +
-  'gl_Position = uMVPMatrix *' +
-  'vec4(sin(phi.x)*cosy, tanh, cos(phi.x)*cosy, 1.0);';
+  'float exp_2y=exp(2.0*phi.y);' +
+  'float tanh=((exp_2y-1.0)/(exp_2y+1.0));' +
+  'float cosy=sqrt(1.0-tanh*tanh);' +
+  'gl_Position=uMVPMatrix*vec4(sin(phi.x)*cosy,tanh,cos(phi.x)*cosy,1.0);';
 
 
 /** @inheritDoc */

@@ -25,14 +25,13 @@ goog.inherits(we.scene.rendershapes.Plane, we.scene.rendershapes.RenderShape);
 
 /** @inheritDoc */
 we.scene.rendershapes.Plane.prototype.vertexTransform_ =
-  'gl_Position = uMVPMatrix *' +
-  'vec4(phi.x/PI, phi.y/PI, 0, 1.0);';
+  'gl_Position=uMVPMatrix*vec4(phi.x/PI,phi.y/PI,0.0,1.0);';
 
 
 /** @inheritDoc */
 we.scene.rendershapes.Plane.prototype.calcDistance =
   function(latitude, longitude, zoom, tilesToBeSeen) {
-    var sizeIWannaSee = 2*tilesToBeSeen / Math.pow(2, zoom);
+    var sizeIWannaSee = 2 * tilesToBeSeen / Math.pow(2, zoom);
     return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2);
   };
 
