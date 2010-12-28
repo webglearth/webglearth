@@ -1,20 +1,22 @@
-<?xml version='1.0' encoding='UTF-8'?> 
-<!DOCTYPE HTML> 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"> 
- <head> 
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="robots" content="index, all" />
   <meta name="author" content="Petr Sloup" />
   <title>WebGL Earth - compiled</title>
-  
-  <link rel="stylesheet" href="closure-library/closure/goog/css/common.css"> 
-  <link rel="stylesheet" href="closure-library/closure/goog/css/menubutton.css"> 
-  <link rel="stylesheet" href="closure-library/closure/goog/css/menu.css"> 
-  <link rel="stylesheet" href="closure-library/closure/goog/css/menuitem.css"> 
-  
+
+  <link rel="stylesheet" href="closure-library/closure/goog/css/common.css">
+  <link rel="stylesheet" href="closure-library/closure/goog/css/menubutton.css">
+  <link rel="stylesheet" href="closure-library/closure/goog/css/menu.css">
+  <link rel="stylesheet" href="closure-library/closure/goog/css/menuitem.css">
+
   <script src="compiled.js"></script>
- </head> 
- <body onload="javascript:we.init(document.getElementById('glcanvas'));">
+
+  <script src="demo.js"></script>
+ </head>
+ <body onload="javascript:StartWebGLEarthDemo(document.getElementById('glcanvas'));">
    <div id="fpsbox"></div><div id="coordbox"></div>
    <div id="tileprovider">Select TileProvider: </div>
    <canvas id="glcanvas" width="800" height="600">
@@ -23,5 +25,5 @@
    <div id="tileprovidercopyright"></div>
    <img id="tileproviderlogo" />
    <div id="log" style="float:right;"></div>
- </body> 
+ </body>
 </html>
