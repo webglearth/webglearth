@@ -12,7 +12,6 @@ goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 goog.require('goog.events');
-goog.require('goog.events.MouseWheelHandler');
 goog.require('goog.math');
 goog.require('goog.ui.Component.EventType');
 goog.require('goog.ui.MenuItem');
@@ -205,14 +204,6 @@ we.scene.Scene = function(context) {
                           new we.gl.SegmentedPlane(context, 4, 6, 7),    //2
                           new we.gl.SegmentedPlane(context, 8, 8, 5),    //3
                           new we.gl.SegmentedPlane(context, 10, 10, 2)];
-
-  var mwh = new goog.events.MouseWheelHandler(this.context.canvas);
-  goog.events.listen(mwh, goog.events.MouseWheelHandler.EventType.MOUSEWHEEL,
-      goog.bind(function(e) {
-        var newLevel = this.zoomLevel - e.deltaY / 12;
-        this.setZoom(newLevel);
-        e.preventDefault();
-      }, this));
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(

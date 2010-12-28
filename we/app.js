@@ -17,6 +17,7 @@ goog.require('goog.events');
 goog.require('we.debug');
 goog.require('we.gl.Context');
 goog.require('we.scene.Scene');
+goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
 
 //Dummy dependencies
@@ -41,9 +42,10 @@ we.App = function(canvas) {
 
     /**
      * @type {!we.gl.Context}
+     * @private
      */
-    this.context = new we.gl.Context(canvas);
-    this.context.setPerspective(50, 0.000001, 5);
+    this.context_ = new we.gl.Context(canvas);
+    this.context_.setPerspective(50, 0.000001, 5);
 
     /**
      * @type {!goog.Timer}
@@ -52,15 +54,22 @@ we.App = function(canvas) {
     goog.events.listen(
         this.loopTimer,
         goog.Timer.TICK,
-        goog.bind(function() {this.context.renderFrame();}, this)
+        goog.bind(function() {this.context_.renderFrame();}, this)
     );
 
-    this.context.scene = new we.scene.Scene(this.context);
+    this.context_.scene = new we.scene.Scene(this.context_);
 
     /**
      * @type {!we.ui.SceneDragger}
+     * @private
      */
-    this.dragger = new we.ui.SceneDragger(this.context.scene);
+    this.dragger_ = new we.ui.SceneDragger(this.context_.scene);
+
+    /**
+     * @type {!we.ui.MouseZoomer}
+     * @private
+     */
+    this.zoomer_ = new we.ui.MouseZoomer(this.context_.scene);
 
     if (goog.DEBUG) {
       we.logger.info('Done');
