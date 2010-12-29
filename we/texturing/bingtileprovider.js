@@ -126,8 +126,7 @@ we.texturing.BingTileProvider.prototype.appendCopyrightContent =
 
 
 /** @inheritDoc */
-we.texturing.BingTileProvider.prototype.getLogoUrl =
-    function(element) {
+we.texturing.BingTileProvider.prototype.getLogoUrl = function() {
   if (!goog.isNull(this.metaData_)) {
     return this.metaData_['brandLogoUri'];
   }
