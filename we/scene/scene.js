@@ -86,13 +86,37 @@ we.scene.Scene = function(context) {
   var gl = context.gl;
 
 
+  /**
+   * @type {!we.texturing.TileProvider}
+   * @private
+   */
   this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
 
   /**
    * @type {!we.scene.TileBuffer}
+   * @private
    */
-  this.tileBuffer = new we.scene.TileBuffer(this.currentTileProvider_, context,
-                                            8, 8);
+  this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_, context,
+      8, 8);
+
+
+  /**
+   * @type {!Element}
+   * @private
+   */
+  this.tpCopyrightElement_ = goog.dom.createElement('div');
+
+  goog.dom.insertSiblingAfter(this.tpCopyrightElement_, this.context.canvas);
+
+  /**
+   * @type {!HTMLImageElement}
+   * @private
+   */
+  this.tpLogoImg_ = /** @type {!HTMLImageElement} */
+      (goog.dom.createElement('img'));
+
+  goog.dom.insertSiblingAfter(this.tpLogoImg_, this.tpCopyrightElement_);
+
 
   var tileProviderSelect = new goog.ui.Select('...');
 
@@ -115,27 +139,11 @@ we.scene.Scene = function(context) {
 
   tileProviderSelect.setSelectedIndex(0);
 
-  var updateCopyrights = function(tileprovider) {
-    var copyrightEl = goog.dom.getElement('tileprovidercopyright');
-    goog.dom.removeChildren(copyrightEl);
-    tileprovider.appendCopyrightContent(copyrightEl);
-    if (!goog.isNull(tileprovider.getLogoUrl())) {
-      goog.dom.getElement('tileproviderlogo').src = tileprovider.getLogoUrl();
-      goog.dom.getElement('tileproviderlogo').style.visibility = 'visible';
-    } else {
-      goog.dom.getElement('tileproviderlogo').style.visibility = 'hidden';
-    }
-  }
-  updateCopyrights(this.currentTileProvider_);
+  this.updateCopyrights_();
 
   goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
       goog.bind(function(e) {
-        this.currentTileProvider_ = e.target.getValue();
-        this.tileBuffer.changeTileProvider(this.currentTileProvider_);
-        this.currentTileProvider_.
-            copyrightInfoChangedHandler = updateCopyrights;
-        this.setZoom(this.zoomLevel);
-        updateCopyrights(this.currentTileProvider_);
+        this.changeTileProvider(e.target.getValue());
       }, this));
 
   this.updateTilesTimer = new goog.Timer(150);
@@ -176,7 +184,7 @@ we.scene.Scene = function(context) {
    */
   this.renderShape_ = new we.scene.rendershapes.Sphere(context);
 
-  var bufferDims = this.tileBuffer.getDimensions();
+  var bufferDims = this.tileBuffer_.getDimensions();
 
   this.renderShape_.compileProgram(bufferDims.width, bufferDims.height,
                                    we.scene.LOOKUP_FALLBACK_LEVELS);
@@ -218,6 +226,40 @@ we.scene.Scene = function(context) {
 
 
 /**
+ * Updates display of copyright info of the map.
+ * @private
+ */
+we.scene.Scene.prototype.updateCopyrights_ = function() {
+  if (!goog.isNull(this.tpCopyrightElement_)) {
+    goog.dom.removeChildren(this.tpCopyrightElement_);
+    this.currentTileProvider_.appendCopyrightContent(this.tpCopyrightElement_);
+  }
+  if (!goog.isNull(this.tpLogoImg_)) {
+    if (!goog.isNull(this.currentTileProvider_.getLogoUrl())) {
+      this.tpLogoImg_.src = this.currentTileProvider_.getLogoUrl();
+      this.tpLogoImg_.style.visibility = 'visible';
+    } else {
+      this.tpLogoImg_.style.visibility = 'hidden';
+    }
+  }
+};
+
+
+/**
+ * Changes tile provider of this scene.
+ * @param {!we.texturing.TileProvider} tileprovider Tile provider to be set.
+ */
+we.scene.Scene.prototype.changeTileProvider = function(tileprovider) {
+  this.currentTileProvider_ = tileprovider;
+  this.tileBuffer_.changeTileProvider(this.currentTileProvider_);
+  this.currentTileProvider_.copyrightInfoChangedHandler =
+      goog.bind(this.updateCopyrights_, this);
+  this.setZoom(this.zoomLevel);
+  this.updateCopyrights_();
+};
+
+
+/**
  * Sets zoom level and calculates other appropriate cached variables
  * @param {number} zoom New zoom level.
  */
@@ -250,11 +292,11 @@ we.scene.Scene.prototype.updateTiles = function() {
     var result = [];
     for (var i = -d; i <= d; i++) {
       var absi = Math.abs(i);
-      scene.tileBuffer.needTile(zoom, x + i, y - d, batchTime - absi);
-      scene.tileBuffer.needTile(zoom, x + i, y + d, batchTime - absi);
+      scene.tileBuffer_.needTile(zoom, x + i, y - d, batchTime - absi);
+      scene.tileBuffer_.needTile(zoom, x + i, y + d, batchTime - absi);
       if (absi != d) {
-        scene.tileBuffer.needTile(zoom, x - d, y + i, batchTime - absi);
-        scene.tileBuffer.needTile(zoom, x + d, y + i, batchTime - absi);
+        scene.tileBuffer_.needTile(zoom, x - d, y + i, batchTime - absi);
+        scene.tileBuffer_.needTile(zoom, x + d, y + i, batchTime - absi);
       }
     }
   };
@@ -262,8 +304,8 @@ we.scene.Scene.prototype.updateTiles = function() {
   for (var i = 1; i <= we.scene.LOOKUP_FALLBACK_LEVELS; i++) {
     //Request "parent" tiles.
     var need = 4;
-    this.tileBuffer.needTile(flooredZoom - i, position.x >> i, position.y >> i,
-                             batchTime + i, i > need);
+    this.tileBuffer_.needTile(flooredZoom - i, position.x >> i, position.y >> i,
+        batchTime + i, i > need);
   }
 
   //Request tiles close to "parent" tile.
@@ -273,14 +315,14 @@ we.scene.Scene.prototype.updateTiles = function() {
 
 
   //Request the best tile.
-  this.tileBuffer.needTile(flooredZoom, position.x, position.y, batchTime + 3);
+  this.tileBuffer_.needTile(flooredZoom, position.x, position.y, batchTime + 3);
 
   //Request close tiles.
   getPointsAround(position.x, position.y, 1, flooredZoom, batchTime + 2, this);
   getPointsAround(position.x, position.y, 2, flooredZoom, batchTime - 5, this);
 
-  this.tileBuffer.purge(500);
-  this.tileBuffer.processTiles(2, 12);
+  this.tileBuffer_.purge(500);
+  this.tileBuffer_.processTiles(2, 12);
 };
 
 
@@ -305,10 +347,10 @@ we.scene.Scene.prototype.draw = function() {
       goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
       goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
       this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
-      this.tileBuffer.bufferQueueSize() + '; Currently loading tiles: ' +
+      this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
       this.currentTileProvider_.loadingTileCounter + '; LoadQueue size: ' +
-      this.tileBuffer.tileCache_.loadRequests_.length + '; Cache size: ' +
-      this.tileBuffer.tileCache_.tileMap_.getCount();
+      this.tileBuffer_.tileCache_.loadRequests_.length + '; Cache size: ' +
+      this.tileBuffer_.tileCache_.tileMap_.getCount();
 
   this.distance = this.renderShape_.calcDistance(this.latitude, this.longitude,
                                                  this.zoomLevel,
@@ -321,10 +363,10 @@ we.scene.Scene.prototype.draw = function() {
   var locatedProgram = this.renderShape_.locatedProgram;
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer.bufferTexture);
+  gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer_.bufferTexture);
   gl.uniform1i(locatedProgram.tileBufferUniform, 0);
 
-  var metaBufferFlat = goog.array.flatten(this.tileBuffer.metaBuffer);
+  var metaBufferFlat = goog.array.flatten(this.tileBuffer_.metaBuffer);
 
   gl.uniform4fv(locatedProgram.metaBufferUniform,
                 new Float32Array(metaBufferFlat));
