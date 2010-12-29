@@ -44,17 +44,6 @@ we.scene.BING_MAPS_KEY =
 
 
 /**
- * How many tiles should be visible on screen vertically. This should be near
- * (or little lower to make text better readable)
- * scene.context.canvas.height / scene.currentTileProvider_.getTileSize()) ->
- * TODO: Should this be calculated dynamically?
- * @type {number}
- * @const
- */
-we.scene.TILES_VERTICALLY = 2.4;
-
-
-/**
  * Maximum number of zoom levels, the shader should fall back when
  * looking up appropriate tile. This is the bottleneck of shader
  * compilation and performance and should be chosen very carefully.
@@ -69,7 +58,7 @@ we.scene.LOOKUP_FALLBACK_LEVELS = 5;
  * @type {number}
  * @const
  */
-we.scene.MIN_ZOOM = 2.5;
+we.scene.MIN_ZOOM = 3.25;
 
 
 
@@ -151,6 +140,14 @@ we.scene.Scene = function(context) {
                      goog.bind(this.updateTiles, this));
 
   this.updateTilesTimer.start();
+
+
+  /**
+   * This says how many tiles should be visible vertically.
+   * @type {number}
+   */
+  this.tilesVertically = this.context.canvas.height /
+      this.currentTileProvider_.getTileSize();
 
   /**
    * @type {number}
@@ -255,7 +252,18 @@ we.scene.Scene.prototype.changeTileProvider = function(tileprovider) {
   this.currentTileProvider_.copyrightInfoChangedHandler =
       goog.bind(this.updateCopyrights_, this);
   this.setZoom(this.zoomLevel);
+  this.recalcTilesVertically();
   this.updateCopyrights_();
+};
+
+
+/**
+ * Recalculates @code {tilesVertically}. This should be called
+ * after changing canvas size or tile provider.
+ */
+we.scene.Scene.prototype.recalcTilesVertically = function() {
+  this.tilesVertically = 0.7 * this.context.canvas.height /
+      this.currentTileProvider_.getTileSize();
 };
 
 
@@ -354,7 +362,7 @@ we.scene.Scene.prototype.draw = function() {
 
   this.distance = this.renderShape_.calcDistance(this.latitude, this.longitude,
                                                  this.zoomLevel,
-                                                 we.scene.TILES_VERTICALLY);
+                                                 this.tilesVertically);
   this.renderShape_.transformContext(this.latitude, this.longitude,
                                      this.distance, this.tileCount);
 

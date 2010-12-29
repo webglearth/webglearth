@@ -95,6 +95,7 @@ we.App.prototype.start = function() {
   if (goog.DEBUG) {
     we.logger.info('Starting the loop...');
   }
+  this.context_.resize();
   this.loopTimer.start();
 };
 

@@ -13,6 +13,7 @@ goog.require('WebGLDebugUtils');
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.dom');
+goog.require('goog.events');
 
 goog.require('goog.math');
 goog.require('goog.math.Matrix');
@@ -152,6 +153,11 @@ we.gl.Context = function(canvas) {
     this.frameTimeSinceLastFpsCalc_ = 0;
   }
 
+  goog.events.listen(goog.global,
+      goog.events.EventType.RESIZE,
+      this.resize, false, this);
+
+
   if (goog.DEBUG)
     we.gl.Context.logger.info('Created');
 };
@@ -174,6 +180,20 @@ we.gl.Context.prototype.setPerspective = function(fovy, zNear, zFar) {
     [0, 0, (zFar + zNear) / (zNear - zFar), 2 * zFar * zNear / (zNear - zFar)],
     [0, 0, -1, 0]
   ]);
+};
+
+
+/**
+ * Changes context's state to reflect canvas's size change.
+ */
+we.gl.Context.prototype.resize = function() {
+  var oldAspect = this.viewportWidth / this.viewportHeight;
+  this.viewportWidth =
+      this.canvas.width = this.canvas.clientWidth;
+  this.viewportHeight =
+      this.canvas.height = this.canvas.clientWidth / oldAspect;
+  this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
+  this.scene.recalcTilesVertically();
 };
 
 
