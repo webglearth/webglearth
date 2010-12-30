@@ -17,8 +17,14 @@ goog.require('goog.events');
 goog.require('we.debug');
 goog.require('we.gl.Context');
 goog.require('we.scene.Scene');
+goog.require('we.texturing.BingTileProvider');
+goog.require('we.texturing.GenericTileProvider');
+goog.require('we.texturing.MapQuestTileProvider');
+goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
+goog.require('we.ui.TileProviderSelector');
 
 //Dummy dependencies
 goog.addDependency('',
@@ -71,6 +77,17 @@ we.App = function(canvas) {
      */
     this.zoomer_ = new we.ui.MouseZoomer(this.context_.scene);
 
+
+    var tpSelectorEl = goog.dom.createElement('div');
+    goog.dom.insertSiblingBefore(tpSelectorEl, this.context_.canvas);
+
+    /**
+     * @type {!we.ui.TileProviderSelector}
+     * @private
+     */
+    this.tpSelector_ = new we.ui.TileProviderSelector(this.context_.scene,
+                                                      tpSelectorEl);
+
     if (goog.DEBUG) {
       we.logger.info('Done');
     }
@@ -100,6 +117,56 @@ we.App.prototype.start = function() {
 };
 
 
+/**
+ * Adds MapQuest OSM as selectable TileProvider
+ */
+we.App.prototype.addMapQuestTP = function() {
+  this.tpSelector_.addTileProvider(new we.texturing.MapQuestTileProvider());
+};
+
+
+/**
+ * Adds OpenStreetMaps as selectable TileProvider
+ */
+we.App.prototype.addOSMTP = function() {
+  this.tpSelector_.addTileProvider(new we.texturing.OSMTileProvider());
+};
+
+
+/**
+ * Adds all Bing Maps sources (Aerial, AerialWithLabels, Road)
+ * as selectable TileProviders.
+ * @param {string} key Bing maps key.
+ */
+we.App.prototype.addAllBingTPs = function(key) {
+  this.tpSelector_.addTileProvider(
+      new we.texturing.BingTileProvider(key, 'Aerial'));
+  this.tpSelector_.addTileProvider(
+      new we.texturing.BingTileProvider(key, 'AerialWithLabels'));
+  this.tpSelector_.addTileProvider(
+      new we.texturing.BingTileProvider(key, 'Road'));
+};
+
+
+/**
+ * Adds all Bing Maps sources (Aerial, AerialWithLabels, Road)
+ * as selectable TileProviders.
+ * @param {string} name Human-readable name of this tile source.
+ * @param {string} url URL of the tiles containing
+ *                      replaceable parts ({sub},{z},{x},{y}).
+ * @param {number} minZoom Minimal supported zoom.
+ * @param {number} maxZoom Maximal supported zoom.
+ * @param {number} tileSize Size of the tiles in pixels.
+ * @param {Array.<string>=} opt_subdomains Array of subdomains
+ *                                          to be used for {sub} replacement.
+ */
+we.App.prototype.addCustomTP = function(name, url, minZoom, maxZoom, tileSize,
+                                        opt_subdomains) {
+  this.tpSelector_.addTileProvider(
+      new we.texturing.GenericTileProvider(name, url, minZoom, maxZoom,
+                                           tileSize, opt_subdomains));
+};
+
 if (goog.DEBUG) {
   /**
    * Shared logger instance
@@ -110,3 +177,11 @@ if (goog.DEBUG) {
 
 goog.exportSymbol('WebGLEarth', we.App);
 goog.exportSymbol('WebGLEarth.prototype.start', we.App.prototype.start);
+goog.exportSymbol('WebGLEarth.prototype.addMapQuestTP',
+                  we.App.prototype.addMapQuestTP);
+goog.exportSymbol('WebGLEarth.prototype.addOSMTP',
+                  we.App.prototype.addOSMTP);
+goog.exportSymbol('WebGLEarth.prototype.addAllBingTPs',
+                  we.App.prototype.addAllBingTPs);
+goog.exportSymbol('WebGLEarth.prototype.addCustomTP',
+                  we.App.prototype.addCustomTP);

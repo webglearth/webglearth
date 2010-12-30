@@ -24,23 +24,10 @@ goog.require('we.scene.TileBuffer');
 goog.require('we.scene.rendershapes.Plane');
 goog.require('we.scene.rendershapes.RenderShape');
 goog.require('we.scene.rendershapes.Sphere');
-goog.require('we.texturing.BingTileProvider');
-goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
-goog.require('we.texturing.TMSTileProvider');
 goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
 goog.require('we.utils');
-
-
-/**
- * This Bing Maps key is registered for domain 'http://localhost'
- * and is ideal for local development and testing.
- * @type {string}
- * @const
- */
-we.scene.BING_MAPS_KEY =
-    'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
 
 
 /**
@@ -79,7 +66,7 @@ we.scene.Scene = function(context) {
    * @type {!we.texturing.TileProvider}
    * @private
    */
-  this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
+  this.currentTileProvider_ = new we.texturing.OSMTileProvider();
 
   /**
    * @type {!we.scene.TileBuffer}
@@ -107,33 +94,6 @@ we.scene.Scene = function(context) {
   goog.dom.insertSiblingAfter(this.tpLogoImg_, this.tpCopyrightElement_);
 
 
-  var tileProviderSelect = new goog.ui.Select('...');
-
-  tileProviderSelect.addItem(new goog.ui.MenuItem('MapQuest OSM',
-      new we.texturing.MapQuestTileProvider()));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Open Street Maps',
-      new we.texturing.OSMTileProvider()));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - Aerial',
-      new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY, 'Aerial')));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - AerialWithLabels',
-      new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY,
-      'AerialWithLabels')));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Bing - Road',
-      new we.texturing.BingTileProvider(we.scene.BING_MAPS_KEY, 'Road')));
-  tileProviderSelect.addItem(new goog.ui.MenuItem('Local TMS tiles',
-      new we.texturing.TMSTileProvider(
-      './natural-earth-III-balanced-001.merc/{z}/{x}/{y}.jpg', 0, 5, 256)));
-
-  tileProviderSelect.render(goog.dom.getElement('tileprovider'));
-
-  tileProviderSelect.setSelectedIndex(0);
-
-  this.updateCopyrights_();
-
-  goog.events.listen(tileProviderSelect, goog.ui.Component.EventType.ACTION,
-      goog.bind(function(e) {
-        this.changeTileProvider(e.target.getValue());
-      }, this));
 
   this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,

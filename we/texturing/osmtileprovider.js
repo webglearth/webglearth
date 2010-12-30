@@ -17,12 +17,13 @@ goog.require('we.utils');
 
 /**
  * Tile provider for OpenStreetMaps
+ * @param {string=} opt_name Optional name override.
  * @constructor
  * @extends {we.texturing.TileProvider}
  * @inheritDoc
  */
-we.texturing.OSMTileProvider = function() {
-  goog.base(this);
+we.texturing.OSMTileProvider = function(opt_name) {
+  goog.base(this, opt_name || 'OpenStreetMaps');
 };
 goog.inherits(we.texturing.OSMTileProvider, we.texturing.TileProvider);
 

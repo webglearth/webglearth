@@ -23,7 +23,7 @@ goog.require('we.scene.Scene');
  */
 we.ui.MouseZoomer = function(scene) {
   /**
-   * @type {goog.events.MouseWheelHandler}
+   * @type {!goog.events.MouseWheelHandler}
    * @private
    */
   this.mouseWheelHandler_ = new goog.events.MouseWheelHandler(

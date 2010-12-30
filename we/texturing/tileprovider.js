@@ -17,9 +17,15 @@ goog.require('we.texturing.Tile.State');
 
 /**
  * Abstract class describing object providing tiles
+ * @param {string} name Name.
  * @constructor
  */
-we.texturing.TileProvider = function() {};
+we.texturing.TileProvider = function(name) {
+  /**
+   * @type {string}
+   */
+  this.name = name;
+};
 
 
 /**

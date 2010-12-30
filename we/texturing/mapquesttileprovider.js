@@ -22,7 +22,7 @@ goog.require('we.texturing.OSMTileProvider');
  * @inheritDoc
  */
 we.texturing.MapQuestTileProvider = function() {
-  goog.base(this);
+  goog.base(this, 'MapQuest OSM');
 };
 goog.inherits(we.texturing.MapQuestTileProvider, we.texturing.OSMTileProvider);
 

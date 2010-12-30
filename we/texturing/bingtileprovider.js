@@ -24,9 +24,9 @@ goog.require('we.utils');
  * @inheritDoc
  */
 we.texturing.BingTileProvider = function(key, opt_imageryset) {
-  goog.base(this);
-
   var imagerySet = opt_imageryset || 'AerialWithLabels';
+
+  goog.base(this, 'Bing Maps - ' + imagerySet);
 
   var callbackFunc = 'bingsCallback_' + imagerySet;
 
