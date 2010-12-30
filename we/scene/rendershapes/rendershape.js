@@ -40,14 +40,14 @@ we.scene.rendershapes.RenderShape = function(context) {
  */
 we.scene.rendershapes.RenderShape.prototype.compileProgram =
     function(width, height, lookupLevels) {
-      var fragmentShaderCode = we.utils.getFile('fs.glsl');
+      var fragmentShaderCode = we.utils.getFile(we.PATH_TO_SHADERS + 'fs.glsl');
 
       fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
           width.toFixed(1));
       fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
           height.toFixed(1));
 
-      var vertexShaderCode = we.utils.getFile('vs.glsl');
+      var vertexShaderCode = we.utils.getFile(we.PATH_TO_SHADERS + 'vs.glsl');
 
       vertexShaderCode = vertexShaderCode.replace('%VERTEX_TRANSFORM%',
           this.vertexTransform_);
