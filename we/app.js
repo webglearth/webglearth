@@ -157,14 +157,16 @@ we.App.prototype.addAllBingTPs = function(key) {
  * @param {number} minZoom Minimal supported zoom.
  * @param {number} maxZoom Maximal supported zoom.
  * @param {number} tileSize Size of the tiles in pixels.
+ * @param {boolean=} opt_flipY Flip Y axis.
  * @param {Array.<string>=} opt_subdomains Array of subdomains
  *                                          to be used for {sub} replacement.
  */
 we.App.prototype.addCustomTP = function(name, url, minZoom, maxZoom, tileSize,
-                                        opt_subdomains) {
+                                        opt_flipY, opt_subdomains) {
   this.tpSelector_.addTileProvider(
       new we.texturing.GenericTileProvider(name, url, minZoom, maxZoom,
-                                           tileSize, opt_subdomains));
+                                           tileSize, opt_flipY,
+                                           opt_subdomains));
 };
 
 if (goog.DEBUG) {
