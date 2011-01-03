@@ -110,8 +110,8 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
     }
 
     this.dragging_ = true;
-    this.oldX_ = e.offsetX;
-    this.oldY_ = e.offsetY;
+    this.oldX_ = e.screenX;
+    this.oldY_ = e.screenY;
     this.listenKey_ = null;
 
     //if (goog.DEBUG)
@@ -137,8 +137,8 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
   if (this.dragging_ && (e.type != goog.events.EventType.MOUSEDOWN ||
       e.isButton(goog.events.BrowserEvent.MouseButton.LEFT))) {
 
-    this.dragEndX_ = e.offsetX;
-    this.dragEndY_ = e.offsetY;
+    this.dragEndX_ = e.screenX;
+    this.dragEndY_ = e.screenY;
 
     e.preventDefault();
 
@@ -185,13 +185,13 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
  */
 we.ui.SceneDragger.prototype.onMouseMove_ = function(e) {
 
-  var xDiff = e.offsetX - this.oldX_;
-  var yDiff = e.offsetY - this.oldY_;
+  var xDiff = e.screenX - this.oldX_;
+  var yDiff = e.screenY - this.oldY_;
 
   this.scenePixelMove_(xDiff, yDiff);
 
-  this.oldX_ = e.offsetX;
-  this.oldY_ = e.offsetY;
+  this.oldX_ = e.screenX;
+  this.oldY_ = e.screenY;
 
   e.preventDefault();
 };
