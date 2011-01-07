@@ -106,6 +106,26 @@ we.gl.Context = function(canvas) {
   this.fov = 0;
 
   /**
+   * Current zNear distance
+   * @type {number}
+   * @private
+   */
+  this.zNear_ = 0;
+
+  /**
+   * Current zFar distance
+   * @type {number}
+   * @private
+   */
+  this.zFar_ = 1;
+
+  /**
+   * Aspect ratio of viewport.
+   * @type {number}
+   */
+  this.aspectRatio = this.viewportWidth / this.viewportHeight;
+
+  /**
    * 4x4 projection matrix
    * @type {!goog.math.Matrix}
    */
@@ -171,13 +191,25 @@ we.gl.Context = function(canvas) {
  */
 we.gl.Context.prototype.setPerspective = function(fovy, zNear, zFar) {
   this.fov = goog.math.toRadians(fovy);
-  var aspect = this.viewportWidth / this.viewportHeight;
+  this.zNear_ = zNear;
+  this.zFar_ = zFar;
+  this.aspectRatio = this.viewportWidth / this.viewportHeight;
 
+  this.setPerspectiveInternal_();
+};
+
+
+/**
+ * Calculates projection matrix to represent desired perspective projection
+ * @private
+ */
+we.gl.Context.prototype.setPerspectiveInternal_ = function() {
   var f = 1 / Math.tan(this.fov / 2);
   this.projectionMatrix = new goog.math.Matrix([
-    [f / aspect, 0, 0, 0],
+    [f / this.aspectRatio, 0, 0, 0],
     [0, f, 0, 0],
-    [0, 0, (zFar + zNear) / (zNear - zFar), 2 * zFar * zNear / (zNear - zFar)],
+    [0, 0, (this.zFar_ + this.zNear_) / (this.zNear_ - this.zFar_),
+     2 * this.zFar_ * this.zNear_ / (this.zNear_ - this.zFar_)],
     [0, 0, -1, 0]
   ]);
 };
@@ -187,12 +219,13 @@ we.gl.Context.prototype.setPerspective = function(fovy, zNear, zFar) {
  * Changes context's state to reflect canvas's size change.
  */
 we.gl.Context.prototype.resize = function() {
-  var oldAspect = this.viewportWidth / this.viewportHeight;
   this.viewportWidth =
       this.canvas.width = this.canvas.clientWidth;
   this.viewportHeight =
-      this.canvas.height = this.canvas.clientWidth / oldAspect;
+      this.canvas.height = this.canvas.clientHeight;
   this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
+  this.aspectRatio = this.viewportWidth / this.viewportHeight;
+  this.setPerspectiveInternal_();
   this.scene.recalcTilesVertically();
 };
 
