@@ -12,9 +12,11 @@ REM "%CLOSURE_LINTER%/gjslint.exe" "%PROJECT_ROOT%\we\*.js"
 "%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\webgl-externs.js"
 "%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\we\*.js"
 "%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\we\*\*.js"
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\we\*\*\*.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\webgl-externs.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*\*.js"
+"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*\*\*.js"
 
 @ECHO off
 
