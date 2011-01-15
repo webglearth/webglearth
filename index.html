@@ -20,6 +20,7 @@
 
   <script src="we/webgl-debug.js"></script>
 
+  <script src="we/base.js"></script>
   <script src="we/debug.js"></script>
   <script src="we/utils.js"></script>
 
@@ -49,19 +50,17 @@
 
   <script src="we/ui/scenedragger.js"></script>
   <script src="we/ui/mousezoomer.js"></script>
-  <script src="we/ui/tileproviderselector.js"></script>
-
-  <script src="we/app.js"></script>
-
-  <script src="demo.js"></script>
+  
+  <script src="wedemo/ui/tileproviderselector.js"></script>
+  <script src="wedemo/demo.js"></script>
  </head>
- <body onload="javascript:StartWebGLEarthDemo(document.getElementById('glcanvas'));" style="width:100%">
+ <body onload="javascript:WEDemoRun();" style="width:100%">
    <a href="index-compiled.html">Compiled version</a>
    <div id="fpsbox"></div><div id="coordbox"></div>
    <div id="tileprovider">Select TileProvider: </div>
-   <canvas id="glcanvas" width="800" height="480" style="width:100%">
+   <canvas id="wedemo-canvas" width="800" height="480" style="width:100%">
     Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
    </canvas>
-   <div id="log" style="float:right;"></div>
+   <div id="wedemo-log" style="float:right;"></div>
  </body>
 </html>

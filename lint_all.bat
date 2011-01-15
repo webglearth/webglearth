@@ -18,6 +18,12 @@ REM "%CLOSURE_LINTER%/gjslint.exe" "%PROJECT_ROOT%\we\*.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*\*.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*\*\*.js"
 
+
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\wedemo\*.js"
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\wedemo\*\*.js"
+"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\wedemo\*.js"
+"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\wedemo\*\*.js"
+
 @ECHO off
 
 PAUSE
