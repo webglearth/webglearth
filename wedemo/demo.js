@@ -60,7 +60,8 @@ wedemo.App = function(canvas) {
      * @type {!we.gl.Context}
      * @private
      */
-    this.context_ = new we.gl.Context(/** @type {!Element} */(canvas));
+    this.context_ = new we.gl.Context(/** @type {!Element} */(canvas),
+                                      goog.dom.getElement('wedemo-fpsbox'));
     this.context_.setPerspective(50, 0.000001, 5);
 
     /**
@@ -88,7 +89,8 @@ wedemo.App = function(canvas) {
     this.zoomer_ = new we.ui.MouseZoomer(this.context_.scene);
 
 
-    var tpSelectorEl = goog.dom.createElement('div');
+    var tpSelectorEl = goog.dom.getElement('wedemo-tileprovider') ||
+        goog.dom.createElement('div');
     goog.dom.insertSiblingBefore(tpSelectorEl, this.context_.canvas);
 
     /**

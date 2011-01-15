@@ -31,9 +31,10 @@ we.CALC_FPS = true;
 /**
  * Object wrapping a WebGL context.
  * @param {!Element} canvas Canvas element.
+ * @param {Element=} opt_fpsbox Element to output fps information to.
  * @constructor
  */
-we.gl.Context = function(canvas) {
+we.gl.Context = function(canvas, opt_fpsbox) {
 
   var tryGetContext = function(canvas, type) {
     try {
@@ -78,6 +79,13 @@ we.gl.Context = function(canvas) {
    * @type {!Element}
    */
   this.canvas = canvas;
+
+  /**
+   * Element for fps output.
+   * @type {Element}
+   * @private
+   */
+  this.fpsbox_ = opt_fpsbox || null;
 
   /**
    * WebGL context
@@ -332,7 +340,7 @@ we.gl.Context.prototype.renderFrame = function() {
 
   var time;
 
-  if (we.CALC_FPS) {
+  if (we.CALC_FPS && !goog.isNull(this.fpsbox_)) {
     time = goog.now();
     if (this.lastFpsCalc_ < goog.now() - 2000) {
       this.fps = 1000 *
@@ -343,7 +351,7 @@ we.gl.Context.prototype.renderFrame = function() {
       this.framesSinceLastFpsCalc_ = 0;
       this.frameTimeSinceLastFpsCalc_ = 0;
 
-      goog.dom.getElement('fpsbox').innerHTML =
+      this.fpsbox_.innerHTML =
           this.averageFrameTime.toFixed(2) +
           ' ms / fps: ' +
           this.fps.toFixed(2);
@@ -361,7 +369,7 @@ we.gl.Context.prototype.renderFrame = function() {
 
   this.scene.draw();
 
-  if (we.CALC_FPS) {
+  if (we.CALC_FPS && !goog.isNull(this.fpsbox_)) {
     this.frameTimeSinceLastFpsCalc_ += goog.now() - time;
   }
 

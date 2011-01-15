@@ -52,15 +52,22 @@ we.scene.MIN_ZOOM = 3.25;
 /**
  * Object handling scene data
  * @param {!we.gl.Context} context WebGL context.
+ * @param {Element=} opt_infobox Element to output information to.
  * @constructor
  */
-we.scene.Scene = function(context) {
+we.scene.Scene = function(context, opt_infobox) {
   /**
    * @type {!we.gl.Context}
    */
   this.context = context;
   var gl = context.gl;
 
+  /**
+   * Element for information output.
+   * @type {Element}
+   * @private
+   */
+  this.infobox_ = opt_infobox || null;
 
   /**
    * @type {!we.texturing.TileProvider}
@@ -311,14 +318,16 @@ we.scene.Scene.prototype.projectLatitude_ = function(latitude) {
 we.scene.Scene.prototype.draw = function() {
   var gl = this.context.gl;
 
-  document.getElementById('coordbox').innerHTML =
-      goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
-      goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
-      this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
-      this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
-      this.currentTileProvider_.loadingTileCounter + '; LoadQueue size: ' +
-      this.tileBuffer_.tileCache_.loadRequests_.length + '; Cache size: ' +
-      this.tileBuffer_.tileCache_.tileMap_.getCount();
+  if (!goog.isNull(this.infobox_)) {
+    this.infobox_.innerHTML =
+        goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
+        goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
+        this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
+        this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
+        this.currentTileProvider_.loadingTileCounter + '; LoadQueue size: ' +
+        this.tileBuffer_.tileCache_.loadRequests_.length + '; Cache size: ' +
+        this.tileBuffer_.tileCache_.tileMap_.getCount();
+  }
 
   this.distance = this.renderShape_.calcDistance(this.latitude, this.longitude,
                                                  this.zoomLevel,
