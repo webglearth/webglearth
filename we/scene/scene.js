@@ -161,14 +161,6 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
                           new we.gl.SegmentedPlane(context, 8, 8, 5),    //3
                           new we.gl.SegmentedPlane(context, 10, 10, 2)];
 
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-        goog.bind(function(position) {
-          this.latitude = goog.math.toRadians(position.coords.latitude);
-          this.longitude = goog.math.toRadians(position.coords.longitude);
-        }, this));
-  }
-
   this.setZoom(2);
 };
 
