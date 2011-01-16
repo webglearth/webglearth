@@ -29,9 +29,9 @@ goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
 
+goog.require('wedemo.ui.Nominatim');
 goog.require('wedemo.ui.RenderShapeSelector');
 goog.require('wedemo.ui.TileProviderSelector');
-goog.require('wedemo.ui.Nominatim');
 
 //Dummy dependencies
 goog.addDependency('',
@@ -78,7 +78,8 @@ wedemo.App = function(canvas) {
         goog.bind(function() {this.context.renderFrame();}, this)
     );
 
-    this.context.scene = new we.scene.Scene(this.context, goog.dom.getElement('wedemo-infobox'));
+    this.context.scene = new we.scene.Scene(this.context,
+        goog.dom.getElement('wedemo-infobox'));
 
     /**
      * @type {!we.ui.SceneDragger}
@@ -106,12 +107,13 @@ wedemo.App = function(canvas) {
     this.rsSelector_ = new wedemo.ui.RenderShapeSelector(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('wedemo-rendershape')));
 
-    
+
     /**
      * @type {!Element}
      */
-    var nominatimInput = /** @type {!Element} */(goog.dom.getElement('wedemo-nominatim'))
-        
+    var nominatimInput = /** @type {!Element} */
+        (goog.dom.getElement('wedemo-nominatim'));
+
     /**
      * @type {!wedemo.ui.Nominatim}
      * @private
@@ -121,21 +123,21 @@ wedemo.App = function(canvas) {
     var runNominatimAction = goog.bind(function(item) {
       this.context.scene.setCenter(item['lon'], item['lat']);
     }, this);
-        
+
     this.nominatim_.addEventListener(goog.ui.AutoComplete.EventType.UPDATE,
-      function(e) {
-        runNominatimAction(e.row);
-      });
+        function(e) {
+          runNominatimAction(e.row);
+        });
 
     goog.events.listen(goog.dom.getElement('wedemo-nominatimform'),
-      goog.events.EventType.SUBMIT, goog.bind(function(e) {
-        e.preventDefault();
-        this.nominatim_.search(nominatimInput.value, 1, function(token, result) {
-          if (result.length > 0) {
-            runNominatimAction(result[0]);
-          }
-        });
-      }, this));
+        goog.events.EventType.SUBMIT, goog.bind(function(e) {
+          e.preventDefault();
+          this.nominatim_.search(nominatimInput.value, 1, function(t, result) {
+            if (result.length > 0) {
+              runNominatimAction(result[0]);
+            }
+          });
+        }, this));
 
     if (goog.DEBUG) {
       wedemo.logger.info('Done');

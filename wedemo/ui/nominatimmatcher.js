@@ -11,12 +11,7 @@
 goog.provide('wedemo.ui.NominatimMatcher');
 
 goog.require('goog.Disposable');
-goog.require('goog.Timer');
-goog.require('goog.Uri');
-goog.require('goog.events');
-goog.require('goog.json');
 goog.require('goog.net.Jsonp');
-goog.require('goog.ui.AutoComplete');
 
 
 
@@ -39,7 +34,7 @@ wedemo.ui.NominatimMatcher = function(opt_url, opt_payload) {
 
   /**
    * The list of extra parameters for the Jsonp request
-   * @type {Object}
+   * @type {!Object}
    * @private
    */
   this.payload_ = opt_payload || {};
@@ -47,7 +42,7 @@ wedemo.ui.NominatimMatcher = function(opt_url, opt_payload) {
   /**
    * The Jsonp object used for making remote requests.  When a new request
    * is made, the current one is aborted and the new one sent instead.
-   * @type {goog.net.Jsonp}
+   * @type {!goog.net.Jsonp}
    * @private
    */
   this.jsonp_ = new goog.net.Jsonp(this.url_, 'json_callback');
