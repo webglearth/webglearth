@@ -170,6 +170,17 @@ we.scene.Scene = function(context, opt_infobox) {
 
 
 /**
+ * Immediately sets center of the scene to given location.
+ * @param {number} longitude Longitude in degrees.
+ * @param {number} latitude Latitude in degrees.
+ */
+we.scene.Scene.prototype.setCenter = function(longitude, latitude) {
+  this.longitude = goog.math.toRadians(longitude);
+  this.latitude = goog.math.toRadians(latitude);
+};
+
+
+/**
  * Returns dimension of underlying buffer.
  * @return {!Object} Object containing "width" and "height" keys.
  */

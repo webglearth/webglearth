@@ -11,12 +11,16 @@
   <link rel="stylesheet" href="closure-library/closure/goog/css/menubutton.css">
   <link rel="stylesheet" href="closure-library/closure/goog/css/menu.css">
   <link rel="stylesheet" href="closure-library/closure/goog/css/menuitem.css">
+  <link rel="stylesheet" href="closure-library/closure/goog/css/autocomplete.css">
 
   <script src="index.js"></script>
  </head>
  <body onload="javascript:WEDemoRun();" style="width:100%">
    <div id="wedemo-fpsbox"></div><div id="wedemo-infobox"></div>
    <div id="wedemo-tileprovider"> </div><div id="wedemo-rendershape"> </div>
+   <form id="wedemo-nominatimform" action="#" method="post">
+    <input type="search" placeholder="Find a place..." autofocus="autofocus" autocomplete="off" id="wedemo-nominatim" style="width:500px"/>
+   </form>
    <canvas id="wedemo-canvas" width="800" height="480" style="width:100%">
     Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
    </canvas>
