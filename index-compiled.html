@@ -71,24 +71,26 @@ a:visited {
   font-size:60%;
   font-weight: bold;
 }
-#fpsbox {
+#wedemo-fpsbox {
   float:right;
 }
 #earth {
-  background-color:#f7f7f7;
+  background-color:#f4f4f4;
   width:100%;
   height:100%;
   position:absolute;
   z-index:-1;
 }
 #credits {
-  font-size:45%;
+  font-size:65%;
   font-weight: bold;
   position:absolute;
   bottom:40px;
   left:20px;
+  width:70%;
+  text-align:justify;
   color:#fff;
-  text-shadow:rgba(0,0,0,0.8) 0px 0px 5px;
+  text-shadow:rgba(0,0,0,0.8) 0px 0px 6px;
 }
 #klokantechlogo {
   position:absolute; bottom:30px; right:10px;
@@ -115,7 +117,7 @@ h1 {
     </span>
   </div>
   <div id="earth"><canvas id="wedemo-canvas" style="width:100%; height:100%;"></canvas></div>
-  <div id="credits">Basdfsdfa asdfasdf<br>asdfas dfsaf asdfasdf</div>
+  <div id="credits"><img id="wedemo-maplogo" /><div id="wedemo-mapcopyright"></div></div></div>
   <div id="klokantechlogo"></div>
   <div id="statusbar"><span id="wedemo-infobox"></span><span id="wedemo-fpsbox"></span></div>
   <script>WEDemoRun();</script>

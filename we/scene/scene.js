@@ -52,9 +52,11 @@ we.scene.MIN_ZOOM = 3.25;
  * Object handling scene data
  * @param {!we.gl.Context} context WebGL context.
  * @param {Element=} opt_infobox Element to output information to.
+ * @param {Element=} opt_copyrightbox Element to output mapdata information to.
+ * @param {Element=} opt_logobox Element to output logo of mapdata source to.
  * @constructor
  */
-we.scene.Scene = function(context, opt_infobox) {
+we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
   /**
    * @type {!we.gl.Context}
    */
@@ -86,19 +88,21 @@ we.scene.Scene = function(context, opt_infobox) {
    * @type {!Element}
    * @private
    */
-  this.tpCopyrightElement_ = goog.dom.createElement('div');
+  this.tpCopyrightElement_ = opt_copyrightbox || goog.dom.createElement('div');
 
-  goog.dom.insertSiblingAfter(this.tpCopyrightElement_, this.context.canvas);
-
+  if (!goog.isDef(opt_copyrightbox)) {
+    goog.dom.insertSiblingAfter(this.tpCopyrightElement_, this.context.canvas);
+  }
   /**
    * @type {!HTMLImageElement}
    * @private
    */
   this.tpLogoImg_ = /** @type {!HTMLImageElement} */
-      (goog.dom.createElement('img'));
+      (opt_logobox || goog.dom.createElement('img'));
 
-  goog.dom.insertSiblingAfter(this.tpLogoImg_, this.tpCopyrightElement_);
-
+  if (!goog.isDef(opt_logobox)) {
+    goog.dom.insertSiblingAfter(this.tpLogoImg_, this.tpCopyrightElement_);
+  }
 
 
   this.updateTilesTimer = new goog.Timer(150);

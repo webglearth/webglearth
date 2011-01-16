@@ -79,7 +79,9 @@ wedemo.App = function(canvas) {
     );
 
     this.context.scene = new we.scene.Scene(this.context,
-        goog.dom.getElement('wedemo-infobox'));
+        goog.dom.getElement('wedemo-infobox'),
+        goog.dom.getElement('wedemo-mapcopyright'),
+        goog.dom.getElement('wedemo-maplogo'));
 
     /**
      * @type {!we.ui.SceneDragger}
