@@ -17,36 +17,39 @@ goog.require('we.utils');
 
 
 /**
- * @param {!we.gl.Context} context Context.
+ * @param {!we.scene.Scene} scene Scene.
  * @constructor
  */
-we.scene.rendershapes.RenderShape = function(context) {
+we.scene.rendershapes.RenderShape = function(scene) {
   /**
-   * @type {!we.gl.Context}
+   * @type {!we.scene.Scene}
    */
-  this.context = context;
+  this.scene = scene;
 
   /**
    * @type {we.scene.LocatedProgram}
    */
   this.locatedProgram = null;
+
+
+  this.compileProgram();
 };
 
 
 /**
- * @param {number} width Width of the tilebuffer in tiles.
- * @param {number} height Height of the tilebuffer in tiles.
- * @param {number} lookupLevels Maximum number of zoom levels
- *                              the shader should fall back.
+ * Compiles vertex and fragment shader program for this RenderShape.
  */
-we.scene.rendershapes.RenderShape.prototype.compileProgram =
-    function(width, height, lookupLevels) {
+we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
+
+  var dim = this.scene.getBufferDimensions();
+  var gl = this.scene.context.gl;
+
   var fragmentShaderCode = we.utils.getFile(we.PATH_TO_SHADERS + 'fs.glsl');
 
   fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
-      width.toFixed(1));
+      dim.width.toFixed(1));
   fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
-      height.toFixed(1));
+      dim.height.toFixed(1));
 
   var vertexShaderCode = we.utils.getFile(we.PATH_TO_SHADERS + 'vs.glsl');
 
@@ -54,33 +57,32 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram =
       this.vertexTransform);
 
   vertexShaderCode = vertexShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
-      width.toFixed(1));
+      dim.width.toFixed(1));
   vertexShaderCode = vertexShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
-      height.toFixed(1));
+      dim.height.toFixed(1));
   vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_INT%',
-      (width * height).toFixed(0));
+      (dim.width * dim.height).toFixed(0));
   vertexShaderCode = vertexShaderCode.replace('%BINARY_SEARCH_CYCLES_INT%',
-      (Math.log(width * height) / Math.LN2).toFixed(0));
+      (Math.log(dim.width * dim.height) / Math.LN2).toFixed(0));
   vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_INT%',
-      (lookupLevels + 1).toFixed(0));
+      (we.scene.LOOKUP_FALLBACK_LEVELS + 1).toFixed(0));
 
-  var fsshader = we.gl.Shader.create(this.context, fragmentShaderCode,
-      this.context.gl.FRAGMENT_SHADER);
-  var vsshader = we.gl.Shader.create(this.context, vertexShaderCode,
-      this.context.gl.VERTEX_SHADER);
+  var fsshader = we.gl.Shader.create(this.scene.context, fragmentShaderCode,
+      gl.FRAGMENT_SHADER);
+  var vsshader = we.gl.Shader.create(this.scene.context, vertexShaderCode,
+      gl.VERTEX_SHADER);
 
-  var shaderProgram = this.context.gl.createProgram();
-  this.context.gl.attachShader(shaderProgram, vsshader);
-  this.context.gl.attachShader(shaderProgram, fsshader);
-  this.context.gl.linkProgram(shaderProgram);
+  var shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vsshader);
+  gl.attachShader(shaderProgram, fsshader);
+  gl.linkProgram(shaderProgram);
 
-  if (!this.context.gl.getProgramParameter(shaderProgram,
-      this.context.gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
     throw Error('Could not initialise shaders');
   }
 
   this.locatedProgram = new we.scene.LocatedProgram(shaderProgram,
-      this.context);
+      this.scene.context);
 };
 
 
@@ -96,10 +98,6 @@ we.scene.rendershapes.RenderShape.prototype.vertexTransform = '';
 /**
  * Calculates proper distance according to current perspective settings so,
  * that requested number of tiles can fit vertically on the canvas.
- * @param {number} latitude Latitude.
- * @param {number} longitude Longitude.
- * @param {number} zoom Zoom.
- * @param {number} tilesToBeSeen Requested amount of tiles to be seen.
  * @return {number} Calculated distance.
  */
 we.scene.rendershapes.RenderShape.prototype.calcDistance = goog.abstractMethod;
@@ -107,10 +105,6 @@ we.scene.rendershapes.RenderShape.prototype.calcDistance = goog.abstractMethod;
 
 /**
  * Applies needed translations and rotations to given context.
- * @param {number} latitude Latitude.
- * @param {number} longitude Longitude.
- * @param {number} distance Distance.
- * @param {number} tileCount Tile count in each dimension.
  */
 we.scene.rendershapes.RenderShape.prototype.transformContext =
     goog.abstractMethod;

@@ -21,10 +21,9 @@ goog.require('we.gl.Context');
 goog.require('we.gl.SegmentedPlane');
 goog.require('we.scene.LocatedProgram');
 goog.require('we.scene.TileBuffer');
-goog.require('we.scene.rendershapes.Plane');
 goog.require('we.scene.rendershapes.RenderShape');
 goog.require('we.scene.rendershapes.Sphere');
-goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
 goog.require('we.utils');
@@ -73,7 +72,7 @@ we.scene.Scene = function(context, opt_infobox) {
    * @type {!we.texturing.TileProvider}
    * @private
    */
-  this.currentTileProvider_ = new we.texturing.OSMTileProvider();
+  this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
 
   /**
    * @type {!we.scene.TileBuffer}
@@ -146,26 +145,7 @@ we.scene.Scene = function(context, opt_infobox) {
    * @type {!we.scene.rendershapes.RenderShape}
    * @private
    */
-  this.renderShape_ = new we.scene.rendershapes.Sphere(context);
-
-  var bufferDims = this.tileBuffer_.getDimensions();
-
-  this.renderShape_.compileProgram(bufferDims.width, bufferDims.height,
-                                   we.scene.LOOKUP_FALLBACK_LEVELS);
-
-  var planeShape = new we.scene.rendershapes.Plane(context);
-  planeShape.compileProgram(bufferDims.width, bufferDims.height,
-      we.scene.LOOKUP_FALLBACK_LEVELS);
-
-
-  var renderShapeSelect = new goog.ui.Select('...');
-  renderShapeSelect.addItem(new goog.ui.MenuItem('Sphere', this.renderShape_));
-  renderShapeSelect.addItem(new goog.ui.MenuItem('Plane', planeShape));
-  renderShapeSelect.render(goog.dom.getElement('tileprovider'));
-  renderShapeSelect.setSelectedIndex(0);
-
-  goog.events.listen(renderShapeSelect, goog.ui.Component.EventType.ACTION,
-      goog.bind(function(e) {this.renderShape_ = e.target.getValue();}, this));
+  this.renderShape_ = new we.scene.rendershapes.Sphere(this);
 
 
   /**
@@ -186,6 +166,15 @@ we.scene.Scene = function(context, opt_infobox) {
   }
 
   this.setZoom(2);
+};
+
+
+/**
+ * Returns dimension of underlying buffer.
+ * @return {!Object} Object containing "width" and "height" keys.
+ */
+we.scene.Scene.prototype.getBufferDimensions = function() {
+  return this.tileBuffer_.getDimensions();
 };
 
 
@@ -221,6 +210,15 @@ we.scene.Scene.prototype.changeTileProvider = function(tileprovider) {
   this.setZoom(this.zoomLevel);
   this.recalcTilesVertically();
   this.updateCopyrights_();
+};
+
+
+/**
+ * Changes tile provider of this scene.
+ * @param {!we.scene.rendershapes.RenderShape} rendershape RenderShape to use.
+ */
+we.scene.Scene.prototype.changeRenderShape = function(rendershape) {
+  this.renderShape_ = rendershape;
 };
 
 
@@ -329,11 +327,8 @@ we.scene.Scene.prototype.draw = function() {
         this.tileBuffer_.tileCache_.tileMap_.getCount();
   }
 
-  this.distance = this.renderShape_.calcDistance(this.latitude, this.longitude,
-                                                 this.zoomLevel,
-                                                 this.tilesVertically);
-  this.renderShape_.transformContext(this.latitude, this.longitude,
-                                     this.distance, this.tileCount);
+  this.distance = this.renderShape_.calcDistance();
+  this.renderShape_.transformContext();
 
   gl.useProgram(this.renderShape_.locatedProgram.program);
 

@@ -18,6 +18,8 @@ goog.require('we');
 goog.require('we.debug');
 goog.require('we.gl.Context');
 goog.require('we.scene.Scene');
+goog.require('we.scene.rendershapes.Plane');
+goog.require('we.scene.rendershapes.Sphere');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
@@ -26,6 +28,7 @@ goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
 
+goog.require('wedemo.ui.RenderShapeSelector');
 goog.require('wedemo.ui.TileProviderSelector');
 
 //Dummy dependencies
@@ -58,11 +61,10 @@ wedemo.App = function(canvas) {
 
     /**
      * @type {!we.gl.Context}
-     * @private
      */
-    this.context_ = new we.gl.Context(/** @type {!Element} */(canvas),
-                                      goog.dom.getElement('wedemo-fpsbox'));
-    this.context_.setPerspective(50, 0.000001, 5);
+    this.context = new we.gl.Context(/** @type {!Element} */(canvas),
+        goog.dom.getElement('wedemo-fpsbox'));
+    this.context.setPerspective(50, 0.000001, 5);
 
     /**
      * @type {!goog.Timer}
@@ -71,34 +73,37 @@ wedemo.App = function(canvas) {
     goog.events.listen(
         this.loopTimer,
         goog.Timer.TICK,
-        goog.bind(function() {this.context_.renderFrame();}, this)
+        goog.bind(function() {this.context.renderFrame();}, this)
     );
 
-    this.context_.scene = new we.scene.Scene(this.context_);
+    this.context.scene = new we.scene.Scene(this.context);
 
     /**
      * @type {!we.ui.SceneDragger}
      * @private
      */
-    this.dragger_ = new we.ui.SceneDragger(this.context_.scene);
+    this.dragger_ = new we.ui.SceneDragger(this.context.scene);
 
     /**
      * @type {!we.ui.MouseZoomer}
      * @private
      */
-    this.zoomer_ = new we.ui.MouseZoomer(this.context_.scene);
-
-
-    var tpSelectorEl = goog.dom.getElement('wedemo-tileprovider') ||
-        goog.dom.createElement('div');
-    goog.dom.insertSiblingBefore(tpSelectorEl, this.context_.canvas);
+    this.zoomer_ = new we.ui.MouseZoomer(this.context.scene);
 
     /**
      * @type {!wedemo.ui.TileProviderSelector}
      * @private
      */
-    this.tpSelector_ = new wedemo.ui.TileProviderSelector(this.context_.scene,
-        tpSelectorEl);
+    this.tpSelector_ = new wedemo.ui.TileProviderSelector(this.context.scene,
+        /** @type {!Element} */(goog.dom.getElement('wedemo-tileprovider')));
+
+    /**
+     * @type {!wedemo.ui.RenderShapeSelector}
+     * @private
+     */
+    this.rsSelector_ = new wedemo.ui.RenderShapeSelector(this.context.scene,
+        /** @type {!Element} */(goog.dom.getElement('wedemo-rendershape')));
+
 
     if (goog.DEBUG) {
       wedemo.logger.info('Done');
@@ -127,13 +132,23 @@ wedemo.App.prototype.addTileProvider = function(tileprovider) {
 
 
 /**
+ * Adds rendershape
+ * @param {string} name Name to be displayed.
+ * @param {!we.scene.rendershapes.RenderShape} rendershape RenderShape to add.
+ */
+wedemo.App.prototype.addRenderShape = function(name, rendershape) {
+  this.rsSelector_.addRenderShape(name, rendershape);
+};
+
+
+/**
  * Starts the inner loop
  */
 wedemo.App.prototype.start = function() {
   if (goog.DEBUG) {
     wedemo.logger.info('Starting the loop...');
   }
-  this.context_.resize();
+  this.context.resize();
   this.loopTimer.start();
 };
 
@@ -161,6 +176,11 @@ wedemo.run = function() {
   app.addTileProvider(
       new we.texturing.BingTileProvider(wedemo.BING_KEY, 'Road'));
   app.addTileProvider(new we.texturing.OSMTileProvider());
+
+  app.addRenderShape('3D Earth',
+                     new we.scene.rendershapes.Sphere(app.context.scene));
+  app.addRenderShape('Flat',
+                     new we.scene.rendershapes.Plane(app.context.scene));
 
   app.start();
 };

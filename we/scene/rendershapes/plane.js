@@ -17,8 +17,8 @@ goog.require('we.scene.rendershapes.RenderShape');
  * @extends {we.scene.rendershapes.RenderShape}
  * @constructor
  */
-we.scene.rendershapes.Plane = function(context) {
-  goog.base(this, context);
+we.scene.rendershapes.Plane = function(scene) {
+  goog.base(this, scene);
 };
 goog.inherits(we.scene.rendershapes.Plane, we.scene.rendershapes.RenderShape);
 
@@ -29,18 +29,18 @@ we.scene.rendershapes.Plane.prototype.vertexTransform =
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Plane.prototype.calcDistance =
-    function(latitude, longitude, zoom, tilesToBeSeen) {
-  var sizeIWannaSee = 2 * tilesToBeSeen / Math.pow(2, zoom);
-  return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2);
+we.scene.rendershapes.Plane.prototype.calcDistance = function() {
+  var sizeIWannaSee = 2 * this.scene.tilesVertically /
+                      Math.pow(2, this.scene.zoomLevel);
+  return (1 / Math.tan(this.scene.context.fov / 2)) * (sizeIWannaSee / 2);
 };
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Plane.prototype.transformContext =
-    function(latitude, longitude, distance, tileCount) {
-  var xoff = -2 * (goog.math.modulo(longitude / (2 * Math.PI) *
-                           tileCount, 1.0)) / tileCount;
-  this.context.translate(xoff, -Math.log(Math.tan(latitude / 2 + Math.PI / 4)) /
-      Math.PI, -distance);
+we.scene.rendershapes.Plane.prototype.transformContext = function() {
+  var xoff = -2 * (goog.math.modulo(this.scene.longitude / (2 * Math.PI) *
+                           this.scene.tileCount, 1.0)) / this.scene.tileCount;
+  this.scene.context.translate(xoff, -Math.log(
+      Math.tan(this.scene.latitude / 2 + Math.PI / 4)) /
+      Math.PI, -this.scene.distance);
 };

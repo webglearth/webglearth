@@ -17,8 +17,8 @@ goog.require('we.scene.rendershapes.RenderShape');
  * @extends {we.scene.rendershapes.RenderShape}
  * @constructor
  */
-we.scene.rendershapes.Sphere = function(context) {
-  goog.base(this, context);
+we.scene.rendershapes.Sphere = function(scene) {
+  goog.base(this, scene);
 };
 goog.inherits(we.scene.rendershapes.Sphere, we.scene.rendershapes.RenderShape);
 
@@ -32,20 +32,19 @@ we.scene.rendershapes.Sphere.prototype.vertexTransform =
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Sphere.prototype.calcDistance =
-    function(latitude, longitude, zoom, tilesToBeSeen) {
-  var o = Math.cos(Math.abs(latitude)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, zoom);
-  var sizeIWannaSee = thisPosDeformation * tilesToBeSeen;
-  return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2);
+we.scene.rendershapes.Sphere.prototype.calcDistance = function() {
+  var o = Math.cos(Math.abs(this.scene.latitude)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, this.scene.zoomLevel);
+  var sizeIWannaSee = thisPosDeformation * this.scene.tilesVertically;
+  return (1 / Math.tan(this.scene.context.fov / 2)) * (sizeIWannaSee / 2);
 };
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Sphere.prototype.transformContext =
-    function(latitude, longitude, distance, tileCount) {
-  this.context.translate(0, 0, -1 - distance);
-  this.context.rotate100(latitude);
-  this.context.rotate010(-(goog.math.modulo(longitude / (2 * Math.PI) *
-                           tileCount, 1.0)) / tileCount * (2 * Math.PI));
+we.scene.rendershapes.Sphere.prototype.transformContext = function() {
+  this.scene.context.translate(0, 0, -1 - this.scene.distance);
+  this.scene.context.rotate100(this.scene.latitude);
+  this.scene.context.rotate010(-(goog.math.modulo(this.scene.longitude /
+          (2 * Math.PI) * this.scene.tileCount, 1.0)) /
+          this.scene.tileCount * (2 * Math.PI));
 };
