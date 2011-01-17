@@ -112,10 +112,14 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
     this.dragging_ = true;
     this.oldX_ = e.screenX;
     this.oldY_ = e.screenY;
-    this.listenKey_ = null;
 
-    //if (goog.DEBUG)
-    //  we.scene.Scene.logger.info('Registering MOUSEMOVE');
+
+    //Unregister onMouseMove_
+    if (!goog.isNull(this.listenKey_)) {
+      goog.events.unlistenByKey(this.listenKey_);
+      this.listenKey_ = null;
+    }
+
 
     //Register onMouseMove_
     this.listenKey_ = goog.events.listen(
@@ -209,9 +213,8 @@ we.ui.SceneDragger.prototype.onDragEndTick_ = function() {
 
   //Unregister onMouseMove_
   if (!goog.isNull(this.listenKey_)) {
-    //if (goog.DEBUG)
-    //  we.scene.Scene.logger.info('Unregistering MOUSEMOVE');
     goog.events.unlistenByKey(this.listenKey_);
+    this.listenKey_ = null;
   }
 
   //Position change since dragEnd
