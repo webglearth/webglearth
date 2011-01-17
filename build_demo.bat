@@ -16,7 +16,7 @@ REM --define=goog.DEBUG=true
 
 @ECHO on
 
-%LIB_ROOT%/bin/build/depswriter.py --root_with_prefix="%PROJECT_ROOT%/wedemo/ ../../../wedemo" --output_file="%PROJECT_ROOT%/wedemo/deps.js_"
+%LIB_ROOT%/bin/build/depswriter.py --root_with_prefix="%PROJECT_ROOT%/we/ ../../../we" --root_with_prefix="%PROJECT_ROOT%/wedemo/ ../../../wedemo" --output_file="%PROJECT_ROOT%/wedemo/deps.js_"
 
 %LIB_ROOT%/bin/build/closurebuilder.py --root="%LIB_ROOT%/goog/" --root="%PROJECT_ROOT%/we/" --root="%PROJECT_ROOT%/wedemo/" --root="%PROJECT_ROOT%/closure-library/third_party/closure/" --namespace="wedemo" --output_mode=compiled --compiler_jar="%PROJECT_ROOT%/compiler.jar" --compiler_flags="--compilation_level=%LEVEL%" --compiler_flags="%DEFINE_FLAGS1%" --compiler_flags="%DEFINE_FLAGS2%" --compiler_flags="%DEFINE_FLAGS3%" %WARNING_FLAGS% --compiler_flags="%WEBGL_EXTERNS%" --output_file="%PROJECT_ROOT%/index.js"
 
