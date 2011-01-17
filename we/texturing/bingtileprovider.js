@@ -36,7 +36,7 @@ we.texturing.BingTileProvider = function(key, opt_imageryset) {
   goog.global[callbackFunc] = goog.isDef(goog.global[callbackFunc]) ?
       goog.functions.sequence(goog.bind(this.setMetadata_, this),
       goog.global[callbackFunc]) :
-      goog.bind(we.texturing.BingTileProvider.prototype.setMetadata_, this);
+      goog.bind(this.setMetadata_, this);
 
   var scriptEl = goog.dom.createElement('script');
   scriptEl.src = uriToCall;
@@ -54,7 +54,12 @@ goog.inherits(we.texturing.BingTileProvider, we.texturing.TileProvider);
  */
 we.texturing.BingTileProvider.prototype.setMetadata_ = function(data) {
   this.metaData_ = data;
-  this.resource_ = this.metaData_['resourceSets'][0]['resources'][0];
+  if (data['resourceSets'].length > 0) {
+    this.resource_ = data['resourceSets'][0]['resources'][0];
+  } else if (goog.DEBUG) {
+    var msg = 'Bing: ' + (data['errorDetails'][0] || 'Unknown error.');
+    we.texturing.TileProvider.logger.warning(msg);
+  }
 };
 
 
@@ -95,7 +100,7 @@ we.texturing.BingTileProvider.prototype.getQuadKey_ = function(zoom, x, y) {
 
 /** @inheritDoc */
 we.texturing.BingTileProvider.prototype.getTileURL = function(zoom, x, y) {
-  if (!goog.isNull(this.metaData_)) {
+  if (!goog.isNull(this.resource_)) {
     return this.resource_['imageUrl']
     .replace('{subdomain}',
         we.utils.randomElement(this.resource_['imageUrlSubdomains']))
@@ -108,7 +113,7 @@ we.texturing.BingTileProvider.prototype.getTileURL = function(zoom, x, y) {
 
 /** @inheritDoc */
 we.texturing.BingTileProvider.prototype.loadTile = function(tile) {
-  if (!goog.isNull(this.metaData_)) {
+  if (!goog.isNull(this.resource_)) {
     return goog.base(this, 'loadTile', tile);
   } else {
     return false;

@@ -19,10 +19,15 @@
   <script>
     goog.require('goog.Disposable');
     goog.require('wedemo');
+    
+    function start() {    
+      wedemo.BING_KEY='AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
+      WEDemoRun();
+    }
   </script>
   
  </head>
- <body onload="javascript:WEDemoRun();" style="width:100%">
+ <body onload="javascript:start()" style="width:100%">
    <a href="index-compiled.html">Compiled version</a>
    <div id="wedemo-fpsbox"></div><div id="wedemo-infobox"></div>
    <div id="wedemo-tileprovider"> </div><div id="wedemo-rendershape"> </div>
