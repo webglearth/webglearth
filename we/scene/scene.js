@@ -155,13 +155,14 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
   /**
    * @type {!Array.<!we.gl.SegmentedPlane>}
    */
-  this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 2, 3, 18),   //0
-                          new we.gl.SegmentedPlane(context, 4, 4, 10),   //1
-                          new we.gl.SegmentedPlane(context, 4, 6, 7),    //2
-                          new we.gl.SegmentedPlane(context, 8, 8, 5),    //3
+  this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 1, 1, 1),   //0
+                          new we.gl.SegmentedPlane(context, 1, 1, 1),   //1
+                          new we.gl.SegmentedPlane(context, 1, 1, 1),    //2
+                          new we.gl.SegmentedPlane(context, 8, 8, 6),    //3
+                          new we.gl.SegmentedPlane(context, 10, 10, 6),    //4
                           new we.gl.SegmentedPlane(context, 10, 10, 2)];
 
-  this.setZoom(2);
+  this.setZoom(3);
 };
 
 
