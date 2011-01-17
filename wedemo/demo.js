@@ -141,6 +141,41 @@ wedemo.App = function(canvas) {
           });
         }, this));
 
+
+    var updateHash = function() {
+      var newhash = '#zoom=' + this.context.scene.zoomLevel.toFixed(2) +
+          ';long=' + goog.math.toDegrees(
+              this.context.scene.longitude).toFixed(5) +
+          ';lat=' + goog.math.toDegrees(
+              this.context.scene.latitude).toFixed(5);
+      window.location.hash = newhash;
+    }
+
+    var fromHash = goog.bind(function() {
+      var hash = window.location.hash;
+      var getValue = function(name) {
+        var start = hash.indexOf(name + '=') + name.length + 1;
+        var end = hash.indexOf(';', start);
+        return hash.substring(start, end > 0 ? end : hash.length);
+      }
+      this.context.scene.setZoom(getValue('zoom'));
+      this.context.scene.setCenter(getValue('long'), getValue('lat'));
+    }, this);
+
+    /**
+     * @type {!goog.Timer}
+     */
+    this.hashUpdateTimer = new goog.Timer(2000);
+    goog.events.listen(this.hashUpdateTimer, goog.Timer.TICK,
+        goog.bind(updateHash, this)
+    );
+    this.hashUpdateTimer.start();
+
+    window.addEventListener(goog.events.EventType.HASHCHANGE,
+                            fromHash, false);
+
+    fromHash();
+
     if (goog.DEBUG) {
       wedemo.logger.info('Done');
     }

@@ -172,7 +172,7 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
  */
 we.scene.Scene.prototype.setCenter = function(longitude, latitude) {
   this.longitude = goog.math.toRadians(longitude);
-  this.latitude = goog.math.toRadians(latitude);
+  this.latitude = goog.math.toRadians(goog.math.clamp(latitude, -89, 89));
 };
 
 
