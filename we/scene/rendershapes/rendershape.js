@@ -12,7 +12,7 @@ goog.provide('we.scene.rendershapes.RenderShape');
 goog.require('we.gl.Context');
 goog.require('we.gl.Shader');
 goog.require('we.scene.LocatedProgram');
-goog.require('we.utils');
+goog.require('we.shaderbank');
 
 
 
@@ -44,14 +44,14 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
   var dim = this.scene.getBufferDimensions();
   var gl = this.scene.context.gl;
 
-  var fragmentShaderCode = we.utils.getFile(we.PATH_TO_SHADERS + 'fs.glsl');
+  var fragmentShaderCode = we.shaderbank.getShaderCode('fs.glsl');
 
   fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
       dim.width.toFixed(1));
   fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
       dim.height.toFixed(1));
 
-  var vertexShaderCode = we.utils.getFile(we.PATH_TO_SHADERS + 'vs.glsl');
+  var vertexShaderCode = we.shaderbank.getShaderCode('vs.glsl');
 
   vertexShaderCode = vertexShaderCode.replace('%VERTEX_TRANSFORM%',
       this.vertexTransform);

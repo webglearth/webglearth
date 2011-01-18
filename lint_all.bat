@@ -8,21 +8,15 @@ set CLOSURE_LINTER=C:/Program Files (x86)/Python27/Scripts
 
 REM @ECHO on
 
-REM "%CLOSURE_LINTER%/gjslint.exe" "%PROJECT_ROOT%\we\*.js"
 "%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\webgl-externs.js"
-"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\we\*.js"
-"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\we\*\*.js"
-"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\we\*\*\*.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\webgl-externs.js"
-"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*.js"
-"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*\*.js"
-"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\we\*\*\*.js"
+
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\we" -x "%PROJECT_ROOT%\we\shaderbank_codes.js"
+"%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\we" -x "%PROJECT_ROOT%\we\shaderbank_codes.js"
 
 
-"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\wedemo\*.js"
-"%CLOSURE_LINTER%\fixjsstyle.exe" --strict "%PROJECT_ROOT%\wedemo\*\*.js"
-"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\wedemo\*.js"
-"%CLOSURE_LINTER%\gjslint.exe" --strict "%PROJECT_ROOT%\wedemo\*\*.js"
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\wedemo"
+"%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\wedemo"
 
 @ECHO off
 
