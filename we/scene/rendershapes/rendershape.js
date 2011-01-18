@@ -9,7 +9,6 @@
 
 goog.provide('we.scene.rendershapes.RenderShape');
 
-goog.require('we.gl.Context');
 goog.require('we.gl.Shader');
 goog.require('we.scene.LocatedProgram');
 goog.require('we.shaderbank');

@@ -15,7 +15,6 @@ goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.ui.AutoComplete.EventType');
 
-goog.require('we');
 goog.require('we.debug');
 goog.require('we.gl.Context');
 goog.require('we.scene.Scene');

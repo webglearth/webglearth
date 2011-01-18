@@ -12,13 +12,9 @@ goog.require('WebGLDebugUtils');
 
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
-goog.require('goog.dom');
 goog.require('goog.events');
-
 goog.require('goog.math');
 goog.require('goog.math.Matrix');
-goog.require('goog.math.Vec3');
-goog.require('we.debug');
 
 
 /**

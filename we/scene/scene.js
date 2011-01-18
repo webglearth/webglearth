@@ -13,9 +13,6 @@ goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.math');
-goog.require('goog.ui.Component.EventType');
-goog.require('goog.ui.MenuItem');
-goog.require('goog.ui.Select');
 
 goog.require('we.gl.Context');
 goog.require('we.gl.SegmentedPlane');
@@ -24,9 +21,7 @@ goog.require('we.scene.TileBuffer');
 goog.require('we.scene.rendershapes.RenderShape');
 goog.require('we.scene.rendershapes.Sphere');
 goog.require('we.texturing.MapQuestTileProvider');
-goog.require('we.texturing.TileCache');
 goog.require('we.texturing.TileProvider');
-goog.require('we.utils');
 
 
 /**

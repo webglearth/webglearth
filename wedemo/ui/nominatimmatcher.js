@@ -10,7 +10,6 @@
 
 goog.provide('wedemo.ui.NominatimMatcher');
 
-goog.require('goog.Disposable');
 goog.require('goog.net.Jsonp');
 
 
@@ -21,7 +20,6 @@ goog.require('goog.net.Jsonp');
  * @param {Object.<string, string>=} opt_payload The list of extra parameters
      for the Jsonp request.
  * @constructor
- * @extends {goog.Disposable}
  */
 wedemo.ui.NominatimMatcher = function(opt_url, opt_payload) {
 
@@ -47,7 +45,6 @@ wedemo.ui.NominatimMatcher = function(opt_url, opt_payload) {
    */
   this.jsonp_ = new goog.net.Jsonp(this.url_, 'json_callback');
 };
-goog.inherits(wedemo.ui.NominatimMatcher, goog.Disposable);
 
 
 /**

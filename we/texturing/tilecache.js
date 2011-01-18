@@ -10,7 +10,6 @@ goog.provide('we.texturing.TileCache');
 
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
-goog.require('goog.structs');
 goog.require('goog.structs.Map');
 
 goog.require('we.texturing.Tile');
