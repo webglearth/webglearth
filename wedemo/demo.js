@@ -236,10 +236,12 @@ wedemo.run = function() {
 
   app.addTileProvider(new we.texturing.MapQuestTileProvider());
 
-  app.addTileProvider(
-      new we.texturing.GenericTileProvider('Local TMS',
-          './natural-earth-III-balanced-001.merc/{z}/{x}/{y}.jpg',
-          0, 5, 256, true));
+  if (!COMPILED) {
+    app.addTileProvider(
+        new we.texturing.GenericTileProvider('Local TMS',
+            './natural-earth-III-balanced-001.merc/{z}/{x}/{y}.jpg',
+            0, 5, 256, true));
+  }
   app.addTileProvider(
       new we.texturing.BingTileProvider(wedemo.BING_KEY, 'Aerial'));
   app.addTileProvider(
@@ -248,7 +250,7 @@ wedemo.run = function() {
       new we.texturing.BingTileProvider(wedemo.BING_KEY, 'Road'));
   app.addTileProvider(new we.texturing.OSMTileProvider());
 
-  app.addRenderShape('3D Earth',
+  app.addRenderShape('Sphere',
                      new we.scene.rendershapes.Sphere(app.context.scene));
   app.addRenderShape('Flat',
                      new we.scene.rendershapes.Plane(app.context.scene));
