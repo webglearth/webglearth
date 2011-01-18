@@ -153,8 +153,8 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
   this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 1, 1, 1),   //0
                           new we.gl.SegmentedPlane(context, 1, 1, 1),   //1
                           new we.gl.SegmentedPlane(context, 1, 1, 1),    //2
-                          new we.gl.SegmentedPlane(context, 8, 8, 6),    //3
-                          new we.gl.SegmentedPlane(context, 10, 10, 6),    //4
+                          new we.gl.SegmentedPlane(context, 8, 8, 8),    //3
+                          new we.gl.SegmentedPlane(context, 10, 10, 8),    //4
                           new we.gl.SegmentedPlane(context, 10, 10, 2)];
 
   this.setZoom(3);
