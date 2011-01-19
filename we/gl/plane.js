@@ -2,7 +2,7 @@
 /**
  * @fileoverview Contains functions for creating simple plane.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 

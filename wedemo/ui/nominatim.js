@@ -9,7 +9,7 @@
  * http://wiki.openstreetmap.org/wiki/Nominatim
  * http://open.mapquestapi.com/nominatim/
  *
- * @author Petr Pridal <petr.pridal@klokantech.com>
+ * @author petr.pridal@klokantech.com (Petr Pridal)
  *
  * Copyright 2011 Klokan Technologies Gmbh (www.klokantech.com)
  */

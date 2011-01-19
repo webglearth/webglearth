@@ -2,7 +2,7 @@
 /**
  * @fileoverview WebGL Earth Demo Application object.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 
@@ -63,7 +63,7 @@ wedemo.App = function(canvas) {
     var upgradeRedirector = function() {
       window.document.location = 'http://www.webglearth.com/upgrade.html';
     }
-      
+
     /**
      * @type {!we.gl.Context}
      */

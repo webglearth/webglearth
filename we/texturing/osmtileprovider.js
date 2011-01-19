@@ -2,7 +2,7 @@
 /**
  * @fileoverview Tile provider for OpenStreetMaps.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 

@@ -3,7 +3,7 @@
  * @fileoverview Contains object describing shader program
  *               swith located attributes and uniforms.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 

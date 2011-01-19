@@ -2,7 +2,7 @@
 /**
  * @fileoverview Object for plane visualisation.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 

@@ -2,8 +2,8 @@
 /**
  * @fileoverview Scene dragging.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
- * @author Petr Pridal <petr.pridal@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
+ * @author petr.pridal@klokantech.com (Petr Pridal)
  *
  */
 

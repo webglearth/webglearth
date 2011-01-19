@@ -3,7 +3,7 @@
  * @fileoverview Class that retrieves autocomplete matches from Nominatim
  * geocoder service.
  *
- * @author Petr Pridal <petr.pridal@klokantech.com>
+ * @author petr.pridal@klokantech.com (Petr Pridal)
  *
  * Copyright 2011 Klokan Technologies Gmbh (www.klokantech.com)
  */

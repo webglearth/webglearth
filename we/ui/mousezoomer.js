@@ -2,7 +2,7 @@
 /**
  * @fileoverview Scene zooming using mouse wheel.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
 goog.provide('we.ui.MouseZoomer');

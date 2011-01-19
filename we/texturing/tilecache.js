@@ -2,7 +2,7 @@
 /**
  * @fileoverview Object serving as level 2 cache for given TileProvider.
  *
- * @author Petr Sloup <petr.sloup@klokantech.com>
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 
