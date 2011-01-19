@@ -26,7 +26,7 @@
  * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
-goog.provide('wedemo.ui.RenderShapeSelector');
+goog.provide('weapp.ui.RenderShapeSelector');
 
 goog.require('goog.Disposable');
 goog.require('goog.events');
@@ -44,7 +44,7 @@ goog.require('we.scene.Scene');
  * @constructor
  * @extends {goog.Disposable}
  */
-wedemo.ui.RenderShapeSelector = function(scene, element) {
+weapp.ui.RenderShapeSelector = function(scene, element) {
   /**
    * @type {!we.scene.Scene}
    * @private
@@ -69,7 +69,7 @@ wedemo.ui.RenderShapeSelector = function(scene, element) {
 
   this.select_.render(element);
 };
-goog.inherits(wedemo.ui.RenderShapeSelector, goog.Disposable);
+goog.inherits(weapp.ui.RenderShapeSelector, goog.Disposable);
 
 
 /**
@@ -79,7 +79,7 @@ goog.inherits(wedemo.ui.RenderShapeSelector, goog.Disposable);
  *                                                      RenderShape to be added.
  * @param {number=} opt_select Change current selection to this item.
  */
-wedemo.ui.RenderShapeSelector.prototype.addRenderShape =
+weapp.ui.RenderShapeSelector.prototype.addRenderShape =
     function(name, rendershape, opt_select) {
   var item = new goog.ui.MenuItem(name, rendershape);
   this.select_.addItem(item);
@@ -91,7 +91,7 @@ wedemo.ui.RenderShapeSelector.prototype.addRenderShape =
 
 
 /** @inheritDoc */
-wedemo.ui.RenderShapeSelector.prototype.disposeInternal = function() {
+weapp.ui.RenderShapeSelector.prototype.disposeInternal = function() {
   //goog.base(this, 'disposeInternal');
   goog.events.unlistenByKey(this.listenKey_);
   this.select_.dispose();

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, all" />
+  <meta name="author" content="Petr Sloup" />
+  <title>WebGL Earth</title>
+
+  <link rel="stylesheet" href="../closure-library/closure/goog/css/common.css">
+  <link rel="stylesheet" href="../closure-library/closure/goog/css/menubutton.css">
+  <link rel="stylesheet" href="../closure-library/closure/goog/css/menu.css">
+  <link rel="stylesheet" href="../closure-library/closure/goog/css/menuitem.css">
+  <link rel="stylesheet" href="../closure-library/closure/goog/css/autocomplete.css">
+
+  <script src="../closure-library/closure/goog/base.js"></script>
+  <script src="deps.js"></script>
+
+  <script>
+    goog.require('goog.Disposable');
+    goog.require('weapp');
+    
+    function start() {    
+      weapp.BING_KEY='AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
+      WEDemoRun();
+    }
+  </script>
+  
+ </head>
+ <body onload="javascript:start()" style="width:100%">
+   <a href="index.html">Compiled version</a>
+   <div id="weapp-fpsbox"></div><div id="weapp-infobox"></div>
+   <div id="weapp-tileprovider"> </div><div id="weapp-rendershape"> </div>
+   <form id="weapp-nominatimform" action="#" method="post">
+    <input type="search" placeholder="Find a place..." autofocus="autofocus" autocomplete="off" id="weapp-nominatim" style="width:500px"/>
+   </form>
+   <canvas id="weapp-canvas" width="800" height="480" style="width:100%">
+    Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
+   </canvas>
+   <div id="weapp-mapcopyright"></div><img id="weapp-maplogo" />
+   <div id="weapp-log" style="float:right;"></div>
+ </body>
+</html>

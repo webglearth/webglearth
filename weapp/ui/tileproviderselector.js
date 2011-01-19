@@ -26,7 +26,7 @@
  * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
-goog.provide('wedemo.ui.TileProviderSelector');
+goog.provide('weapp.ui.TileProviderSelector');
 
 goog.require('goog.Disposable');
 goog.require('goog.events');
@@ -44,7 +44,7 @@ goog.require('we.scene.Scene');
  * @constructor
  * @extends {goog.Disposable}
  */
-wedemo.ui.TileProviderSelector = function(scene, element) {
+weapp.ui.TileProviderSelector = function(scene, element) {
   /**
    * @type {!we.scene.Scene}
    * @private
@@ -69,7 +69,7 @@ wedemo.ui.TileProviderSelector = function(scene, element) {
 
   this.select_.render(element);
 };
-goog.inherits(wedemo.ui.TileProviderSelector, goog.Disposable);
+goog.inherits(weapp.ui.TileProviderSelector, goog.Disposable);
 
 
 /**
@@ -77,7 +77,7 @@ goog.inherits(wedemo.ui.TileProviderSelector, goog.Disposable);
  * @param {!we.texturing.TileProvider} tileprovider TileProvider to be added.
  * @param {number=} opt_select Change current selection to this item.
  */
-wedemo.ui.TileProviderSelector.prototype.addTileProvider =
+weapp.ui.TileProviderSelector.prototype.addTileProvider =
     function(tileprovider, opt_select) {
   var item = new goog.ui.MenuItem(tileprovider.name, tileprovider);
   this.select_.addItem(item);
@@ -89,7 +89,7 @@ wedemo.ui.TileProviderSelector.prototype.addTileProvider =
 
 
 /** @inheritDoc */
-wedemo.ui.TileProviderSelector.prototype.disposeInternal = function() {
+weapp.ui.TileProviderSelector.prototype.disposeInternal = function() {
   //goog.base(this, 'disposeInternal');
   goog.events.unlistenByKey(this.listenKey_);
   this.select_.dispose();

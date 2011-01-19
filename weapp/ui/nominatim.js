@@ -33,13 +33,13 @@
  * @author petr.pridal@klokantech.com (Petr Pridal)
  */
 
-goog.provide('wedemo.ui.Nominatim');
+goog.provide('weapp.ui.Nominatim');
 
 goog.require('goog.ui.AutoComplete');
 goog.require('goog.ui.AutoComplete.InputHandler');
 goog.require('goog.ui.AutoComplete.Renderer');
 
-goog.require('wedemo.ui.NominatimMatcher');
+goog.require('weapp.ui.NominatimMatcher');
 
 
 
@@ -54,7 +54,7 @@ goog.require('wedemo.ui.NominatimMatcher');
  * @constructor
  * @extends {goog.ui.AutoComplete}
  */
-wedemo.ui.Nominatim = function(input, opt_url, opt_payload) {
+weapp.ui.Nominatim = function(input, opt_url, opt_payload) {
 
   // Create a custom renderer that renders rich rows returned from server.
   var customRenderer = {};
@@ -77,10 +77,10 @@ wedemo.ui.Nominatim = function(input, opt_url, opt_payload) {
 
   /**
    * A remote matcher that parses rich results returned via JSONP from a server.
-   * @type {!wedemo.ui.NominatimMatcher}
+   * @type {!weapp.ui.NominatimMatcher}
    * @private
    */
-  this.matcher_ = new wedemo.ui.NominatimMatcher(opt_url, opt_payload);
+  this.matcher_ = new weapp.ui.NominatimMatcher(opt_url, opt_payload);
 
   /**
    * An input handler that calls select on a row when it is selected.
@@ -100,7 +100,7 @@ wedemo.ui.Nominatim = function(input, opt_url, opt_payload) {
   });
 
 };
-goog.inherits(wedemo.ui.Nominatim, goog.ui.AutoComplete);
+goog.inherits(weapp.ui.Nominatim, goog.ui.AutoComplete);
 
 
 /**
@@ -113,7 +113,7 @@ goog.inherits(wedemo.ui.Nominatim, goog.ui.AutoComplete);
  * @param {Function} matchHandler Callback to execute on the result after
  *     matching.
  */
-wedemo.ui.Nominatim.prototype.search =
+weapp.ui.Nominatim.prototype.search =
     function(token, maxMatches, matchHandler) {
   this.matcher_.requestMatchingRows(token, maxMatches, matchHandler);
 };

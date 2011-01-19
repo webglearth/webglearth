@@ -37,7 +37,7 @@ goog.require('we.utils');
  * @define {string} Path to shaders scripts. Useful if the shaders are
  * in different location than _webpage_ running this javascript file(s).
  */
-we.shaderbank.PATH_TO_SHADERS = './we/shaders/';
+we.shaderbank.PATH_TO_SHADERS = '../we/shaders/';
 
 
 /**

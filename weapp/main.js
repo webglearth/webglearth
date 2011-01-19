@@ -27,8 +27,8 @@
  *
  */
 
-goog.provide('wedemo');
-goog.provide('wedemo.App');
+goog.provide('weapp');
+goog.provide('weapp.App');
 
 goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
@@ -49,9 +49,9 @@ goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
 
-goog.require('wedemo.ui.Nominatim');
-goog.require('wedemo.ui.RenderShapeSelector');
-goog.require('wedemo.ui.TileProviderSelector');
+goog.require('weapp.ui.Nominatim');
+goog.require('weapp.ui.RenderShapeSelector');
+goog.require('weapp.ui.TileProviderSelector');
 
 //Dummy dependencies
 goog.addDependency('',
@@ -61,7 +61,7 @@ goog.addDependency('',
 /**
  * @define {string} Bing Maps API key. Should be set via compiler parameter.
  */
-wedemo.BING_KEY = '';
+weapp.BING_KEY = '';
 
 
 
@@ -70,16 +70,16 @@ wedemo.BING_KEY = '';
  * @param {Element} canvas Canvas element.
  * @constructor
  */
-wedemo.App = function(canvas) {
+weapp.App = function(canvas) {
   if (goog.isNull(canvas)) return;
 
   if (goog.DEBUG) {
-    we.debug.initDivConsole(goog.dom.getElement('wedemo-log'));
+    we.debug.initDivConsole(goog.dom.getElement('weapp-log'));
   }
 
   var innerInit = function() {
     if (goog.DEBUG)
-      wedemo.logger.info('Initializing...');
+      weapp.logger.info('Initializing...');
 
     var upgradeRedirector = function() {
       window.document.location = 'http://www.webglearth.com/upgrade.html';
@@ -89,7 +89,7 @@ wedemo.App = function(canvas) {
      * @type {!we.gl.Context}
      */
     this.context = new we.gl.Context(/** @type {!Element} */(canvas),
-        goog.dom.getElement('wedemo-fpsbox'), upgradeRedirector);
+        goog.dom.getElement('weapp-fpsbox'), upgradeRedirector);
     this.context.setPerspective(50, 0.000001, 5);
 
     /**
@@ -103,9 +103,9 @@ wedemo.App = function(canvas) {
     );
 
     this.context.scene = new we.scene.Scene(this.context,
-        goog.dom.getElement('wedemo-infobox'),
-        goog.dom.getElement('wedemo-mapcopyright'),
-        goog.dom.getElement('wedemo-maplogo'));
+        goog.dom.getElement('weapp-infobox'),
+        goog.dom.getElement('weapp-mapcopyright'),
+        goog.dom.getElement('weapp-maplogo'));
 
     /**
      * @type {!we.ui.SceneDragger}
@@ -120,31 +120,31 @@ wedemo.App = function(canvas) {
     this.zoomer_ = new we.ui.MouseZoomer(this.context.scene);
 
     /**
-     * @type {!wedemo.ui.TileProviderSelector}
+     * @type {!weapp.ui.TileProviderSelector}
      * @private
      */
-    this.tpSelector_ = new wedemo.ui.TileProviderSelector(this.context.scene,
-        /** @type {!Element} */(goog.dom.getElement('wedemo-tileprovider')));
+    this.tpSelector_ = new weapp.ui.TileProviderSelector(this.context.scene,
+        /** @type {!Element} */(goog.dom.getElement('weapp-tileprovider')));
 
     /**
-     * @type {!wedemo.ui.RenderShapeSelector}
+     * @type {!weapp.ui.RenderShapeSelector}
      * @private
      */
-    this.rsSelector_ = new wedemo.ui.RenderShapeSelector(this.context.scene,
-        /** @type {!Element} */(goog.dom.getElement('wedemo-rendershape')));
+    this.rsSelector_ = new weapp.ui.RenderShapeSelector(this.context.scene,
+        /** @type {!Element} */(goog.dom.getElement('weapp-rendershape')));
 
 
     /**
      * @type {!Element}
      */
     var nominatimInput = /** @type {!Element} */
-        (goog.dom.getElement('wedemo-nominatim'));
+        (goog.dom.getElement('weapp-nominatim'));
 
     /**
-     * @type {!wedemo.ui.Nominatim}
+     * @type {!weapp.ui.Nominatim}
      * @private
      */
-    this.nominatim_ = new wedemo.ui.Nominatim(nominatimInput);
+    this.nominatim_ = new weapp.ui.Nominatim(nominatimInput);
 
     var runNominatimAction = goog.bind(function(item) {
       this.context.scene.setCenter(item['lon'], item['lat']);
@@ -155,7 +155,7 @@ wedemo.App = function(canvas) {
           runNominatimAction(e.row);
         });
 
-    goog.events.listen(goog.dom.getElement('wedemo-nominatimform'),
+    goog.events.listen(goog.dom.getElement('weapp-nominatimform'),
         goog.events.EventType.SUBMIT, goog.bind(function(e) {
           e.preventDefault();
           this.nominatim_.search(nominatimInput.value, 1, function(t, result) {
@@ -201,7 +201,7 @@ wedemo.App = function(canvas) {
     fromHash();
 
     if (goog.DEBUG) {
-      wedemo.logger.info('Done');
+      weapp.logger.info('Done');
     }
   }
 
@@ -221,7 +221,7 @@ wedemo.App = function(canvas) {
  * Adds tile provider
  * @param {!we.texturing.TileProvider} tileprovider Tile provider.
  */
-wedemo.App.prototype.addTileProvider = function(tileprovider) {
+weapp.App.prototype.addTileProvider = function(tileprovider) {
   this.tpSelector_.addTileProvider(tileprovider);
 };
 
@@ -231,7 +231,7 @@ wedemo.App.prototype.addTileProvider = function(tileprovider) {
  * @param {string} name Name to be displayed.
  * @param {!we.scene.rendershapes.RenderShape} rendershape RenderShape to add.
  */
-wedemo.App.prototype.addRenderShape = function(name, rendershape) {
+weapp.App.prototype.addRenderShape = function(name, rendershape) {
   this.rsSelector_.addRenderShape(name, rendershape);
 };
 
@@ -239,9 +239,9 @@ wedemo.App.prototype.addRenderShape = function(name, rendershape) {
 /**
  * Starts the inner loop
  */
-wedemo.App.prototype.start = function() {
+weapp.App.prototype.start = function() {
   if (goog.DEBUG) {
-    wedemo.logger.info('Starting the loop...');
+    weapp.logger.info('Starting the loop...');
   }
   this.context.resize();
   this.loopTimer.start();
@@ -251,12 +251,12 @@ wedemo.App.prototype.start = function() {
 /**
  * Run the demo app.
  */
-wedemo.run = function() {
+weapp.run = function() {
   if (goog.DEBUG) {
-    wedemo.logger.info('Running the demo...');
+    weapp.logger.info('Running the demo...');
   }
 
-  var app = new wedemo.App(goog.dom.getElement('wedemo-canvas'));
+  var app = new weapp.App(goog.dom.getElement('weapp-canvas'));
 
   app.addTileProvider(new we.texturing.MapQuestTileProvider());
 
@@ -267,11 +267,11 @@ wedemo.run = function() {
             0, 5, 256, true));
   }
   app.addTileProvider(
-      new we.texturing.BingTileProvider(wedemo.BING_KEY, 'Aerial'));
+      new we.texturing.BingTileProvider(weapp.BING_KEY, 'Aerial'));
   app.addTileProvider(
-      new we.texturing.BingTileProvider(wedemo.BING_KEY, 'AerialWithLabels'));
+      new we.texturing.BingTileProvider(weapp.BING_KEY, 'AerialWithLabels'));
   app.addTileProvider(
-      new we.texturing.BingTileProvider(wedemo.BING_KEY, 'Road'));
+      new we.texturing.BingTileProvider(weapp.BING_KEY, 'Road'));
   app.addTileProvider(new we.texturing.OSMTileProvider());
 
   app.addRenderShape('Sphere',
@@ -288,7 +288,7 @@ if (goog.DEBUG) {
    * Shared logger instance
    * @type {goog.debug.Logger}
    */
-  wedemo.logger = goog.debug.Logger.getLogger('wedemo');
+  weapp.logger = goog.debug.Logger.getLogger('weapp');
 }
 
-goog.exportSymbol('WEDemoRun', wedemo.run);
+goog.exportSymbol('WEApp', weapp.run);

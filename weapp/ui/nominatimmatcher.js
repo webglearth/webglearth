@@ -27,7 +27,7 @@
  * @author petr.pridal@klokantech.com (Petr Pridal)
  */
 
-goog.provide('wedemo.ui.NominatimMatcher');
+goog.provide('weapp.ui.NominatimMatcher');
 
 goog.require('goog.net.Jsonp');
 
@@ -40,7 +40,7 @@ goog.require('goog.net.Jsonp');
      for the Jsonp request.
  * @constructor
  */
-wedemo.ui.NominatimMatcher = function(opt_url, opt_payload) {
+weapp.ui.NominatimMatcher = function(opt_url, opt_payload) {
 
   /**
    * The url of the Nominatim instance
@@ -77,7 +77,7 @@ wedemo.ui.NominatimMatcher = function(opt_url, opt_payload) {
  * @param {Function} matchHandler Callback to execute on the result after
  *     matching.
  */
-wedemo.ui.NominatimMatcher.prototype.requestMatchingRows =
+weapp.ui.NominatimMatcher.prototype.requestMatchingRows =
     function(token, maxMatches, matchHandler) {
 
   this.payload_['q'] = token;
