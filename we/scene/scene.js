@@ -60,7 +60,7 @@ we.scene.LOOKUP_FALLBACK_LEVELS = 5;
  * @type {number}
  * @const
  */
-we.scene.MIN_ZOOM = 3.25;
+we.scene.MIN_ZOOM = 3;
 
 
 
