@@ -2,7 +2,7 @@
 /**
  * @fileoverview Contains abstract class describing object providing tiles.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

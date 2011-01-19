@@ -2,7 +2,7 @@
 /**
  * @fileoverview Contains interface describing 3d object.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

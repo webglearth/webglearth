@@ -2,7 +2,7 @@
 /**
  * @fileoverview Contains some useful functions.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

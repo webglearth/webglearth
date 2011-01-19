@@ -2,7 +2,7 @@
 /**
  * @fileoverview RenderShape selection.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  */
 
 goog.provide('wedemo.ui.RenderShapeSelector');

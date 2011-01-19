@@ -2,7 +2,7 @@
 /**
  * @fileoverview WebGL Earth Demo Application object.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

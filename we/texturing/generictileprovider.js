@@ -2,7 +2,7 @@
 /**
  * @fileoverview Generic TileProvider for custom tile sources.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

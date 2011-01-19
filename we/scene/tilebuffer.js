@@ -3,7 +3,7 @@
  * @fileoverview Object managing level 1 (buffer) and encapsulating
  *               level 2 cache for given TileProvider.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

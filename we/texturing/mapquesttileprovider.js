@@ -2,7 +2,7 @@
 /**
  * @fileoverview Tile provider for MapQuest OSM tiles.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

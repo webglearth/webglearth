@@ -2,7 +2,7 @@
 /**
  * @fileoverview Provides basic debugging features.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

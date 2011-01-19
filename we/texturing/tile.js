@@ -2,7 +2,7 @@
 /**
  * @fileoverview Object representing tile.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

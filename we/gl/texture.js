@@ -2,7 +2,7 @@
 /**
  * @fileoverview Contains functions for texture initialization and loading.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

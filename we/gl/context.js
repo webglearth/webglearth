@@ -2,7 +2,7 @@
 /**
  * @fileoverview Contains functions for WebGL initialization.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

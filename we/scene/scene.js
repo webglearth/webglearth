@@ -2,7 +2,7 @@
 /**
  * @fileoverview WebGL Earth scene handling.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

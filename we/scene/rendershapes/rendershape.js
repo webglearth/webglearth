@@ -3,7 +3,7 @@
  * @fileoverview Base object for render shapes -
  *               possible visualisation style (sphere, plane, etc.).
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  *
  */
 

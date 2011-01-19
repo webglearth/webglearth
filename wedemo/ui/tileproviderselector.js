@@ -2,7 +2,7 @@
 /**
  * @fileoverview TileProvider selection.
  *
- * @author slouppetr@gmail.com (Petr Sloup)
+ * @author Petr Sloup <petr.sloup@klokantech.com>
  */
 
 goog.provide('wedemo.ui.TileProviderSelector');
