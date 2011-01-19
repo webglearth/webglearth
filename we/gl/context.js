@@ -28,9 +28,11 @@ we.CALC_FPS = true;
  * Object wrapping a WebGL context.
  * @param {!Element} canvas Canvas element.
  * @param {Element=} opt_fpsbox Element to output fps information to.
+ * @param {!function()=} opt_onfail Function to call if unable to get any valid
+ *                                  WebGL context, otherwise throws error.
  * @constructor
  */
-we.gl.Context = function(canvas, opt_fpsbox) {
+we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
 
   var tryGetContext = function(canvas, type) {
     try {
@@ -45,10 +47,21 @@ we.gl.Context = function(canvas, opt_fpsbox) {
     }
   };
   var gl = null;
-  gl = gl || tryGetContext(canvas, 'experimental-webgl');
 
-  if (gl == null || !gl) {
-    throw Error('unable to get a valid WebGL context');
+  /**
+   * @type {!Array.<string>}
+   */
+  var contextNames = ['webgl', 'experimental-webgl'];
+  for (var i = 0; goog.isNull(gl) && i < contextNames.length; ++i) {
+    gl = gl || tryGetContext(canvas, contextNames[i]);
+  }
+
+  if (goog.isNull(gl)) {
+    if (goog.isDef(opt_onfail)) {
+      opt_onfail();
+    } else {
+      throw Error('unable to get a valid WebGL context');
+    }
   }
 
   if (goog.DEBUG) {

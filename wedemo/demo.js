@@ -60,11 +60,15 @@ wedemo.App = function(canvas) {
     if (goog.DEBUG)
       wedemo.logger.info('Initializing...');
 
+    var upgradeRedirector = function() {
+      window.document.location = 'http://www.webglearth.com/upgrade.html';
+    }
+      
     /**
      * @type {!we.gl.Context}
      */
     this.context = new we.gl.Context(/** @type {!Element} */(canvas),
-        goog.dom.getElement('wedemo-fpsbox'));
+        goog.dom.getElement('wedemo-fpsbox'), upgradeRedirector);
     this.context.setPerspective(50, 0.000001, 5);
 
     /**
