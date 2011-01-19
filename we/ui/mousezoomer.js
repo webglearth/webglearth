@@ -69,7 +69,7 @@ we.ui.MouseZoomer = function(scene) {
   this.dblClickListenKey_ = goog.events.listen(scene.context.canvas,
       goog.events.EventType.DBLCLICK,
       goog.bind(function(e) {
-        this.setZoom(this.zoomLevel + 1);
+        this.setZoom(Math.floor(this.zoomLevel + 1));
         e.preventDefault();
       }, scene));
 
@@ -82,7 +82,7 @@ we.ui.MouseZoomer = function(scene) {
       goog.bind(function(e) {
         if (e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT)) {
           e.preventDefault();
-          this.setZoom(this.zoomLevel - 1);
+          this.setZoom(Math.ceil(this.zoomLevel - 1));
         }
       }, scene));
 
