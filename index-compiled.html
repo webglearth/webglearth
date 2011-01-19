@@ -3,9 +3,10 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>WebGL Earth - Free and open source 3D digital globe for web and mobile devices</title>
-  <meta name="author" content="Klokan Technologies GmbH"><html>
-
-<script src="index.js"></script>
+  <meta name="author" content="Klokan Technologies GmbH">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  
+  <script src="index.js"></script>
 
   <link rel="stylesheet" href="closure-library/closure/goog/css/common.css">
   <link rel="stylesheet" href="closure-library/closure/goog/css/menubutton.css">
@@ -89,6 +90,14 @@ a:visited {
   position:absolute;
   z-index:-1;
 }
+noscript {
+  color:#ffffff;
+  font-size:150%;
+  text-align:center;
+  position:absolute;
+  top:200px;
+  width:100%;
+}
 #credits {
   font-size:65%;
   font-weight: bold;
@@ -124,7 +133,12 @@ h1 {
       </form>
     </span>
   </div>
-  <div id="earth"><canvas id="wedemo-canvas" style="width:100%; height:100%;"></canvas></div>
+  <div id="earth">
+    <canvas id="wedemo-canvas" style="width:100%; height:100%;"></canvas>
+    <noscript>
+      Your browser appears to have Javascript disabled. To use WebGL Earth, turn Javascript back on.
+    </noscript>
+  </div>
   <div id="credits"><img id="wedemo-maplogo" /><div id="wedemo-mapcopyright"></div></div></div>
   <div id="klokantechlogo"></div>
   <div id="statusbar"><span id="wedemo-infobox"></span><span id="wedemo-fpsbox"></span></div>
