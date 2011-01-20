@@ -259,6 +259,7 @@ weapp.run = function() {
   var app = new weapp.App(goog.dom.getElement('weapp-canvas'));
 
   app.addTileProvider(new we.texturing.MapQuestTileProvider());
+  app.addTileProvider(new we.texturing.OSMTileProvider());
 
   if (!COMPILED) {
     app.addTileProvider(
@@ -272,11 +273,10 @@ weapp.run = function() {
       new we.texturing.BingTileProvider(weapp.BING_KEY, 'AerialWithLabels'));
   app.addTileProvider(
       new we.texturing.BingTileProvider(weapp.BING_KEY, 'Road'));
-  app.addTileProvider(new we.texturing.OSMTileProvider());
 
-  app.addRenderShape('Sphere',
+  app.addRenderShape('Globe',
                      new we.scene.rendershapes.Sphere(app.context.scene));
-  app.addRenderShape('Flat',
+  app.addRenderShape('Mercator',
                      new we.scene.rendershapes.Plane(app.context.scene));
 
   app.start();
