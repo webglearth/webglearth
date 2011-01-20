@@ -63,7 +63,8 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
       }
       return context;
     } catch (e) {
-      we.gl.Context.logger.shout(e);
+      if (goog.DEBUG)
+        we.gl.Context.logger.shout(e);
       return null;
     }
   };
