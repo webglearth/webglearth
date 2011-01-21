@@ -276,11 +276,11 @@ weapp.run = function() {
             0, 5, 256, true));
   }
   app.addTileProvider(
-      new we.texturing.BingTileProvider(weapp.BING_KEY, 'Aerial'));
+      new we.texturing.BingTileProvider('Aerial', weapp.BING_KEY));
   app.addTileProvider(
-      new we.texturing.BingTileProvider(weapp.BING_KEY, 'AerialWithLabels'));
+      new we.texturing.BingTileProvider('AerialWithLabels', weapp.BING_KEY));
   app.addTileProvider(
-      new we.texturing.BingTileProvider(weapp.BING_KEY, 'Road'));
+      new we.texturing.BingTileProvider('Road', weapp.BING_KEY));
 
   app.addRenderShape('Globe',
                      new we.scene.rendershapes.Sphere(app.context.scene));

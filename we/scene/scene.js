@@ -70,9 +70,12 @@ we.scene.MIN_ZOOM = 3;
  * @param {Element=} opt_infobox Element to output information to.
  * @param {Element=} opt_copyrightbox Element to output mapdata information to.
  * @param {Element=} opt_logobox Element to output logo of mapdata source to.
+ * @param {we.texturing.TileProvider=} opt_tileProvider Default TileProvider.
+ * @param {we.scene.rendershapes.RenderShape=} opt_renderShape Default shape.
  * @constructor
  */
-we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
+we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
+                          opt_tileProvider, opt_renderShape) {
   /**
    * @type {!we.gl.Context}
    */
@@ -110,7 +113,8 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
    * @type {!we.texturing.TileProvider}
    * @private
    */
-  this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
+  this.currentTileProvider_ = opt_tileProvider ||
+                              new we.texturing.MapQuestTileProvider();
 
   /**
    * @type {!we.scene.TileBuffer}
@@ -166,7 +170,7 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
    * @type {!we.scene.rendershapes.RenderShape}
    * @private
    */
-  this.renderShape_ = new we.scene.rendershapes.Sphere(this);
+  this.renderShape_ = opt_renderShape || new we.scene.rendershapes.Sphere(this);
 
 
   /**

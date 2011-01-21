@@ -39,14 +39,12 @@ goog.require('we.utils');
 /**
  * Tile provider for Bing maps
  * @constructor
- * @param {!string} key Bing maps key.
- * @param {!string=} opt_imageryset The type of imagery.
+ * @param {string} imagerySet The type of imagery.
+ * @param {string} key Bing maps key.
  * @extends {we.texturing.TileProvider}
  * @inheritDoc
  */
-we.texturing.BingTileProvider = function(key, opt_imageryset) {
-  var imagerySet = opt_imageryset || 'AerialWithLabels';
-
+we.texturing.BingTileProvider = function(imagerySet, key) {
   goog.base(this, 'Bing Maps - ' + imagerySet);
 
   var callbackFunc = 'bingsCallback_' + imagerySet;

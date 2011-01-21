@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, all" />
+  <title>WebGL Earth API - Hello World</title>
+
+  <script src="../../closure-library/closure/goog/base.js"></script>
+  <script src="../deps.js"></script>
+
+  <script>
+    goog.require('goog.Disposable');
+    goog.require('weapi.exports');
+  </script>
+  <script>
+    we.shaderbank.PATH_TO_SHADERS = '../../we/shaders/';
+        
+    var app;
+    function startWE() {
+      app = new WebGLEarth('webglearthdiv', {zoom: 13, center: [45.833611, 6.865], map: WebGLEarth.Maps.OSM});
+      
+      app.initMap(WebGLEarth.Maps.BING, ['Aerial', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
+    }
+  </script>
+  
+ </head>
+ <body onload="javascript:startWE()">
+   <div id="webglearthdiv" style="width:600px;height:400px;"></div>
+   <input type="button" value="Zoom to level 9.1" onclick="javascript:app.setZoom(9.1);"/>
+   <input type="button" value="What's current zoom level?" onclick="javascript:alert(app.getZoom());"/>
+   <input type="button" value="Set center to Mount Everest" onclick="javascript:app.setCenter([27.988056, 86.925278]);"/>
+   <input type="button" value="What's current center?" onclick="javascript:alert(app.getCenter());"/>
+   <br /><br />
+   <input type="button" value="Make the app bigger!" onclick="javascript:document.getElementById('webglearthdiv').style.width='800px';app.handleResize();this.disabled=true;"/>
+   <br /><br />
+   <input type="button" value="Switch to MapQuest" onclick="javascript:app.setMap(WebGLEarth.Maps.MAPQUEST)"/>
+   <input type="button" value="Switch to Bing - Aerial" onclick="javascript:app.setMap(WebGLEarth.Maps.BING, 'Aerial')"/>
+ </body>
+</html>

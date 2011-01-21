@@ -14,6 +14,9 @@ REM @ECHO on
 "%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\weapp" -x "%PROJECT_ROOT%\weapp\deps.js,%PROJECT_ROOT%\weapp\index.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\weapp" -x "%PROJECT_ROOT%\weapp\deps.js,%PROJECT_ROOT%\weapp\index.js"
 
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\api" -x "%PROJECT_ROOT%\api\deps.js,%PROJECT_ROOT%\api\api.js"
+"%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\api" -x "%PROJECT_ROOT%\api\deps.js,%PROJECT_ROOT%\api\api.js"
+
 @ECHO off
 
 PAUSE
