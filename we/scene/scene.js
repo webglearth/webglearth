@@ -185,12 +185,22 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
 
 /**
  * Immediately sets center of the scene to given location.
- * @param {number} longitude Longitude in degrees.
  * @param {number} latitude Latitude in degrees.
+ * @param {number} longitude Longitude in degrees.
  */
-we.scene.Scene.prototype.setCenter = function(longitude, latitude) {
-  this.longitude = goog.math.toRadians(longitude);
+we.scene.Scene.prototype.setCenter = function(latitude, longitude) {
   this.latitude = goog.math.toRadians(goog.math.clamp(latitude, -89, 89));
+  this.longitude = goog.math.toRadians(longitude);
+};
+
+
+/**
+ * Returns Array [latitude, longitude] converted to degrees.
+ * @return {Array.<number>} Array [lat, long].
+ */
+we.scene.Scene.prototype.getCenter = function() {
+  return [goog.math.toDegrees(this.latitude),
+          goog.math.toDegrees(this.longitude)];
 };
 
 
@@ -343,8 +353,8 @@ we.scene.Scene.prototype.draw = function() {
 
   if (!goog.isNull(this.infobox_)) {
     this.infobox_.innerHTML =
-        goog.math.toDegrees(this.longitude).toFixed(4) + '; ' +
-        goog.math.toDegrees(this.latitude).toFixed(4) + ' @ ' +
+        goog.math.toDegrees(this.latitude).toFixed(4) + '; ' +
+        goog.math.toDegrees(this.longitude).toFixed(4) + ' @ ' +
         this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
         this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
         this.currentTileProvider_.loadingTileCounter + '; LoadQueue size: ' +

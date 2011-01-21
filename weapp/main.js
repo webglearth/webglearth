@@ -147,7 +147,7 @@ weapp.App = function(canvas) {
     this.nominatim_ = new weapp.ui.Nominatim(nominatimInput);
 
     var runNominatimAction = goog.bind(function(item) {
-      this.context.scene.setCenter(item['lon'], item['lat']);
+      this.context.scene.setCenter(item['lat'], item['lon']);
     }, this);
 
     this.nominatim_.addEventListener(goog.ui.AutoComplete.EventType.UPDATE,
@@ -168,10 +168,10 @@ weapp.App = function(canvas) {
 
     var updateHash = function() {
       var newhash = '#zoom=' + this.context.scene.zoomLevel.toFixed(2) +
-          ';long=' + goog.math.toDegrees(
-              this.context.scene.longitude).toFixed(5) +
           ';lat=' + goog.math.toDegrees(
-              this.context.scene.latitude).toFixed(5);
+              this.context.scene.latitude).toFixed(5) +
+          ';lon=' + goog.math.toDegrees(
+              this.context.scene.longitude).toFixed(5);
       window.location.hash = newhash;
     }
 
@@ -182,8 +182,16 @@ weapp.App = function(canvas) {
         var end = hash.indexOf(';', start);
         return hash.substring(start, end > 0 ? end : hash.length);
       }
-      this.context.scene.setZoom(getValue('zoom'));
-      this.context.scene.setCenter(getValue('long'), getValue('lat'));
+
+      var zoom = getValue('zoom');
+      if (!isNaN(zoom))
+        this.context.scene.setZoom(zoom);
+
+      var lat = getValue('lat');
+      var lon = getValue('lon');
+      if (!isNaN(lat) && !isNaN(lon))
+        this.context.scene.setCenter(lat, lon);
+
     }, this);
 
     /**
