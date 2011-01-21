@@ -112,14 +112,15 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
    */
   this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
 
-  this.changeTileProvider(this.currentTileProvider_);
-
   /**
    * @type {!we.scene.TileBuffer}
    * @private
    */
   this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_, context,
       8, 8);
+
+  this.changeTileProvider(this.currentTileProvider_);
+
 
   this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,
