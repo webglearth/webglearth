@@ -81,6 +81,7 @@ we.texturing.BingTileProvider.prototype.setMetadata_ = function(data) {
     var msg = 'Bing: ' + (data['errorDetails'][0] || 'Unknown error.');
     we.texturing.TileProvider.logger.warning(msg);
   }
+  this.copyrightInfoChangedHandler();
 };
 
 
@@ -156,6 +157,7 @@ we.texturing.BingTileProvider.prototype.getLogoUrl = function() {
   if (!goog.isNull(this.metaData_)) {
     return this.metaData_['brandLogoUri'];
   }
+  return null;
 };
 
 

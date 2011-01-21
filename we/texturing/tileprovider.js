@@ -141,7 +141,7 @@ we.texturing.TileProvider.prototype.getLogoUrl = function() {return null;};
 
 
 /**
- * @type {!function(we.texturing.TileProvider)}
+ * @type {!function()}
  */
 we.texturing.TileProvider.prototype.copyrightInfoChangedHandler =
     goog.nullFunction;

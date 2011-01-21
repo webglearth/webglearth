@@ -87,20 +87,6 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
   this.infobox_ = opt_infobox || null;
 
   /**
-   * @type {!we.texturing.TileProvider}
-   * @private
-   */
-  this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
-
-  /**
-   * @type {!we.scene.TileBuffer}
-   * @private
-   */
-  this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_, context,
-      8, 8);
-
-
-  /**
    * @type {!Element}
    * @private
    */
@@ -120,6 +106,20 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
     goog.dom.insertSiblingAfter(this.tpLogoImg_, this.tpCopyrightElement_);
   }
 
+  /**
+   * @type {!we.texturing.TileProvider}
+   * @private
+   */
+  this.currentTileProvider_ = new we.texturing.MapQuestTileProvider();
+
+  this.changeTileProvider(this.currentTileProvider_);
+
+  /**
+   * @type {!we.scene.TileBuffer}
+   * @private
+   */
+  this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_, context,
+      8, 8);
 
   this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,
@@ -132,8 +132,8 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox) {
    * This says how many tiles should be visible vertically.
    * @type {number}
    */
-  this.tilesVertically = this.context.canvas.height /
-      this.currentTileProvider_.getTileSize();
+  this.tilesVertically = 0;
+  this.recalcTilesVertically();
 
   /**
    * @type {number}
