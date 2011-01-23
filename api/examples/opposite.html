@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style type="text/css" media="screen">
+.cross {
+	width:17px; height:17px; position:absolute; top:50%; left:50%; margin:-8px auto auto -8px; z-index:1024;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAEhSURBVDiNrZQxTsNAEEXfLDSWRYjBBTSkSEOZgnCASBQ03IvrUKTiBKaClpIUKHJsIhRHKfCniBdMJCcKyZemmZ3/NNrdGZNEXWbmgAvgBDhN0/Q2juMhMKliJKmsew5XABHQB1o+FwRBDLSr6AKXZpZI+vA1rgboAoM6oEEtYFDV/0KqDnqAbQDUfb3KhzOzA+B6C4CXAX0zc/4Sj7YEeLWAjmP5Crso2gvExuPxfRiG500VQRCczefz96bzoigyA26A46ai2Wx2F4bhw5pOcsfyF+6ibG+QEfD5T8AUeHOSvoAE0AbDqkrgSVLpACTlwMsWoBJ49kP4M8WSXs1sAlyxfginQCJp6hN/VoGkzMwegQ4QAe3FYpECOZDRsE++AWYTYG33oiq+AAAAAElFTkSuQmCC);
+}
+</style>
+<script src="http://www.webglearth.com/api.js"></script>
+<script>
+  var earth1;
+  var earth2;
+  var zoom = 3;
+  var earth1_center = [45.0, 6.0];
+  var earth2_center = [-45.0, -174.0];
+
+  function initialize() {
+    earth1 = new WebGLEarth( 'earth_div1', { zoom:zoom, center:earth1_center } );
+    earth2 = new WebGLEarth( 'earth_div2', { zoom:zoom, center:earth2_center } );
+    // Recalculate positions whenever any of the two globes moves
+    // setInterval('...', 20);
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Opposite Side of the World</h1>
+  Inspired by Map Tunneling Tool. Displays antipode of a point on the Earth. The two points which are antipodal to one another are considered to be connected by a straight line or tunnel through the centre of the Earth.
+  <div id="earth_div1" style="position:absolute; top:100px; left: 5px; width:400px; height: 400px; border:1px solid gray; padding:2px;"><div class="cross"></div></div>
+  <div id="earth_div2" style="position:absolute; top:100px; left: 420px; width:400px; height:400px; border:1px solid gray; padding:2px;"><div class="cross"></div></div>
+</body>
+</html>
