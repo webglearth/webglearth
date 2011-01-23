@@ -46,21 +46,18 @@ goog.require('we.texturing.TileProvider');
 
 
 /**
+ * @define {number}
  * Maximum number of zoom levels, the shader should fall back when
  * looking up appropriate tile. This is the bottleneck of shader
  * compilation and performance and should be chosen very carefully.
- * @type {number}
- * @const
  */
 we.scene.LOOKUP_FALLBACK_LEVELS = 5;
 
 
 /**
- * Minimum zoom level - really low zoom levels are useless.
- * @type {number}
- * @const
+ * @define {number} Minimum zoom level - really low zoom levels are useless.
  */
-we.scene.MIN_ZOOM = 3;
+we.scene.MIN_ZOOM = 1;
 
 
 
@@ -72,10 +69,12 @@ we.scene.MIN_ZOOM = 3;
  * @param {Element=} opt_logobox Element to output logo of mapdata source to.
  * @param {we.texturing.TileProvider=} opt_tileProvider Default TileProvider.
  * @param {we.scene.rendershapes.RenderShape=} opt_renderShape Default shape.
+ * @param {Element=} opt_copyright Additional copyright info to display
+ *                                 before map copyright info.
  * @constructor
  */
 we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
-                          opt_tileProvider, opt_renderShape) {
+                          opt_tileProvider, opt_renderShape, opt_copyright) {
   /**
    * @type {!we.gl.Context}
    */
@@ -108,6 +107,12 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   if (!goog.isDef(opt_logobox)) {
     goog.dom.insertSiblingAfter(this.tpLogoImg_, this.tpCopyrightElement_);
   }
+
+  /**
+   * @type {Element}
+   * @private
+   */
+  this.additionalCopyright_ = opt_copyright || null;
 
   /**
    * @type {!we.texturing.TileProvider}
@@ -177,8 +182,8 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    * @type {!Array.<!we.gl.SegmentedPlane>}
    */
   this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 1, 1, 1),   //0
-                          new we.gl.SegmentedPlane(context, 1, 1, 1),   //1
-                          new we.gl.SegmentedPlane(context, 1, 1, 1),    //2
+                          new we.gl.SegmentedPlane(context, 4, 4, 16),   //1
+                          new we.gl.SegmentedPlane(context, 6, 6, 8),    //2
                           new we.gl.SegmentedPlane(context, 8, 8, 8),    //3
                           new we.gl.SegmentedPlane(context, 10, 10, 8),    //4
                           new we.gl.SegmentedPlane(context, 10, 10, 2)];
@@ -224,6 +229,7 @@ we.scene.Scene.prototype.getBufferDimensions = function() {
 we.scene.Scene.prototype.updateCopyrights_ = function() {
   if (!goog.isNull(this.tpCopyrightElement_)) {
     goog.dom.removeChildren(this.tpCopyrightElement_);
+    goog.dom.append(this.tpCopyrightElement_, this.additionalCopyright_);
     this.currentTileProvider_.appendCopyrightContent(this.tpCopyrightElement_);
   }
   if (!goog.isNull(this.tpLogoImg_)) {

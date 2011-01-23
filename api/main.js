@@ -61,22 +61,40 @@ weapi.App = function(divid, opt_options) {
 
   if (goog.isNull(divEl)) return;
 
+
   /** @type {!Element} */
   var canvasEl = goog.dom.createDom('canvas',
       {style: 'width:100%;height:100%;'});
 
-  goog.dom.append(divEl, canvasEl);
 
   var upgradeRedirector = function() {
-    //TODO: link instead of canvas
-    alert('Your browser does not support WebGL.');
+    /** @type {!Element} */
+    var upgradeLinkEl = goog.dom.createDom('a',
+        {style: 'font-size:110%;display:block;width:100%;top:50%;' +
+              'position:relative;text-align:center;color:#800000;' +
+              'text-shadow:rgba(0,0,0,0.4) 0 0 6px;',
+          href: 'http://www.webglearth.com/upgrade.html'
+        }, 'You need a WebGL-enabled browser to run this application.');
+    goog.dom.append(/** @type {!Element} */ (divEl), upgradeLinkEl);
   };
 
   /**
    * @type {!we.gl.Context}
    */
   this.context = new we.gl.Context(canvasEl, null, upgradeRedirector);
+
+  if (!goog.isDefAndNotNull(this.context)) return;
+
   this.context.setPerspective(50, 0.000001, 5);
+
+
+  /** @type {!Element} */
+  var wrapperEl = goog.dom.createDom('div',
+      {style: 'width:100%;height:100%;position:relative;'});
+
+  goog.dom.append(divEl, wrapperEl);
+  goog.dom.append(wrapperEl, canvasEl);
+
 
   weapi.maps.initStatics();
 
@@ -90,7 +108,6 @@ weapi.App = function(divid, opt_options) {
       goog.bind(function() {this.context.renderFrame();}, this)
   );
 
-  divEl.style.cssText += ';position:relative;';
 
   /** @type {!Element} */
   var maplogoEl = goog.dom.createDom('img',
@@ -98,24 +115,33 @@ weapi.App = function(divid, opt_options) {
 
   /** @type {!Element} */
   var mapcopyrightEl = goog.dom.createDom('div',
-      {style: 'position:absolute;bottom:0;left:0;width:75%;font-size:75%;' +
-            'text-align:justify;color:#fff;' +
-            'text-shadow:rgba(0,0,0,0.8) 0 0 6px;'});
+      {style: 'position:absolute;bottom:5px;left:5px;width:75%;font-size:8px;' +
+            'text-align:justify;color:#fff;font-family:Verdana,Arial;' +
+            'text-shadow:rgba(0,0,0,0.8) 0 0 4px;'});
 
-  goog.dom.append(divEl, maplogoEl);
-  goog.dom.append(divEl, mapcopyrightEl);
+  goog.dom.append(wrapperEl, maplogoEl);
+  goog.dom.append(wrapperEl, mapcopyrightEl);
 
   this.context.scene = new we.scene.Scene(this.context,
-      null,
+      undefined, //infobox
       mapcopyrightEl,
-      maplogoEl, weapi.maps.getMap(opt_options['map']));
+      maplogoEl,
+      (goog.isDef(opt_options) && 'map' in opt_options) ?
+      weapi.maps.getMap(opt_options['map']) : undefined,
+      undefined, //rendershape
+      goog.dom.createDom('p', null, 'Powered by ',
+      goog.dom.createDom('a',
+          {href: 'http://www.webglearth.org/', style: 'color:#00f'},
+          'WebGL Earth'),
+      '.')
+      );
 
   //Parsing options
-  if ('zoom' in opt_options) {
+  if (goog.isDef(opt_options) && 'zoom' in opt_options) {
     this.context.scene.setZoom(opt_options['zoom']);
   }
 
-  if ('center' in opt_options) {
+  if (goog.isDef(opt_options) && 'center' in opt_options) {
     this.context.scene.setCenter(opt_options['center'][0],
                                  opt_options['center'][1]);
   }
