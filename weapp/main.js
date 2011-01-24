@@ -167,10 +167,10 @@ weapp.App = function(canvas) {
 
 
     var updateHash = function() {
-      var newhash = '#zoom=' + this.context.scene.zoomLevel.toFixed(2) +
-          ';lat=' + goog.math.toDegrees(
+      var newhash = '#z=' + this.context.scene.zoomLevel.toFixed(2) +
+          ';ll=' + goog.math.toDegrees(
               this.context.scene.latitude).toFixed(5) +
-          ';lon=' + goog.math.toDegrees(
+          ',' + goog.math.toDegrees(
               this.context.scene.longitude).toFixed(5);
       window.location.hash = newhash;
     }
@@ -178,20 +178,30 @@ weapp.App = function(canvas) {
     var fromHash = goog.bind(function() {
       var hash = window.location.hash;
       var getValue = function(name) {
-        var start = hash.indexOf(name + '=') + name.length + 1;
+        var start = hash.indexOf(name + '=');
+        if (start < 0) {
+          return undefined;
+        }
+        start += name.length + 1;
         var end = hash.indexOf(';', start);
         return hash.substring(start, end > 0 ? end : hash.length);
       }
 
-      var zoom = getValue('zoom');
+      var zoom = getValue('zoom') || getValue('z');
       if (!isNaN(zoom))
         this.context.scene.setZoom(zoom);
 
-      var lat = getValue('lat');
-      var lon = getValue('lon');
-      if (!isNaN(lat) && !isNaN(lon))
-        this.context.scene.setCenter(lat, lon);
-
+      var ll = getValue('ll');
+      if (goog.isDefAndNotNull(ll)) {
+        var llsplit = ll.split(',');
+        if (llsplit.length > 1 && !isNaN(llsplit[0]) && !isNaN(llsplit[1]))
+          this.context.scene.setCenter(llsplit[0], llsplit[1]);
+      } else {
+        var lat = getValue('lat');
+        var lon = getValue('lon');
+        if (!isNaN(lat) && !isNaN(lon))
+          this.context.scene.setCenter(lat, lon);
+      }
     }, this);
 
     /**
