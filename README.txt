@@ -15,3 +15,6 @@ The project is a free software available under standard [http://www.webglearth.o
 ==Requirements:==
   * A web browser with support for HTML5 Canvas and WebGL extension (Firefox4, Chrome 9+, ... mobile devices iPhone / iPad / Android later on)
   * Programming language: JavaScript (compiled with Closure compiler).
+
+==Quickstart for developers:==
+  Setup instructions can be found in [http://www.webglearth.org/quickstart quickstart section] at project's website.
