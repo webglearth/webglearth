@@ -3,7 +3,9 @@
 REM   This simple batch file can be used to run all *.js
 REM   files from WebGL Earth through Closure Linter.
 
-set PROJECT_ROOT=C:/Users/Petr/Documents/WebGL-Earth/trunk
+set PROJECT_ROOT=%CD%
+
+REM  Change the following line to point to the directory where you have installed fixjsstyle.exe and gjslint.exe.
 set CLOSURE_LINTER=C:/Program Files (x86)/Python27/Scripts
 
 REM @ECHO on
