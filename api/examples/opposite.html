@@ -13,22 +13,42 @@
 <script>
   var earth1;
   var earth2;
-  var zoom = 3;
-  var earth1_center = [45.0, 6.0];
-  var earth2_center = [-45.0, -174.0];
+  var zoom = 2;
+  var center = [45.0, 6.0];
+
+  function antipode(coord) {
+    return [-1*coord[0], coord[1]-180];
+  }
+
+  function update() {
+    if (center[0] == earth1.getCenter()[0] && center[1] == earth1.getCenter()[1]) {
+      center = antipode( earth2.getCenter() );
+      earth1.setCenter( center );
+    } else {
+      center = earth1.getCenter();
+      earth2.setCenter( antipode( earth1.getCenter() ) );
+    }
+    if (earth1.getZoom() != zoom) {
+      zoom = earth1.getZoom();
+      earth2.setZoom(zoom);
+    } else {
+      zoom = earth2.getZoom();
+      earth1.setZoom(zoom);
+    }
+  }
 
   function initialize() {
-    earth1 = new WebGLEarth( 'earth_div1', { zoom:zoom, center:earth1_center } );
-    earth2 = new WebGLEarth( 'earth_div2', { zoom:zoom, center:earth2_center } );
+    earth1 = new WebGLEarth( 'earth_div1', { zoom:zoom, center:center } );
+    earth2 = new WebGLEarth( 'earth_div2', { zoom:zoom, center:antipode(center) } );
     // Recalculate positions whenever any of the two globes moves
-    // setInterval('...', 20);
+    setInterval('update()', 50);
   }
 </script>
 </head>
 <body onload="initialize()">
   <h1>WebGL Earth API: Opposite Side of the World</h1>
-  Inspired by Map Tunneling Tool. Displays antipode of a point on the Earth. The two points which are antipodal to one another are considered to be connected by a straight line or tunnel through the centre of the Earth.
-  <div id="earth_div1" style="position:absolute; top:100px; left: 5px; width:400px; height: 400px; border:1px solid gray; padding:2px;"><div class="cross"></div></div>
-  <div id="earth_div2" style="position:absolute; top:100px; left: 420px; width:400px; height:400px; border:1px solid gray; padding:2px;"><div class="cross"></div></div>
+  Displays antipode of a point on the Earth. The two points which are antipodal to one another are considered to be connected by a straight line or tunnel through the centre of the Earth.
+  <div id="earth_div1" style="position:absolute; top:120px; left: 5px; width:400px; height: 400px; border:1px solid gray; padding:2px;"><div class="cross"></div></div>
+  <div id="earth_div2" style="position:absolute; top:120px; left: 420px; width:400px; height:400px; border:1px solid gray; padding:2px;"><div class="cross"></div></div>
 </body>
 </html>
