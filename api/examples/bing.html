@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script>
+<script>
+  var earth;
+  function initialize() {
+    var options = { zoom: 3, center: [49.190791, 16.61165] };
+    earth = new WebGLEarth('earth_div', options);
+    earth.initMap(WebGLEarth.Maps.BING, ['Aerial', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
+    earth.initMap(WebGLEarth.Maps.BING, ['AerialWithLabels', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
+    earth.initMap(WebGLEarth.Maps.BING, ['Road', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
+    // Get your own key from: https://www.bingmapsportal.com/
+    earth.setMap(WebGLEarth.Maps.BING, 'AerialWithLabels');
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Bing Maps</h1>
+  <div id="earth_div" style="width:600px;height:400px;border:1px solid gray; padding:2px;"></div>
+  Click to switch the map:
+  <a href="#" onClick="earth.setMap(WebGLEarth.Maps.BING, 'Road'); return false;">Road</a>
+  <a href="#" onClick="earth.setMap(WebGLEarth.Maps.BING, 'AerialWithLabels'); return false;">Aerial with labels</a>
+  <a href="#" onClick="earth.setMap(WebGLEarth.Maps.BING, 'Aerial'); return false;">Aerial</a>
+</body>
+</html>

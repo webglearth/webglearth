@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script>
+<style type="text/css" media="screen">
+  #earth_div {
+    width:600px;
+    height:400px;
+    border:1px solid gray;
+    padding:2px;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0, rgb(253,253,253)),
+        color-stop(0.15, rgb(253,253,253)),
+        color-stop(0.53, rgb(223,223,223)),
+        color-stop(0.56, rgb(255,255,255)),
+        color-stop(1, rgb(253,253,253))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgb(253,253,253) 0%,
+        rgb(253,253,253) 15%,
+        rgb(223,223,223) 53%,
+        rgb(255,255,255) 56%,
+        rgb(253,253,253) 100%
+    );
+  }
+</style>
+<script>
+  function initialize() {
+    var earth = new WebGLEarth('earth_div', { zoom:2 });
+    earth.initMap(WebGLEarth.Maps.CUSTOM, ['TMS','http://webglearth.googlecode.com/svn/resources/tms/{z}/{x}/{y}.jpg',1,5,256,true]);
+    // name, url, minZoom, maxZoom, tileSize, flip-y-axis
+    earth.setMap(WebGLEarth.Maps.CUSTOM, 'TMS');
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Custom TMS Tiles (rendered by GDAL2Tiles/MapTiler)</h1>
+  <div id="earth_div"></div>
+</body>
+</html>
