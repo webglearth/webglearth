@@ -31,8 +31,23 @@ goog.provide('we.ui.MouseZoomer');
 goog.require('goog.Disposable');
 goog.require('goog.events');
 goog.require('goog.events.MouseWheelHandler');
+goog.require('goog.fx.Animation');
+goog.require('goog.fx.Animation.EventType');
+goog.require('goog.fx.AnimationEvent');
 
 goog.require('we.scene.Scene');
+
+
+/**
+ * @define {number} Number of levels to zoom on MouseWheel event.
+ */
+we.ui.MOUSERZOOMER_STEP = 0.5;
+
+
+/**
+ * @define {number} Duration of zooming animation in miliseconds.
+ */
+we.ui.MOUSERZOOMER_DURATION = 120;
 
 
 
@@ -43,6 +58,12 @@ goog.require('we.scene.Scene');
  * @extends {goog.Disposable}
  */
 we.ui.MouseZoomer = function(scene) {
+  /**
+   * @type {!we.scene.Scene}
+   * @private
+   */
+  this.scene_ = scene;
+
   /**
    * @type {!goog.events.MouseWheelHandler}
    * @private
@@ -56,11 +77,10 @@ we.ui.MouseZoomer = function(scene) {
    */
   this.listenKey_ = goog.events.listen(this.mouseWheelHandler_,
       goog.events.MouseWheelHandler.EventType.MOUSEWHEEL,
-      goog.bind(function(e) {
-        var newLevel = this.zoomLevel - e.deltaY / 12;
-        this.setZoom(newLevel);
+      function(e) {
+        this.zoom_(-goog.math.sign(e.deltaY));
         e.preventDefault();
-      }, scene));
+      }, false, this);
 
   /**
    * @type {?number}
@@ -93,8 +113,83 @@ we.ui.MouseZoomer = function(scene) {
    */
   this.noContextMenuListenKey_ = goog.events.listen(scene.context.canvas,
       goog.events.EventType.CONTEXTMENU, function(e) {e.preventDefault();});
+
+  /**
+   * @type {goog.fx.Animation}
+   * @private
+   */
+  this.animation_ = null;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.startZoom_ = 0;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.targetZoom_ = 0;
+
 };
 goog.inherits(we.ui.MouseZoomer, goog.Disposable);
+
+
+/**
+ * Starts zooming in given direction or does nothing if zooming
+ * in that direction is already in progress.
+ * @param {number} direction Direction of zooming +1 means in, -1 means out.
+ * @private
+ */
+we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
+  var duration = we.ui.MOUSERZOOMER_DURATION;
+  if (this.animation_) {
+    if ((this.targetZoom_ > this.startZoom_) == (direction > 0)) { //Same dir
+      return;
+    } else { //Opposite direction - just revert to previous level
+      this.animation_.dispose();
+      duration *= (this.targetZoom_ - this.scene_.zoomLevel) /
+                  (this.targetZoom_ - this.startZoom_);
+      var tempZoom = this.targetZoom_;
+      this.targetZoom_ = this.startZoom_;
+      this.startZoom_ = tempZoom;
+    }
+  } else {
+    this.startZoom_ = this.scene_.zoomLevel;
+    this.targetZoom_ = this.startZoom_ + direction * we.ui.MOUSERZOOMER_STEP;
+  }
+
+  this.animation_ = new goog.fx.Animation(
+      [this.scene_.zoomLevel],
+      [this.targetZoom_],
+      duration);
+
+  goog.events.listen(this.animation_,
+      [goog.fx.Animation.EventType.ANIMATE, goog.fx.Animation.EventType.FINISH],
+      function(e) {
+        this.setZoom(e.x);
+      }, false, this.scene_);
+
+  goog.events.listen(this.animation_,
+      [goog.fx.Animation.EventType.FINISH],
+      this.endZooming_, false, this);
+
+  this.animation_.play(false);
+};
+
+
+/**
+ *
+ * @param {!goog.fx.AnimationEvent} e Event object.
+ * @private
+ */
+we.ui.MouseZoomer.prototype.endZooming_ = function(e) {
+  if (this.animation_) {
+    this.animation_.dispose();
+    this.animation_ = null;
+  }
+};
 
 
 /** @inheritDoc */
@@ -105,4 +200,5 @@ we.ui.MouseZoomer.prototype.disposeInternal = function() {
   goog.events.unlistenByKey(this.rightClickListenKey_);
   goog.events.unlistenByKey(this.noContextMenuListenKey_);
   this.mouseWheelHandler_.dispose();
+  this.animation_.dispose();
 };
