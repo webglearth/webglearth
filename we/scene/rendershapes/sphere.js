@@ -29,6 +29,8 @@
 
 goog.provide('we.scene.rendershapes.Sphere');
 
+goog.require('goog.math.Vec3');
+
 goog.require('we.scene.rendershapes.RenderShape');
 
 
@@ -89,8 +91,13 @@ we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
     var bod = goog.math.Vec3.sum(origin, direction.scale(d));
 
     var lat = Math.asin(bod.y);
-    var lon = (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI +
-        Math.asin(bod.x / Math.sqrt(1 - bod.y * bod.y));
+
+    var lon = Math.asin(bod.x / Math.sqrt(1 - bod.y * bod.y));
+
+    if (bod.z < 0) // The point is on the "other side" of the sphere
+      lon = Math.PI - lon;
+
+    lon += (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI;
 
     return [lat, lon];
   }
