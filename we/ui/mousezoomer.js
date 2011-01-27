@@ -149,7 +149,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
       return;
     } else { //Opposite direction - just revert to previous level
       this.animation_.dispose();
-      duration *= (this.targetZoom_ - this.scene_.zoomLevel) /
+      duration *= (this.scene_.zoomLevel - this.startZoom_) /
                   (this.targetZoom_ - this.startZoom_);
       var tempZoom = this.targetZoom_;
       this.targetZoom_ = this.startZoom_;
@@ -159,6 +159,9 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
     this.startZoom_ = this.scene_.zoomLevel;
     this.targetZoom_ = this.startZoom_ + direction * we.ui.MOUSERZOOMER_STEP;
   }
+
+  if (this.scene_.zoomLevel == this.targetZoom_ || duration <= 0)
+    return;
 
   this.animation_ = new goog.fx.Animation(
       [this.scene_.zoomLevel],
