@@ -102,3 +102,15 @@ we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
     return [lat, lon];
   }
 };
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Sphere.prototype.getPointForLatLon =
+    function(lat, lon) {
+  var lonpp = lon - (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI;
+  var cosy = Math.cos(lat);
+
+  return new goog.math.Vec3(Math.sin(lonpp) * cosy,
+                            Math.sin(lat),
+                            Math.cos(lonpp) * cosy);
+};

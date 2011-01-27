@@ -138,3 +138,14 @@ we.scene.rendershapes.RenderShape.prototype.transformContext =
  */
 we.scene.rendershapes.RenderShape.prototype.traceRayToGeoSpace =
     goog.abstractMethod;
+
+
+/**
+ * Performs implementation-specific translation of
+ * geo-space coords to model-space coords.
+ * @param {number} lat Latitude in radians.
+ * @param {number} lon Longitude in radians.
+ * @return {goog.math.Vec3} Point in model-space.
+ */
+we.scene.rendershapes.RenderShape.prototype.getPointForLatLon =
+    goog.abstractMethod;

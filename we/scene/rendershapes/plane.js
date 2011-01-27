@@ -29,6 +29,8 @@
 
 goog.provide('we.scene.rendershapes.Plane');
 
+goog.require('goog.math.Vec3');
+
 goog.require('we.scene.rendershapes.RenderShape');
 
 
@@ -82,4 +84,15 @@ we.scene.rendershapes.Plane.prototype.traceRayToGeoSpace =
 
     return [lat, lon];
   }
+};
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Plane.prototype.getPointForLatLon =
+    function(lat, lon) {
+
+  var x = lon / Math.PI - (this.scene.offset[0] / this.scene.tileCount) * 2;
+  var y = we.scene.Scene.projectLatitude(lat) / Math.PI;
+
+  return new goog.math.Vec3(x, y, 0);
 };

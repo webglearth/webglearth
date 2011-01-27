@@ -441,6 +441,33 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y) {
 
 
 /**
+ * Calculates screen-space coordinates for given geo-space coordinates.
+ * @param {number} lat Latitude in degrees.
+ * @param {number} lon Longitude in degrees.
+ * @return {?Array.<number>} Array [x, y] or null.
+ */
+we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
+  var point = this.renderShape_.getPointForLatLon(goog.math.toRadians(lat),
+                                                  goog.math.toRadians(lon));
+
+  var result = this.context.getMVPM().multiply(new goog.math.Matrix([[point.x],
+                                                                     [point.y],
+                                                                     [point.z],
+                                                                     [1]]));
+
+  if (result.getValueAt(3, 0) == 0)
+    return null;
+
+  result = result.multiply(1 / result.getValueAt(3, 0));
+
+  var x = ((result.getValueAt(0, 0)) + 1) / 2 * this.context.viewportWidth;
+  var y = ((result.getValueAt(1, 0)) - 1) / (-2) * this.context.viewportHeight;
+
+  return [/** @type {number} */ x, /** @type {number} */ y];
+};
+
+
+/**
  * Project latitude from Unprojected to Mercator
  * @param {number} latitude Unprojected latitude in radians.
  * @return {number} Latitude projected to Mercator in radians.
