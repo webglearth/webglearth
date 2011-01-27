@@ -362,9 +362,7 @@ we.scene.Scene.prototype.draw = function() {
         goog.math.toDegrees(this.longitude).toFixed(4) + ' @ ' +
         this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
         this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
-        this.currentTileProvider_.loadingTileCounter + '; LoadQueue size: ' +
-        this.tileBuffer_.tileCache_.loadRequests_.length + '; Cache size: ' +
-        this.tileBuffer_.tileCache_.tileMap_.getCount();
+        this.currentTileProvider_.loadingTileCounter;
   }
 
   this.distance = this.renderShape_.calcDistance();

@@ -29,6 +29,7 @@
 
 goog.provide('we.texturing.TileCache');
 
+goog.require('goog.Timer');
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.structs.Map');

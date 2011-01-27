@@ -31,6 +31,7 @@ goog.provide('weapp.ui.RenderShapeSelector');
 goog.require('goog.Disposable');
 goog.require('goog.events');
 goog.require('goog.ui.Component.EventType');
+goog.require('goog.ui.MenuItem');
 goog.require('goog.ui.Select');
 
 goog.require('we.scene.Scene');

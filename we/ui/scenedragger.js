@@ -30,6 +30,7 @@
 
 goog.provide('we.ui.SceneDragger');
 
+goog.require('goog.Timer');
 goog.require('goog.events');
 goog.require('goog.fx.Animation');
 goog.require('goog.fx.Animation.EventType');

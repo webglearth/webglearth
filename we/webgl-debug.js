@@ -309,7 +309,7 @@ WebGLDebugUtils = function() {
      *        canvas.getContext("webgl"), throwOnGLError);
      *
      * @param {!WebGLRenderingContext} ctx The webgl context to wrap.
-     * @param {!function(err, funcName, args): void} opt_onErrorFunc
+     * @param {!function(number, string, Arguments): void} opt_onErrorFunc
      *         The function to call when gl.getError returns an error. If not
      *         specified the default function calls console.log with a message.
      */

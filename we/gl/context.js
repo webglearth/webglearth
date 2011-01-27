@@ -54,7 +54,11 @@ we.CALC_FPS = true;
  * @constructor
  */
 we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
-
+  /**
+   * @param {!Element} canvas Canvas element.
+   * @param {string} type Type of context to get.
+   * @return {?WebGLRenderingContext} Context or null.
+   */
   var tryGetContext = function(canvas, type) {
     try {
       var context = canvas.getContext(type);
@@ -69,6 +73,8 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
     }
     return null;
   };
+
+  /** @type {WebGLRenderingContext} */
   var gl = null;
 
   /**
@@ -88,6 +94,11 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
   }
 
   if (goog.DEBUG) {
+    /**
+     * @param {number} err Error code.
+     * @param {string} funcName Function name.
+     * @param {Arguments} args Arguments of the function.
+     */
     function logGLError(err, funcName, args) {
       we.gl.Context.logger.severe(
           WebGLDebugUtils.glEnumToString(err) +
@@ -244,6 +255,7 @@ we.gl.Context.prototype.setPerspective = function(fovy, zNear, zFar) {
  * @private
  */
 we.gl.Context.prototype.setPerspectiveInternal_ = function() {
+  /** @type {number} */
   var f = 1 / Math.tan(this.fov / 2);
   this.projectionMatrix = new goog.math.Matrix([
     [f / this.aspectRatio, 0, 0, 0],
@@ -303,8 +315,12 @@ we.gl.Context.prototype.translate = function(x, y, z) {
  * @param {number} z Z translation.
  */
 we.gl.Context.prototype.rotate = function(angle, x, y, z) {
+  /** @type {number} */
   var c = Math.cos(angle);
+
+  /** @type {number} */
   var s = Math.sin(angle);
+
   this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
     [x * x * (1 - c) + c, x * y * (1 - c) - z * s, x * z * (1 - c) + y * s, 0],
     [y * x * (1 - c) + z * s, y * y * (1 - c) + c, y * z * (1 - c) - x * s, 0],
@@ -319,8 +335,12 @@ we.gl.Context.prototype.rotate = function(angle, x, y, z) {
  * @param {number} angle Angle to rotate in radians.
  */
 we.gl.Context.prototype.rotate010 = function(angle) {
+  /** @type {number} */
   var c = Math.cos(angle);
+
+  /** @type {number} */
   var s = Math.sin(angle);
+
   this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
     [c, 0, s, 0],
     [0, 1, 0, 0],
@@ -335,8 +355,12 @@ we.gl.Context.prototype.rotate010 = function(angle) {
  * @param {number} angle Angle to rotate in radians.
  */
 we.gl.Context.prototype.rotate100 = function(angle) {
+  /** @type {number} */
   var c = Math.cos(angle);
+
+  /** @type {number} */
   var s = Math.sin(angle);
+
   this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
     [1, 0, 0, 0],
     [0, c, -s, 0],
@@ -366,12 +390,12 @@ we.gl.Context.prototype.getMVPM = function() {
  * Render one frame.
  */
 we.gl.Context.prototype.renderFrame = function() {
+  /** @type {!WebGLRenderingContext} */
   var gl = this.gl;
 
-  var time;
-
   if (we.CALC_FPS && !goog.isNull(this.fpsbox_)) {
-    time = goog.now();
+    /** @type {number} */
+    var time = goog.now();
     if (this.lastFpsCalc_ < goog.now() - 2000) {
       this.fps = 1000 *
           this.framesSinceLastFpsCalc_ / (goog.now() - this.lastFpsCalc_);
@@ -403,7 +427,6 @@ we.gl.Context.prototype.renderFrame = function() {
     this.frameTimeSinceLastFpsCalc_ += goog.now() - time;
   }
 
-  //gl.clearColor(Math.random(), Math.random() * 0.5, Math.random() * 0.5, 1);
 };
 if (goog.DEBUG) {
   /**
