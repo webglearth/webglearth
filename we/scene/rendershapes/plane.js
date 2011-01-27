@@ -65,3 +65,21 @@ we.scene.rendershapes.Plane.prototype.transformContext = function() {
       Math.tan(this.scene.latitude / 2 + Math.PI / 4)) /
       Math.PI, -this.scene.distance);
 };
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Plane.prototype.traceRayToGeoSpace =
+    function(origin, direction) {
+  if (direction.z == 0) {
+    return null;
+  } else {
+    var d = -origin.z / direction.z;
+    var bod = goog.math.Vec3.sum(origin, direction.scale(d));
+
+    var lat = we.scene.Scene.unprojectLatitude(bod.y * Math.PI);
+    var lon = Math.PI * (2 * this.scene.offset[0] /
+                         this.scene.tileCount + bod.x);
+
+    return [lat, lon];
+  }
+};

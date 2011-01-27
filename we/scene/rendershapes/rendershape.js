@@ -128,3 +128,13 @@ we.scene.rendershapes.RenderShape.prototype.calcDistance = goog.abstractMethod;
  */
 we.scene.rendershapes.RenderShape.prototype.transformContext =
     goog.abstractMethod;
+
+
+/**
+ * Performs implementation-specific raytracing and calculates geo-space coords.
+ * @param {!goog.math.Vec3} origin Point of origin.
+ * @param {!goog.math.Vec3} direction Normalized vector direction.
+ * @return {?Array.<number>} Array [lat, long] in radians or null.
+ */
+we.scene.rendershapes.RenderShape.prototype.traceRayToGeoSpace =
+    goog.abstractMethod;

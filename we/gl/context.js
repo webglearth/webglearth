@@ -354,13 +354,11 @@ we.gl.Context.prototype.scene = null;
 
 
 /**
- * Returns MatrixView-Projection matrix ready to pass to vertex shader
- * @return {!Float32Array} MatrixViewProjection matrix.
+ * Returns MatrixView-Projection matrix
+ * @return {!goog.math.Matrix} MatrixViewProjection matrix.
  */
 we.gl.Context.prototype.getMVPM = function() {
-  return new Float32Array(goog.array.flatten(this.projectionMatrix.multiply(
-      this.modelViewMatrix
-      ).getTranspose().toArray()));
+  return this.projectionMatrix.multiply(this.modelViewMatrix);
 };
 
 

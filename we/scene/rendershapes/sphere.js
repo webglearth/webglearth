@@ -69,3 +69,29 @@ we.scene.rendershapes.Sphere.prototype.transformContext = function() {
           (2 * Math.PI) * this.scene.tileCount, 1.0)) /
           this.scene.tileCount * (2 * Math.PI));
 };
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
+    function(origin, direction) {
+  /** @type {!goog.math.Vec3} */
+  var sphereCenter = origin.clone().invert(); //[0,0,0] - origin
+
+  var ldotc = goog.math.Vec3.dot(direction, sphereCenter);
+  var cdotc = goog.math.Vec3.dot(sphereCenter, sphereCenter);
+
+  var val = ldotc * ldotc - cdotc + 1;
+
+  if (val < 0) {
+    return null;
+  } else {
+    var d = Math.min(ldotc + Math.sqrt(val), ldotc - Math.sqrt(val));
+    var bod = goog.math.Vec3.sum(origin, direction.scale(d));
+
+    var lat = Math.asin(bod.y);
+    var lon = (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI +
+        Math.asin(bod.x / Math.sqrt(1 - bod.y * bod.y));
+
+    return [lat, lon];
+  }
+};

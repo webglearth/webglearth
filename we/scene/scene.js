@@ -37,6 +37,7 @@ goog.require('goog.math');
 
 goog.require('we.gl.Context');
 goog.require('we.gl.SegmentedPlane');
+goog.require('we.gl.utils');
 goog.require('we.scene.LocatedProgram');
 goog.require('we.scene.TileBuffer');
 goog.require('we.scene.rendershapes.RenderShape');
@@ -172,6 +173,11 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.longitude = 0;
 
   /**
+   * @type {Array.<number>}
+   */
+  this.offset = [0, 0];
+
+  /**
    * @type {!we.scene.rendershapes.RenderShape}
    * @private
    */
@@ -295,7 +301,7 @@ we.scene.Scene.prototype.setZoom = function(zoom) {
  */
 we.scene.Scene.prototype.updateTiles = function() {
 
-  var yOffset = Math.floor(this.projectLatitude_(this.latitude) /
+  var yOffset = Math.floor(we.scene.Scene.projectLatitude(this.latitude) /
       (Math.PI * 2) * this.tileCount);
   var xOffset = Math.floor(this.longitude / (2 * Math.PI) * this.tileCount);
 
@@ -345,17 +351,6 @@ we.scene.Scene.prototype.updateTiles = function() {
 
 
 /**
- * Project latitude from Unprojected to Mercator
- * @param {number} latitude Unprojected latitude.
- * @return {number} Latitude projected to Mercator.
- * @private
- */
-we.scene.Scene.prototype.projectLatitude_ = function(latitude) {
-  return Math.log(Math.tan(latitude / 2.0 + Math.PI / 4.0));
-};
-
-
-/**
  * Draw scene
  */
 we.scene.Scene.prototype.draw = function() {
@@ -388,7 +383,8 @@ we.scene.Scene.prototype.draw = function() {
   gl.uniform4fv(locatedProgram.metaBufferUniform,
                 new Float32Array(metaBufferFlat));
 
-  var mvpm = this.context.getMVPM();
+  var mvpm = new Float32Array(goog.array.flatten(
+      this.context.getMVPM().getTranspose().toArray()));
 
   var plane = this.segmentedPlanes[Math.min(Math.floor(this.zoomLevel),
                                             this.segmentedPlanes.length - 1)];
@@ -408,12 +404,61 @@ we.scene.Scene.prototype.draw = function() {
       this.currentTileProvider_.getTileSize());
   gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel));
   gl.uniform1f(locatedProgram.tileCountUniform, this.tileCount);
-  var offset = [Math.floor(this.longitude / (2 * Math.PI) * this.tileCount),
-        Math.floor(this.projectLatitude_(this.latitude) /
-            (Math.PI * 2) * this.tileCount)];
-  gl.uniform2fv(locatedProgram.offsetUniform, offset);
+  this.offset[0] = Math.floor(this.longitude / (2 * Math.PI) * this.tileCount),
+  this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(this.latitude) /
+                              (Math.PI * 2) * this.tileCount);
+  gl.uniform2fv(locatedProgram.offsetUniform, this.offset);
 
   gl.drawArrays(gl.TRIANGLES, 0, plane.vertexBuffer.numItems);
+};
+
+
+/**
+ * Calculates geo-space coordinates for given screen-space coordinates.
+ * @param {number} x X position on the canvas.
+ * @param {number} y Y position on the canvas.
+ * @return {?Array.<number>} Array [lat, long] or null.
+ */
+we.scene.Scene.prototype.getLatLongForXY = function(x, y) {
+  var orig = we.gl.utils.unprojectPoint(x, y, 0, this.context.getMVPM(),
+      this.context.viewportWidth, this.context.viewportHeight);
+  var dir = we.gl.utils.unprojectPoint(x, y, 1, this.context.getMVPM(),
+      this.context.viewportWidth, this.context.viewportHeight);
+
+  if (goog.isNull(orig) || goog.isNull(dir))
+    return null;
+
+  dir.subtract(orig);
+  dir.normalize();
+
+  /** @type {Array.<number>} */
+  var result = this.renderShape_.traceRayToGeoSpace(orig, dir);
+
+  if (!goog.isDefAndNotNull(result)) {
+    return null;
+  } else {
+    return [goog.math.toDegrees(result[0]), goog.math.toDegrees(result[1])];
+  }
+};
+
+
+/**
+ * Project latitude from Unprojected to Mercator
+ * @param {number} latitude Unprojected latitude in radians.
+ * @return {number} Latitude projected to Mercator in radians.
+ */
+we.scene.Scene.projectLatitude = function(latitude) {
+  return Math.log(Math.tan(latitude / 2.0 + Math.PI / 4.0));
+};
+
+
+/**
+ * Project latitude from Mercator to Unprojected
+ * @param {number} latitude projected latitude in radians.
+ * @return {number} Latitude unprojected in radians.
+ */
+we.scene.Scene.unprojectLatitude = function(latitude) {
+  return 2 * Math.atan(Math.exp(latitude)) - Math.PI / 2;
 };
 
 if (goog.DEBUG) {
