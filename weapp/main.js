@@ -48,6 +48,8 @@ goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
+goog.require('we.ui.markers.BasicMarker');
+goog.require('we.ui.markers.MarkerManager');
 
 goog.require('weapp.ui.Nominatim');
 goog.require('weapp.ui.RenderShapeSelector');
@@ -99,7 +101,10 @@ weapp.App = function(canvas) {
     goog.events.listen(
         this.loopTimer,
         goog.Timer.TICK,
-        goog.bind(function() {this.context.renderFrame();}, this)
+        goog.bind(function() {
+          this.context.renderFrame();
+          this.markerManager_.updateMarkers();
+        }, this)
     );
 
     this.context.scene = new we.scene.Scene(this.context,
@@ -146,8 +151,22 @@ weapp.App = function(canvas) {
      */
     this.nominatim_ = new weapp.ui.Nominatim(nominatimInput);
 
+    /**
+     * @type {!we.ui.markers.MarkerManager}
+     * @private
+     */
+    this.markerManager_ = new we.ui.markers.MarkerManager(this.context.scene,
+                                                          canvas.parentNode);
+
+    var nominMarker = new we.ui.markers.BasicMarker(0, 0);
+    nominMarker.enable(false);
+    this.markerManager_.addMarker('nominatimMarker', nominMarker);
+
     var runNominatimAction = goog.bind(function(item) {
       this.context.scene.setCenter(item['lat'], item['lon']);
+      nominMarker.enable(true);
+      nominMarker.lat = item['lat'];
+      nominMarker.lon = item['lon'];
     }, this);
 
     this.nominatim_.addEventListener(goog.ui.AutoComplete.EventType.UPDATE,
