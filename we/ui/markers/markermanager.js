@@ -126,6 +126,7 @@ we.ui.markers.MarkerManager.prototype.updateMarker = function(key) {
 
     if (goog.isDefAndNotNull(pos)) {
       marker.setXY(pos[0], pos[1]);
+      marker.show(pos[2] > 0);
     } else {
       marker.show(false);
     }

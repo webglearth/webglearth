@@ -122,7 +122,7 @@ we.ui.markers.AbstractMarker.prototype.isEnabled = function() {
  *                               Default true.
  */
 we.ui.markers.AbstractMarker.prototype.show = function(opt_visible) {
-  this.element.style.visibility = opt_visible === false ? 'hidden' : 'visible';
+  this.element.style.display = opt_visible === false ? 'none' : 'block';
 };
 
 
@@ -132,8 +132,8 @@ we.ui.markers.AbstractMarker.prototype.show = function(opt_visible) {
  * @param {number} y Y.
  */
 we.ui.markers.AbstractMarker.prototype.setXY = function(x, y) {
-  this.element.style.left = x + 'px';
-  this.element.style.top = y + 'px';
+  this.element.style.left = x.toFixed() + 'px';
+  this.element.style.top = y.toFixed() + 'px';
   if (this.enabled)
     this.show(true);
 };

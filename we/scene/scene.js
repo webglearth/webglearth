@@ -444,7 +444,7 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y) {
  * Calculates screen-space coordinates for given geo-space coordinates.
  * @param {number} lat Latitude in degrees.
  * @param {number} lon Longitude in degrees.
- * @return {?Array.<number>} Array [x, y] or null.
+ * @return {?Array.<number>} Array [x, y, visibility] or null.
  */
 we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
   var point = this.renderShape_.getPointForLatLon(goog.math.toRadians(lat),
@@ -460,10 +460,20 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
 
   result = result.multiply(1 / result.getValueAt(3, 0));
 
+  /** @type {number} */
   var x = ((result.getValueAt(0, 0)) + 1) / 2 * this.context.viewportWidth;
+  /** @type {number} */
   var y = ((result.getValueAt(1, 0)) - 1) / (-2) * this.context.viewportHeight;
 
-  return [/** @type {number} */ x, /** @type {number} */ y];
+  /** @type {number} */
+  var visibility = 1;
+
+  if (x < 0 || x > this.context.viewportWidth ||
+      y < 0 || y > this.context.viewportHeight) {
+    visibility = 0;
+  }
+
+  return [x, y, visibility];
 };
 
 
