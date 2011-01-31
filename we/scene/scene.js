@@ -471,6 +471,14 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
   if (x < 0 || x > this.context.viewportWidth ||
       y < 0 || y > this.context.viewportHeight) {
     visibility = 0;
+  } else {
+    var cameraPos = we.gl.utils.unprojectPoint(0.5, 0.5, 0,
+                                               this.context.getMVPM(), 1, 1);
+
+    if (goog.isNull(cameraPos))
+      return null;
+
+    visibility = this.renderShape_.isPointVisible(point, cameraPos) ? 1 : 0;
   }
 
   return [x, y, visibility];

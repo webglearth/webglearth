@@ -73,11 +73,16 @@ we.scene.rendershapes.Sphere.prototype.transformContext = function() {
 };
 
 
-/** @inheritDoc */
-we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
+/**
+ * @private
+ * @param {!goog.math.Vec3} origin Point of origin.
+ * @param {!goog.math.Vec3} direction Normalized vector direction.
+ * @return {?Array.<number>} distances.
+ */
+we.scene.rendershapes.Sphere.prototype.traceDistance_ =
     function(origin, direction) {
   /** @type {!goog.math.Vec3} */
-  var sphereCenter = origin.clone().invert(); //[0,0,0] - origin
+  var sphereCenter = origin.invert(); //[0,0,0] - origin
 
   var ldotc = goog.math.Vec3.dot(direction, sphereCenter);
   var cdotc = goog.math.Vec3.dot(sphereCenter, sphereCenter);
@@ -87,19 +92,32 @@ we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
   if (val < 0) {
     return null;
   } else {
-    var d = Math.min(ldotc + Math.sqrt(val), ldotc - Math.sqrt(val));
-    var bod = goog.math.Vec3.sum(origin, direction.scale(d));
+    var d1 = Math.min(ldotc + Math.sqrt(val), ldotc - Math.sqrt(val));
+    var d2 = Math.max(ldotc + Math.sqrt(val), ldotc - Math.sqrt(val));
+    return [d1, d2];
+  }
+};
 
-    var lat = Math.asin(bod.y);
+
+/** @inheritDoc */
+we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
+    function(origin, direction) {
+
+  var ds = this.traceDistance_(origin, direction);
+
+  if (goog.isNull(ds)) {
+    return null;
+  } else {
+    var bod = goog.math.Vec3.sum(origin, direction.scale(ds[0]));
 
     var lon = Math.asin(bod.x / Math.sqrt(1 - bod.y * bod.y));
 
     if (bod.z < 0) // The point is on the "other side" of the sphere
       lon = Math.PI - lon;
 
-    lon += (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI;
+    var off = (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI;
 
-    return [lat, lon];
+    return [Math.asin(bod.y), lon + off];
   }
 };
 
@@ -113,4 +131,22 @@ we.scene.rendershapes.Sphere.prototype.getPointForLatLon =
   return new goog.math.Vec3(Math.sin(lonpp) * cosy,
                             Math.sin(lat),
                             Math.cos(lonpp) * cosy);
+};
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Sphere.prototype.isPointVisible =
+    function(point, viewer) {
+
+  var distance = goog.math.Vec3.distance(point, viewer);
+
+  var direction = point.subtract(viewer).normalize();
+
+  var ds = this.traceDistance_(viewer, direction);
+
+  if (goog.isNull(ds)) {
+    return false; // Wait.. what? This should never happen..
+  } else {
+    return Math.abs(distance - ds[0]) < Math.abs(distance - ds[1]);
+  }
 };

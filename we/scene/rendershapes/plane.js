@@ -96,3 +96,9 @@ we.scene.rendershapes.Plane.prototype.getPointForLatLon =
 
   return new goog.math.Vec3(x, y, 0);
 };
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Plane.prototype.isPointVisible = function(point, viewer) {
+  return true;
+};

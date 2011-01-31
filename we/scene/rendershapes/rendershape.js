@@ -149,3 +149,14 @@ we.scene.rendershapes.RenderShape.prototype.traceRayToGeoSpace =
  */
 we.scene.rendershapes.RenderShape.prototype.getPointForLatLon =
     goog.abstractMethod;
+
+
+/**
+ * Calculates visibility of given point from "viewer" point.
+ * This does NOT consider viewport clipping.
+ * @param {!goog.math.Vec3} point Point in model-space.
+ * @param {!goog.math.Vec3} viewer Point in model-space.
+ * @return {boolean} Whether the point is visible from viewer or not.
+ */
+we.scene.rendershapes.RenderShape.prototype.isPointVisible =
+    goog.abstractMethod;
