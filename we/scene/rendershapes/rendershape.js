@@ -98,7 +98,7 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
   gl.linkProgram(shaderProgram);
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    throw Error('Could not initialise shaders');
+    throw Error('Shader program err: ' + gl.getProgramInfoLog(shaderProgram));
   }
 
   this.locatedProgram = new we.scene.LocatedProgram(shaderProgram,

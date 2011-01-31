@@ -399,6 +399,13 @@ WebGLRenderingContext.prototype.getProgramParameter = function(program,
 
 
 /**
+ * @param {!WebGLProgram} program
+ * @return {string}
+ */
+WebGLRenderingContext.prototype.getProgramInfoLog = function(program) {};
+
+
+/**
  * @param {WebGLProgram} program
  */
 WebGLRenderingContext.prototype.useProgram = function(program) {};
