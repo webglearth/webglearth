@@ -186,7 +186,19 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
    * 4x4 model-view matrix
    * @type {!goog.math.Matrix}
    */
-  this.modelViewMatrix = goog.math.Matrix.createIdentityMatrix(4);
+  this.modelViewMatrix = this.projectionMatrix;
+
+  /**
+   * ModelView-Projection Matrix - cached result
+   * @type {!goog.math.Matrix}
+   */
+  this.mvpm = this.projectionMatrix;
+
+  /**
+   * ModelView-Projection Matrix Inversion - cached result
+   * @type {goog.math.Matrix}
+   */
+  this.mvpmInverse = this.projectionMatrix;
 
   if (we.CALC_FPS) {
     /**
@@ -378,11 +390,15 @@ we.gl.Context.prototype.scene = null;
 
 
 /**
- * Returns MatrixView-Projection matrix
+ * Flushes all operations (translation, rotation, scaling) into the
+ * ModelView-Projection Matrix and calculates mvpmInverse as well.
  * @return {!goog.math.Matrix} MatrixViewProjection matrix.
  */
-we.gl.Context.prototype.getMVPM = function() {
-  return this.projectionMatrix.multiply(this.modelViewMatrix);
+we.gl.Context.prototype.flushMVPM = function() {
+  this.mvpm = this.projectionMatrix.multiply(this.modelViewMatrix);
+  this.mvpmInverse = this.mvpm.getInverse();
+
+  return this.mvpm;
 };
 
 

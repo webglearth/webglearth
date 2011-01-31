@@ -382,7 +382,7 @@ we.scene.Scene.prototype.draw = function() {
                 new Float32Array(metaBufferFlat));
 
   var mvpm = new Float32Array(goog.array.flatten(
-      this.context.getMVPM().getTranspose().toArray()));
+      this.context.flushMVPM().getTranspose().toArray()));
 
   var plane = this.segmentedPlanes[Math.min(Math.floor(this.zoomLevel),
                                             this.segmentedPlanes.length - 1)];
@@ -418,9 +418,9 @@ we.scene.Scene.prototype.draw = function() {
  * @return {?Array.<number>} Array [lat, long] or null.
  */
 we.scene.Scene.prototype.getLatLongForXY = function(x, y) {
-  var orig = we.gl.utils.unprojectPoint(x, y, 0, this.context.getMVPM(),
+  var orig = we.gl.utils.unprojectPoint(x, y, 0, this.context.mvpmInverse,
       this.context.viewportWidth, this.context.viewportHeight);
-  var dir = we.gl.utils.unprojectPoint(x, y, 1, this.context.getMVPM(),
+  var dir = we.gl.utils.unprojectPoint(x, y, 1, this.context.mvpmInverse,
       this.context.viewportWidth, this.context.viewportHeight);
 
   if (goog.isNull(orig) || goog.isNull(dir))
@@ -450,10 +450,10 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
   var point = this.renderShape_.getPointForLatLon(goog.math.toRadians(lat),
                                                   goog.math.toRadians(lon));
 
-  var result = this.context.getMVPM().multiply(new goog.math.Matrix([[point.x],
-                                                                     [point.y],
-                                                                     [point.z],
-                                                                     [1]]));
+  var result = this.context.mvpm.multiply(new goog.math.Matrix([[point.x],
+                                                                [point.y],
+                                                                [point.z],
+                                                                [1]]));
 
   if (result.getValueAt(3, 0) == 0)
     return null;
@@ -473,7 +473,7 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
     visibility = 0;
   } else {
     var cameraPos = we.gl.utils.unprojectPoint(0.5, 0.5, 0,
-                                               this.context.getMVPM(), 1, 1);
+                                               this.context.mvpmInverse, 1, 1);
 
     if (goog.isNull(cameraPos))
       return null;

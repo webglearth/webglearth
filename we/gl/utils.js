@@ -38,17 +38,13 @@ goog.require('goog.math.Vec3');
  * @param {number} x Screen-space coordinate X.
  * @param {number} y Screen-space coordinate Y.
  * @param {number} z Screen-space coordinate Z (depth).
- * @param {!goog.math.Matrix} mvp ModelView-Projections matrix.
+ * @param {goog.math.Matrix} invertedMVP Inverted ModelView-Projections matrix.
  * @param {number} viewportWidth Width of viewport in pixels.
  * @param {number} viewportHeight Height of viewport in pixels.
  * @return {?goog.math.Vec3} Point location in model-space.
  */
-we.gl.utils.unprojectPoint = function(x, y, z, mvp,
+we.gl.utils.unprojectPoint = function(x, y, z, invertedMVP,
                                       viewportWidth, viewportHeight) {
-  /**
-   * @type {goog.math.Matrix}
-   */
-  var invertedMVP = mvp.getInverse();
   if (goog.isNull(invertedMVP))
     return null;
 
