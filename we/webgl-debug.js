@@ -287,7 +287,7 @@ WebGLDebugUtils = function() {
      *
      * @param {string} functionName the name of the WebGL function.
      * @param {number} argumentIndx the index of the argument.
-     * @param {*} value The value of the argument.
+     * @param {number} value The value of the argument.
      * @return {string} The value as a string.
      */
     glFunctionArgToString: glFunctionArgToString,
