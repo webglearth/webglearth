@@ -217,7 +217,7 @@ weapp.App = function(canvas) {
           this.context.scene.setCenter(llsplit[0], llsplit[1]);
       } else {
         var lat = getValue('lat');
-        var lon = getValue('lon');
+        var lon = getValue('lon') || getValue('long');
         if (!isNaN(lat) && !isNaN(lon))
           this.context.scene.setCenter(lat, lon);
       }
