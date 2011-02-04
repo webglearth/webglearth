@@ -385,6 +385,15 @@ WebGLRenderingContext.prototype.attachShader = function(program, shader) {};
 
 /**
  * @param {!WebGLProgram} program
+ * @param {number} index
+ * @param {string} name
+ */
+WebGLRenderingContext.prototype.bindAttribLocation = function(program, index,
+                                                              name) {};
+
+
+/**
+ * @param {!WebGLProgram} program
  */
 WebGLRenderingContext.prototype.linkProgram = function(program) {};
 

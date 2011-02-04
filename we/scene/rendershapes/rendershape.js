@@ -95,6 +95,9 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
   var shaderProgram = gl.createProgram();
   gl.attachShader(shaderProgram, vsshader);
   gl.attachShader(shaderProgram, fsshader);
+
+  gl.bindAttribLocation(shaderProgram, 0, 'aVertexPosition');
+
   gl.linkProgram(shaderProgram);
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
