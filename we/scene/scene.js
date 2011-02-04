@@ -173,6 +173,19 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.longitude = 0;
 
   /**
+   * Camera heading in radians
+   * @type {number}
+   */
+  this.heading = 0;
+
+  /**
+   * Camera pitch in radians, [0,PI/2)
+   * When 0, camera is pointed straight down
+   * @type {number}
+   */
+  this.pitch = 0;
+
+  /**
    * @type {Array.<number>}
    */
   this.offset = [0, 0];

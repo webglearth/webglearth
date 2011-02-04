@@ -61,10 +61,14 @@ we.scene.rendershapes.Plane.prototype.calcDistance = function() {
 
 /** @inheritDoc */
 we.scene.rendershapes.Plane.prototype.transformContext = function() {
+  this.scene.context.translate(0, 0, - this.scene.distance);
+  this.scene.context.rotate100(-this.scene.pitch);
+  this.scene.context.rotate001(-this.scene.heading);
+
   this.scene.context.translate(
       -this.scene.longitude / Math.PI,
       -we.scene.Scene.projectLatitude(this.scene.latitude) / Math.PI,
-      -this.scene.distance);
+      0);
 };
 
 

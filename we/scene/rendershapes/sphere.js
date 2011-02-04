@@ -65,9 +65,14 @@ we.scene.rendershapes.Sphere.prototype.calcDistance = function() {
 
 /** @inheritDoc */
 we.scene.rendershapes.Sphere.prototype.transformContext = function() {
-  this.scene.context.translate(0, 0, -1 - this.scene.distance);
+  this.scene.context.translate(0, 0, - this.scene.distance);
+  this.scene.context.rotate100(-this.scene.pitch);
+  this.scene.context.rotate001(-this.scene.heading);
+
+  this.scene.context.translate(0, 0, -1);
   this.scene.context.rotate100(this.scene.latitude);
   this.scene.context.rotate010(-this.scene.longitude);
+
 };
 
 

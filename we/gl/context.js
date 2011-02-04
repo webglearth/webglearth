@@ -383,6 +383,50 @@ we.gl.Context.prototype.rotate100 = function(angle) {
 
 
 /**
+ * Optimized function for rotating around (0, 0, 1).
+ * @param {number} angle Angle to rotate in radians.
+ */
+we.gl.Context.prototype.rotate001 = function(angle) {
+  /** @type {number} */
+  var c = Math.cos(angle);
+
+  /** @type {number} */
+  var s = Math.sin(angle);
+
+  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
+    [c, -s, 0, 0],
+    [s, c, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+  ]));
+};
+
+
+/**
+ * Optimized function for rotating around (1, 0, 0).
+ * @param {!goog.math.Vec3} eye Position of eye.
+ * @param {!goog.math.Vec3} center Position to look to.
+ * @param {!goog.math.Vec3} up "up" vector.
+ */
+we.gl.Context.prototype.lookAt = function(eye, center, up) {
+
+  var fw = center.subtract(eye).normalize();
+
+  var side = goog.math.Vec3.cross(fw, up).normalize();
+  up = goog.math.Vec3.cross(side, fw);
+
+  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
+    [side.x, side.y, side.z, 0],//-eye.x * (side.x + side.y + side.z)],
+    [up.x, up.y, up.z, 0],//-eye.y * (up.x + up.y + up.z)],
+    [-fw.x, -fw.y, -fw.z, 0],//eye.z * (fw.x + fw.y + fw.z)],
+    [0, 0, 0, 1]
+  ]));
+
+  this.translate(-eye.x, -eye.y, -eye.z);
+};
+
+
+/**
  * Scene to be rendered
  * @type {we.scene.Scene}
  */
