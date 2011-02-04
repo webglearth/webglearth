@@ -123,7 +123,8 @@ we.ui.SceneDragger = function(scene) {
  * @private
  */
 we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
-  if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT)) {
+  if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
+      !e.ctrlKey && !e.altKey && !e.shiftKey) {
 
     // Stop inertial animation
     if (this.inertialAnimation_) {

@@ -237,6 +237,22 @@ weapp.App = function(canvas) {
 
     fromHash();
 
+    /**
+     * @param {!goog.events.BrowserEvent} e Event.
+     * @this {weapp.App}
+     */
+    var addMarker = function(e) {
+      if (e.ctrlKey) {
+        var coords = this.context.scene.getLatLongForXY(e.offsetX, e.offsetY);
+        var marker = new we.ui.markers.BasicMarker(coords[0], coords[1]);
+        this.markerManager_.addMarker(null, marker);
+        e.preventDefault();
+      }
+    }
+    goog.events.listen(this.context.canvas,
+        goog.events.EventType.CLICK,
+        goog.bind(addMarker, this));
+
     if (goog.DEBUG) {
       weapp.logger.info('Done');
     }
