@@ -67,9 +67,7 @@ we.scene.rendershapes.Sphere.prototype.calcDistance = function() {
 we.scene.rendershapes.Sphere.prototype.transformContext = function() {
   this.scene.context.translate(0, 0, -1 - this.scene.distance);
   this.scene.context.rotate100(this.scene.latitude);
-  this.scene.context.rotate010(-(goog.math.modulo(this.scene.longitude /
-          (2 * Math.PI) * this.scene.tileCount, 1.0)) /
-          this.scene.tileCount * (2 * Math.PI));
+  this.scene.context.rotate010(-this.scene.longitude);
 };
 
 
@@ -82,7 +80,7 @@ we.scene.rendershapes.Sphere.prototype.transformContext = function() {
 we.scene.rendershapes.Sphere.prototype.traceDistance_ =
     function(origin, direction) {
   /** @type {!goog.math.Vec3} */
-  var sphereCenter = origin.invert(); //[0,0,0] - origin
+  var sphereCenter = origin.clone().invert(); //[0,0,0] - origin
 
   var ldotc = goog.math.Vec3.dot(direction, sphereCenter);
   var cdotc = goog.math.Vec3.dot(sphereCenter, sphereCenter);
@@ -115,9 +113,7 @@ we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
     if (bod.z < 0) // The point is on the "other side" of the sphere
       lon = Math.PI - lon;
 
-    var off = (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI;
-
-    return [Math.asin(bod.y), lon + off];
+    return [Math.asin(bod.y), we.utils.standardLongitudeRadians(lon)];
   }
 };
 
@@ -125,12 +121,11 @@ we.scene.rendershapes.Sphere.prototype.traceRayToGeoSpace =
 /** @inheritDoc */
 we.scene.rendershapes.Sphere.prototype.getPointForLatLon =
     function(lat, lon) {
-  var lonpp = lon - (this.scene.offset[0] / this.scene.tileCount) * 2 * Math.PI;
   var cosy = Math.cos(lat);
 
-  return new goog.math.Vec3(Math.sin(lonpp) * cosy,
+  return new goog.math.Vec3(Math.sin(lon) * cosy,
                             Math.sin(lat),
-                            Math.cos(lonpp) * cosy);
+                            Math.cos(lon) * cosy);
 };
 
 

@@ -52,10 +52,7 @@ float compareMeta(in vec3 a, in vec3 b){
 }
 
 void main(void) {
-  vec2 phi=PI2*vec2(aVertexPosition.x,aVertexPosition.y+uOffset.y)/uTileCount;
-
-  if(abs(phi.x)>PI)
-    phi.x=PI;
+  vec2 phi=PI2*vec2(aVertexPosition.x+uOffset.x,aVertexPosition.y+uOffset.y)/uTileCount;
 
 %VERTEX_TRANSFORM%
 

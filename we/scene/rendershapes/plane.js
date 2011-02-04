@@ -61,11 +61,10 @@ we.scene.rendershapes.Plane.prototype.calcDistance = function() {
 
 /** @inheritDoc */
 we.scene.rendershapes.Plane.prototype.transformContext = function() {
-  var xoff = -2 * (goog.math.modulo(this.scene.longitude / (2 * Math.PI) *
-                           this.scene.tileCount, 1.0)) / this.scene.tileCount;
-  this.scene.context.translate(xoff, -Math.log(
-      Math.tan(this.scene.latitude / 2 + Math.PI / 4)) /
-      Math.PI, -this.scene.distance);
+  this.scene.context.translate(
+      -this.scene.longitude / Math.PI,
+      -we.scene.Scene.projectLatitude(this.scene.latitude) / Math.PI,
+      -this.scene.distance);
 };
 
 
@@ -78,23 +77,16 @@ we.scene.rendershapes.Plane.prototype.traceRayToGeoSpace =
     var d = -origin.z / direction.z;
     var bod = goog.math.Vec3.sum(origin, direction.scale(d));
 
-    var lat = we.scene.Scene.unprojectLatitude(bod.y * Math.PI);
-    var lon = Math.PI * (2 * this.scene.offset[0] /
-                         this.scene.tileCount + bod.x);
-
-    return [lat, lon];
+    return [we.scene.Scene.unprojectLatitude(bod.y * Math.PI), bod.x * Math.PI];
   }
 };
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Plane.prototype.getPointForLatLon =
-    function(lat, lon) {
-
-  var x = lon / Math.PI - (this.scene.offset[0] / this.scene.tileCount) * 2;
-  var y = we.scene.Scene.projectLatitude(lat) / Math.PI;
-
-  return new goog.math.Vec3(x, y, 0);
+we.scene.rendershapes.Plane.prototype.getPointForLatLon = function(lat, lon) {
+  return new goog.math.Vec3(lon / Math.PI,
+                            we.scene.Scene.projectLatitude(lat) / Math.PI,
+                            0);
 };
 
 

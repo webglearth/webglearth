@@ -65,3 +65,13 @@ we.utils.getFile = function(url, opt_callback) {
 we.utils.randomElement = function(source) {
   return source[goog.math.randomInt(source.length)];
 };
+
+
+/**
+ * @param {number} lon in radians.
+ * @return {number} Longitude (-PI;+PI].
+ */
+we.utils.standardLongitudeRadians = function(lon) {
+  var standard = goog.math.modulo(lon, 2 * Math.PI);
+  return standard > Math.PI ? standard - 2 * Math.PI : standard;
+};
