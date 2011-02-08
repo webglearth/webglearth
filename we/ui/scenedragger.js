@@ -188,21 +188,23 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
       (this.scene_.tilesVertically / Math.pow(2, this.scene_.zoomLevel));
 
-  this.scene_.longitude = this.scene_.longitude - xDiff * 2 * factor;
-  this.scene_.latitude = this.scene_.latitude + yDiff * factor;
+  this.scene_.camera.longitude =
+      this.scene_.camera.longitude - xDiff * 2 * factor;
+  this.scene_.camera.latitude =
+      this.scene_.camera.latitude + yDiff * factor;
 
 
-  if (Math.abs(this.scene_.latitude) > Math.PI / 2.1) {
-    this.scene_.latitude = goog.math.sign(this.scene_.latitude) *
+  if (Math.abs(this.scene_.camera.latitude) > Math.PI / 2.1) {
+    this.scene_.camera.latitude = goog.math.sign(this.scene_.camera.latitude) *
         (Math.PI / 2.1);
   }
 
-  if (this.scene_.longitude > Math.PI) {
-    this.scene_.longitude -= 2 * Math.PI;
+  if (this.scene_.camera.longitude > Math.PI) {
+    this.scene_.camera.longitude -= 2 * Math.PI;
   }
 
-  if (this.scene_.longitude < -Math.PI) {
-    this.scene_.longitude += 2 * Math.PI;
+  if (this.scene_.camera.longitude < -Math.PI) {
+    this.scene_.camera.longitude += 2 * Math.PI;
   }
 };
 

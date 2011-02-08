@@ -48,11 +48,11 @@ goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
 });
 
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
-  this.context.scene.setCenter(coords[0], coords[1]);
+  this.context.scene.camera.setPosition(coords[0], coords[1]);
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
-  return this.context.scene.getCenter();
+  return this.context.scene.camera.getPosition();
 });
 
 // Handle canvas resizing - this is necessary to prevent weird deformations

@@ -142,8 +142,8 @@ weapi.App = function(divid, opt_options) {
   }
 
   if (goog.isDef(opt_options) && 'center' in opt_options) {
-    this.context.scene.setCenter(opt_options['center'][0],
-                                 opt_options['center'][1]);
+    this.context.scene.camera.setPosition(opt_options['center'][0],
+                                          opt_options['center'][1]);
   }
 
   /**

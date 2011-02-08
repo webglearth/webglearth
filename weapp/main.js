@@ -163,7 +163,7 @@ weapp.App = function(canvas) {
     this.markerManager_.addMarker('nominatimMarker', nominMarker);
 
     var runNominatimAction = goog.bind(function(item) {
-      this.context.scene.setCenter(item['lat'], item['lon']);
+      this.context.scene.camera.setPosition(item['lat'], item['lon']);
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];
@@ -188,9 +188,9 @@ weapp.App = function(canvas) {
     var updateHash = function() {
       var newhash = '#z=' + this.context.scene.zoomLevel.toFixed(2) +
           ';ll=' + goog.math.toDegrees(
-              this.context.scene.latitude).toFixed(5) +
+              this.context.scene.camera.latitude).toFixed(5) +
           ',' + goog.math.toDegrees(
-              this.context.scene.longitude).toFixed(5);
+              this.context.scene.camera.longitude).toFixed(5);
       window.location.hash = newhash;
     }
 
@@ -214,12 +214,12 @@ weapp.App = function(canvas) {
       if (goog.isDefAndNotNull(ll)) {
         var llsplit = ll.split(',');
         if (llsplit.length > 1 && !isNaN(llsplit[0]) && !isNaN(llsplit[1]))
-          this.context.scene.setCenter(llsplit[0], llsplit[1]);
+          this.context.scene.camera.setPosition(llsplit[0], llsplit[1]);
       } else {
         var lat = getValue('lat');
         var lon = getValue('lon') || getValue('long');
         if (!isNaN(lat) && !isNaN(lon))
-          this.context.scene.setCenter(lat, lon);
+          this.context.scene.camera.setPosition(lat, lon);
       }
     }, this);
 

@@ -38,6 +38,7 @@ goog.require('goog.math');
 goog.require('we.gl.Context');
 goog.require('we.gl.SegmentedPlane');
 goog.require('we.gl.utils');
+goog.require('we.scene.Camera');
 goog.require('we.scene.LocatedProgram');
 goog.require('we.scene.TileBuffer');
 goog.require('we.scene.rendershapes.RenderShape');
@@ -158,32 +159,9 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.tileCount = 1;
 
   /**
-   * @type {number}
+   * @type {!we.scene.Camera}
    */
-  this.distance = 0;
-
-  /**
-   * @type {number}
-   */
-  this.latitude = 0;
-
-  /**
-   * @type {number}
-   */
-  this.longitude = 0;
-
-  /**
-   * Camera heading in radians
-   * @type {number}
-   */
-  this.heading = 0;
-
-  /**
-   * Camera pitch in radians, [0,PI/2)
-   * When 0, camera is pointed straight down
-   * @type {number}
-   */
-  this.pitch = 0;
+  this.camera = new we.scene.Camera();
 
   /**
    * @type {Array.<number>}
@@ -208,27 +186,6 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
                           new we.gl.SegmentedPlane(context, 10, 10, 2)];
 
   this.setZoom(3);
-};
-
-
-/**
- * Immediately sets center of the scene to given location.
- * @param {number} latitude Latitude in degrees.
- * @param {number} longitude Longitude in degrees.
- */
-we.scene.Scene.prototype.setCenter = function(latitude, longitude) {
-  this.latitude = goog.math.toRadians(goog.math.clamp(latitude, -89, 89));
-  this.longitude = goog.math.toRadians(longitude);
-};
-
-
-/**
- * Returns Array [latitude, longitude] converted to degrees.
- * @return {Array.<number>} Array [lat, long].
- */
-we.scene.Scene.prototype.getCenter = function() {
-  return [goog.math.toDegrees(this.latitude),
-          goog.math.toDegrees(this.longitude)];
 };
 
 
@@ -313,13 +270,13 @@ we.scene.Scene.prototype.setZoom = function(zoom) {
  * Calculates which tiles are needed and tries to buffer them
  */
 we.scene.Scene.prototype.updateTiles = function() {
-
-  var yOffset = Math.floor(we.scene.Scene.projectLatitude(this.latitude) /
+  this.offset[0] = Math.floor(
+      this.camera.longitude / (2 * Math.PI) * this.tileCount);
+  this.offset[1] = Math.floor(
+      we.scene.Scene.projectLatitude(this.camera.latitude) /
       (Math.PI * 2) * this.tileCount);
-  var xOffset = Math.floor(this.longitude / (2 * Math.PI) * this.tileCount);
-
-  var position = {x: xOffset + this.tileCount / 2,
-    y: (this.tileCount - 1) - (yOffset + this.tileCount / 2)};
+  var position = {x: this.offset[0] + this.tileCount / 2,
+    y: (this.tileCount - 1) - (this.offset[1] + this.tileCount / 2)};
 
   var flooredZoom = Math.floor(this.zoomLevel);
 
@@ -371,14 +328,14 @@ we.scene.Scene.prototype.draw = function() {
 
   if (!goog.isNull(this.infobox_)) {
     this.infobox_.innerHTML =
-        goog.math.toDegrees(this.latitude).toFixed(4) + '; ' +
-        goog.math.toDegrees(this.longitude).toFixed(4) + ' @ ' +
+        goog.math.toDegrees(this.camera.latitude).toFixed(4) + '; ' +
+        goog.math.toDegrees(this.camera.longitude).toFixed(4) + ' @ ' +
         this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
         this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
         this.currentTileProvider_.loadingTileCounter;
   }
 
-  this.distance = this.renderShape_.calcDistance();
+  this.camera.distance = this.renderShape_.calcDistance();
   this.renderShape_.transformContext();
 
   gl.useProgram(this.renderShape_.locatedProgram.program);
@@ -415,9 +372,7 @@ we.scene.Scene.prototype.draw = function() {
       this.currentTileProvider_.getTileSize());
   gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel));
   gl.uniform1f(locatedProgram.tileCountUniform, this.tileCount);
-  this.offset[0] = Math.floor(this.longitude / (2 * Math.PI) * this.tileCount),
-  this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(this.latitude) /
-                              (Math.PI * 2) * this.tileCount);
+
   gl.uniform2fv(locatedProgram.offsetUniform, this.offset);
 
   gl.drawArrays(gl.TRIANGLES, 0, plane.vertexBuffer.numItems);

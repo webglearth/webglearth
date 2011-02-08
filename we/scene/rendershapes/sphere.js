@@ -56,7 +56,7 @@ we.scene.rendershapes.Sphere.prototype.vertexTransform =
 
 /** @inheritDoc */
 we.scene.rendershapes.Sphere.prototype.calcDistance = function() {
-  var o = Math.cos(Math.abs(this.scene.latitude)) * 2 * Math.PI;
+  var o = Math.cos(Math.abs(this.scene.camera.latitude)) * 2 * Math.PI;
   var thisPosDeformation = o / Math.pow(2, this.scene.zoomLevel);
   var sizeIWannaSee = thisPosDeformation * this.scene.tilesVertically;
   return (1 / Math.tan(this.scene.context.fov / 2)) * (sizeIWannaSee / 2);
@@ -65,13 +65,12 @@ we.scene.rendershapes.Sphere.prototype.calcDistance = function() {
 
 /** @inheritDoc */
 we.scene.rendershapes.Sphere.prototype.transformContext = function() {
-  this.scene.context.translate(0, 0, - this.scene.distance);
-  this.scene.context.rotate100(-this.scene.pitch);
-  this.scene.context.rotate001(-this.scene.heading);
-
-  this.scene.context.translate(0, 0, -1);
-  this.scene.context.rotate100(this.scene.latitude);
-  this.scene.context.rotate010(-this.scene.longitude);
+  this.scene.context.rotate001(-this.scene.camera.roll);
+  this.scene.context.rotate100(-this.scene.camera.tilt);
+  this.scene.context.rotate001(-this.scene.camera.heading);
+  this.scene.context.translate(0, 0, -1 - this.scene.camera.distance);
+  this.scene.context.rotate100(this.scene.camera.latitude);
+  this.scene.context.rotate010(-this.scene.camera.longitude);
 
 };
 
