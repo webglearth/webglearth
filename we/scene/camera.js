@@ -35,26 +35,34 @@ goog.require('goog.math');
 
 /**
  * Camera object
+ * @param {we.scene.Scene=} opt_scene Scene.
  * @constructor
  */
-we.scene.Camera = function() {
-  /**
-   * @type {number}
-   * Distance from the surface, this has no units yet
-   * (the distance is different for each RenderShape),
-   * but it will probably be in meters.
-   */
-  this.distance = 0;
+we.scene.Camera = function(opt_scene) {
 
   /**
+   * @type {we.scene.Scene}
+   * @private
+   */
+  this.scene_ = opt_scene || null;
+
+  /**
+   * Latitude in radians
    * @type {number}
    */
   this.latitude = 0;
 
   /**
+   * Longitude in radians
    * @type {number}
    */
   this.longitude = 0;
+
+  /**
+   * @type {number}
+   * Altitude of this camera in meters
+   */
+  this.altitude = 1000;
 
   /**
    * Camera heading in radians
@@ -76,6 +84,14 @@ we.scene.Camera = function() {
    * @type {number}
    */
   this.roll = 0;
+
+  /**
+   * Describes how this camera behaves, because either altitude or zoomLevel
+   * has to change when moving north or south.
+   * @type {boolean}
+   */
+  this.fixedAltitude = true;
+
 };
 
 
@@ -97,4 +113,34 @@ we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
 we.scene.Camera.prototype.getPosition = function() {
   return [goog.math.toDegrees(this.latitude),
           goog.math.toDegrees(this.longitude)];
+};
+
+
+/**
+ * Sets this camera to fixed altitude
+ * @param {number} altitude Altitude in meters.
+ */
+we.scene.Camera.prototype.setAltitude = function(altitude) {
+  this.altitude = goog.math.clamp(altitude, 250, 10000000);
+  this.fixedAltitude = true;
+};
+
+
+/**
+ * @return {number} Altitude in meters.
+ */
+we.scene.Camera.prototype.getAltitude = function() {
+  return this.altitude;
+};
+
+
+/**
+ * Returns latlon of the place the camera is currently looking at
+ * @param {!we.scene.Scene} scene Scene.
+ * @return {?Array.<number>} Array [lat, lon] in radians or null.
+ */
+we.scene.Camera.prototype.getTarget = function(scene) {
+  //This can be optimized a lot
+  return scene.getLatLongForXY(scene.context.viewportWidth / 2,
+                               scene.context.viewportHeight / 2, true);
 };

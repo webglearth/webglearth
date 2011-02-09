@@ -62,6 +62,13 @@ we.scene.LOOKUP_FALLBACK_LEVELS = 5;
 we.scene.MIN_ZOOM = 1;
 
 
+/**
+ * TODO: define this somewhere else?
+ * @define {number} Average radius of Earth in meters.
+ */
+we.scene.EARTH_RADIUS = 6371009;
+
+
 
 /**
  * Object handling scene data
@@ -149,19 +156,20 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
 
   /**
    * @type {number}
+   * @private
    */
-  this.zoomLevel = 0;
+  this.zoomLevel_ = 3;
 
   /**
    * @type {number}
-   * This should always equal 1 << this.zoomLevel !
+   * This should always equal 1 << this.zoomLevel_ !
    */
   this.tileCount = 1;
 
   /**
    * @type {!we.scene.Camera}
    */
-  this.camera = new we.scene.Camera();
+  this.camera = new we.scene.Camera(this);
 
   /**
    * @type {Array.<number>}
@@ -183,9 +191,8 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
                           new we.gl.SegmentedPlane(context, 6, 6, 8),    //2
                           new we.gl.SegmentedPlane(context, 8, 8, 8),    //3
                           new we.gl.SegmentedPlane(context, 10, 10, 8),    //4
-                          new we.gl.SegmentedPlane(context, 10, 10, 2)];
+                          new we.gl.SegmentedPlane(context, 16, 16, 2)];
 
-  this.setZoom(3);
 };
 
 
@@ -228,7 +235,7 @@ we.scene.Scene.prototype.changeTileProvider = function(tileprovider) {
   this.tileBuffer_.changeTileProvider(this.currentTileProvider_);
   this.currentTileProvider_.copyrightInfoChangedHandler =
       goog.bind(this.updateCopyrights_, this);
-  this.setZoom(this.zoomLevel);
+  //this.setZoom(this.zoomLevel_);
   this.recalcTilesVertically();
   this.updateCopyrights_();
 };
@@ -248,7 +255,7 @@ we.scene.Scene.prototype.changeRenderShape = function(rendershape) {
  * after changing canvas size or tile provider.
  */
 we.scene.Scene.prototype.recalcTilesVertically = function() {
-  this.tilesVertically = 0.7 * this.context.canvas.height /
+  this.tilesVertically = 0.9 * this.context.canvas.height /
       this.currentTileProvider_.getTileSize();
 };
 
@@ -260,9 +267,36 @@ we.scene.Scene.prototype.recalcTilesVertically = function() {
 we.scene.Scene.prototype.setZoom = function(zoom) {
   var minZoom = Math.max(we.scene.MIN_ZOOM,
       this.currentTileProvider_.getMinZoomLevel());
-  this.zoomLevel = goog.math.clamp(zoom, minZoom,
-                                   this.currentTileProvider_.getMaxZoomLevel());
-  this.tileCount = 1 << Math.floor(this.zoomLevel);
+  this.zoomLevel_ = goog.math.clamp(zoom, minZoom,
+      this.currentTileProvider_.getMaxZoomLevel());
+  this.tileCount = 1 << Math.floor(this.zoomLevel_);
+
+  this.camera.fixedAltitude = false;
+};
+
+
+/**
+ * @return {number} Zoom level.
+ */
+we.scene.Scene.prototype.getZoom = function() {
+  return this.zoomLevel_;
+};
+
+
+/**
+ * Recalculates altitude or zoomLevel depending on camera behavior type.
+ * @private
+ */
+we.scene.Scene.prototype.adjustZoomAndAltitude_ = function() {
+  if (this.camera.fixedAltitude) {
+    var minZoom = Math.max(we.scene.MIN_ZOOM,
+                           this.currentTileProvider_.getMinZoomLevel());
+    this.zoomLevel_ = goog.math.clamp(this.renderShape_.calcZoom(), minZoom,
+        this.currentTileProvider_.getMaxZoomLevel());
+    this.tileCount = 1 << Math.floor(this.zoomLevel_);
+  } else {
+    this.camera.altitude = this.renderShape_.calcAltitude();
+  }
 };
 
 
@@ -270,15 +304,20 @@ we.scene.Scene.prototype.setZoom = function(zoom) {
  * Calculates which tiles are needed and tries to buffer them
  */
 we.scene.Scene.prototype.updateTiles = function() {
-  this.offset[0] = Math.floor(
-      this.camera.longitude / (2 * Math.PI) * this.tileCount);
-  this.offset[1] = Math.floor(
-      we.scene.Scene.projectLatitude(this.camera.latitude) /
+
+  var cameraTarget = this.camera.getTarget(this);
+  if (goog.isNull(cameraTarget)) {
+    //If camera is not pointed at Earth, just fallback to latlon now
+    cameraTarget = [this.camera.latitude, this.camera.longitude];
+  }
+  this.offset[0] = Math.floor(cameraTarget[1] / (2 * Math.PI) * this.tileCount);
+  this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(cameraTarget[0]) /
       (Math.PI * 2) * this.tileCount);
+
   var position = {x: this.offset[0] + this.tileCount / 2,
     y: (this.tileCount - 1) - (this.offset[1] + this.tileCount / 2)};
 
-  var flooredZoom = Math.floor(this.zoomLevel);
+  var flooredZoom = Math.floor(this.zoomLevel_);
 
   var batchTime = goog.now();
 
@@ -326,16 +365,18 @@ we.scene.Scene.prototype.updateTiles = function() {
 we.scene.Scene.prototype.draw = function() {
   var gl = this.context.gl;
 
+  this.adjustZoomAndAltitude_();
+
   if (!goog.isNull(this.infobox_)) {
     this.infobox_.innerHTML =
         goog.math.toDegrees(this.camera.latitude).toFixed(4) + '; ' +
         goog.math.toDegrees(this.camera.longitude).toFixed(4) + ' @ ' +
-        this.zoomLevel.toFixed(2) + '; BufferQueue size: ' +
+        this.camera.altitude.toFixed(0) + 'm <-> z=' +
+        this.zoomLevel_.toFixed(3) + '; BufferQueue size: ' +
         this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
         this.currentTileProvider_.loadingTileCounter;
   }
 
-  this.camera.distance = this.renderShape_.calcDistance();
   this.renderShape_.transformContext();
 
   gl.useProgram(this.renderShape_.locatedProgram.program);
@@ -354,7 +395,7 @@ we.scene.Scene.prototype.draw = function() {
   var mvpm = new Float32Array(goog.array.flatten(
       this.context.flushMVPM().getTranspose().toArray()));
 
-  var plane = this.segmentedPlanes[Math.min(Math.floor(this.zoomLevel),
+  var plane = this.segmentedPlanes[Math.min(Math.floor(this.zoomLevel_),
                                             this.segmentedPlanes.length - 1)];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, plane.vertexBuffer);
@@ -370,7 +411,7 @@ we.scene.Scene.prototype.draw = function() {
   gl.uniformMatrix4fv(locatedProgram.mvpMatrixUniform, false, mvpm);
   gl.uniform1f(locatedProgram.tileSizeUniform,
       this.currentTileProvider_.getTileSize());
-  gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel));
+  gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel_));
   gl.uniform1f(locatedProgram.tileCountUniform, this.tileCount);
 
   gl.uniform2fv(locatedProgram.offsetUniform, this.offset);
@@ -383,9 +424,10 @@ we.scene.Scene.prototype.draw = function() {
  * Calculates geo-space coordinates for given screen-space coordinates.
  * @param {number} x X position on the canvas.
  * @param {number} y Y position on the canvas.
+ * @param {boolean=} opt_radians If true, result is returned in radians.
  * @return {?Array.<number>} Array [lat, long] or null.
  */
-we.scene.Scene.prototype.getLatLongForXY = function(x, y) {
+we.scene.Scene.prototype.getLatLongForXY = function(x, y, opt_radians) {
   var orig = we.gl.utils.unprojectPoint(x, y, 0, this.context.mvpmInverse,
       this.context.viewportWidth, this.context.viewportHeight);
   var dir = we.gl.utils.unprojectPoint(x, y, 1, this.context.mvpmInverse,
@@ -402,6 +444,8 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y) {
 
   if (!goog.isDefAndNotNull(result)) {
     return null;
+  } else if (opt_radians == true) {
+    return [result[0], result[1]];
   } else {
     return [goog.math.toDegrees(result[0]), goog.math.toDegrees(result[1])];
   }

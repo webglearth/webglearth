@@ -55,11 +55,22 @@ we.scene.rendershapes.Sphere.prototype.vertexTransform =
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Sphere.prototype.calcDistance = function() {
+we.scene.rendershapes.Sphere.prototype.calcAltitude = function() {
   var o = Math.cos(Math.abs(this.scene.camera.latitude)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.scene.zoomLevel);
+  var thisPosDeformation = o / Math.pow(2, this.scene.getZoom());
   var sizeIWannaSee = thisPosDeformation * this.scene.tilesVertically;
-  return (1 / Math.tan(this.scene.context.fov / 2)) * (sizeIWannaSee / 2);
+  return (1 / Math.tan(this.scene.context.fov / 2)) *
+         (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
+};
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Sphere.prototype.calcZoom = function() {
+  var sizeISee = 2 * (this.scene.camera.altitude / we.scene.EARTH_RADIUS) *
+                     Math.tan(this.scene.context.fov / 2);
+  var sizeOfOneTile = sizeISee / this.scene.tilesVertically;
+  var o = Math.cos(Math.abs(this.scene.camera.latitude)) * 2 * Math.PI;
+  return Math.log(o / sizeOfOneTile) / Math.LN2;
 };
 
 
@@ -68,7 +79,8 @@ we.scene.rendershapes.Sphere.prototype.transformContext = function() {
   this.scene.context.rotate001(-this.scene.camera.roll);
   this.scene.context.rotate100(-this.scene.camera.tilt);
   this.scene.context.rotate001(-this.scene.camera.heading);
-  this.scene.context.translate(0, 0, -1 - this.scene.camera.distance);
+  this.scene.context.translate(0, 0, -1 - this.scene.camera.altitude /
+      we.scene.EARTH_RADIUS);
   this.scene.context.rotate100(this.scene.camera.latitude);
   this.scene.context.rotate010(-this.scene.camera.longitude);
 

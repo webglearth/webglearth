@@ -44,7 +44,7 @@ goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
-  return this.context.scene.zoomLevel;
+  return this.context.scene.getZoom();
 });
 
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {

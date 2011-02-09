@@ -89,7 +89,11 @@ we.ui.MouseZoomer = function(scene) {
   this.dblClickListenKey_ = goog.events.listen(scene.context.canvas,
       goog.events.EventType.DBLCLICK,
       goog.bind(function(e) {
-        this.setZoom(Math.floor(this.zoomLevel + 1));
+        if (this.camera.fixedAltitude) {
+          this.camera.setAltitude(this.camera.getAltitude() / 2);
+        } else {
+          this.setZoom(Math.floor(this.zoomLevel_ + 1));
+        }
         e.preventDefault();
       }, scene));
 
@@ -101,8 +105,12 @@ we.ui.MouseZoomer = function(scene) {
       goog.events.EventType.MOUSEUP,
       goog.bind(function(e) {
         if (e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT)) {
+          if (this.camera.fixedAltitude) {
+            this.camera.setAltitude(this.camera.getAltitude() * 2);
+          } else {
+            this.setZoom(Math.ceil(this.zoomLevel_ - 1));
+          }
           e.preventDefault();
-          this.setZoom(Math.ceil(this.zoomLevel - 1));
         }
       }, scene));
 
@@ -143,7 +151,7 @@ goog.inherits(we.ui.MouseZoomer, goog.Disposable);
  * @private
  */
 we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
-  var duration = we.ui.MOUSERZOOMER_DURATION;
+  /*var duration = we.ui.MOUSERZOOMER_DURATION;
   if (this.animation_) {
     if ((this.targetZoom_ > this.startZoom_) == (direction > 0)) { //Same dir
       return;
@@ -171,14 +179,14 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
   goog.events.listen(this.animation_,
       [goog.fx.Animation.EventType.ANIMATE, goog.fx.Animation.EventType.FINISH],
       function(e) {
-        this.setZoom(e.x);
+        //this.setZoom(e.x);
       }, false, this.scene_);
 
   goog.events.listen(this.animation_,
       [goog.fx.Animation.EventType.FINISH],
       this.endZooming_, false, this);
 
-  this.animation_.play(false);
+  this.animation_.play(false);*/
 };
 
 

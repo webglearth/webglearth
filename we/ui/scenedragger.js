@@ -176,7 +176,7 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
 
 
 /**
- * Move the scene in fiven direction defined in actial window pixel coordinates
+ * Move the scene in given direction defined in actial window pixel coordinates
  * @param {number} xDiff Difference of position in pixels in x-axis.
  * @param {number} yDiff Difference of position in pixels in y-axis.
  * @private
@@ -186,7 +186,7 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   //TODO: more exact calculation (just vertically?)
   //PI * (How much is 1px on the screen?) * (How much is visible?)
   var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
-      (this.scene_.tilesVertically / Math.pow(2, this.scene_.zoomLevel));
+      (this.scene_.tilesVertically / Math.pow(2, this.scene_.getZoom()));
 
   this.scene_.camera.longitude =
       this.scene_.camera.longitude - xDiff * 2 * factor;

@@ -186,11 +186,11 @@ weapp.App = function(canvas) {
 
 
     var updateHash = function() {
-      var newhash = '#z=' + this.context.scene.zoomLevel.toFixed(2) +
-          ';ll=' + goog.math.toDegrees(
-              this.context.scene.camera.latitude).toFixed(5) +
+      var newhash = '#ll=' + goog.math.toDegrees(
+          this.context.scene.camera.latitude).toFixed(5) +
           ',' + goog.math.toDegrees(
-              this.context.scene.camera.longitude).toFixed(5);
+              this.context.scene.camera.longitude).toFixed(5) +
+              ';alt=' + this.context.scene.camera.getAltitude().toFixed(0);
       window.location.hash = newhash;
     }
 
@@ -209,6 +209,10 @@ weapp.App = function(canvas) {
       var zoom = getValue('zoom') || getValue('z');
       if (!isNaN(zoom))
         this.context.scene.setZoom(zoom);
+
+      var altitude = getValue('alt');
+      if (!isNaN(altitude))
+        this.context.scene.camera.setAltitude(altitude);
 
       var ll = getValue('ll');
       if (goog.isDefAndNotNull(ll)) {

@@ -52,10 +52,21 @@ we.scene.rendershapes.Plane.prototype.vertexTransform =
 
 
 /** @inheritDoc */
-we.scene.rendershapes.Plane.prototype.calcDistance = function() {
+we.scene.rendershapes.Plane.prototype.calcAltitude = function(zoomLevel) {
   var sizeIWannaSee = 2 * this.scene.tilesVertically /
-                      Math.pow(2, this.scene.zoomLevel);
-  return (1 / Math.tan(this.scene.context.fov / 2)) * (sizeIWannaSee / 2);
+                      Math.pow(2, this.scene.getZoom());
+  return (1 / Math.tan(this.scene.context.fov / 2)) *
+         (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
+};
+
+
+/** @inheritDoc */
+we.scene.rendershapes.Plane.prototype.calcZoom = function() {
+  var sizeISee = 2 * (this.scene.camera.altitude / we.scene.EARTH_RADIUS) *
+                     Math.tan(this.scene.context.fov / 2);
+  var sizeOfOneTile = sizeISee / this.scene.tilesVertically;
+  var o = Math.cos(Math.abs(this.scene.camera.latitude)) * 2 * Math.PI;
+  return Math.log(o / sizeOfOneTile) / Math.LN2;
 };
 
 
@@ -68,7 +79,9 @@ we.scene.rendershapes.Plane.prototype.transformContext = function() {
   this.scene.context.translate(
       -this.scene.camera.longitude / Math.PI,
       -we.scene.Scene.projectLatitude(this.scene.camera.latitude) / Math.PI,
-      -this.scene.camera.distance);
+      -this.scene.camera.altitude / we.scene.EARTH_RADIUS / 2);
+
+  //The distance has to change depending on latitude
 };
 
 

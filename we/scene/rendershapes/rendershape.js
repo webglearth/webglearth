@@ -121,9 +121,15 @@ we.scene.rendershapes.RenderShape.prototype.vertexTransform = '';
 /**
  * Calculates proper distance according to current perspective settings so,
  * that requested number of tiles can fit vertically on the canvas.
- * @return {number} Calculated distance.
+ * @return {number} Calculated altitude.
  */
-we.scene.rendershapes.RenderShape.prototype.calcDistance = goog.abstractMethod;
+we.scene.rendershapes.RenderShape.prototype.calcAltitude = goog.abstractMethod;
+
+
+/**
+ * @return {number} Calculated zoom level.
+ */
+we.scene.rendershapes.RenderShape.prototype.calcZoom = goog.abstractMethod;
 
 
 /**
