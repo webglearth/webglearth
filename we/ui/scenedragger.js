@@ -96,7 +96,7 @@ we.ui.SceneDragger = function(scene) {
    * @type {goog.Timer}
    * @private
    */
-  this.dragEndTimer_ = new goog.Timer(25);
+  this.dragEndTimer_ = new goog.Timer(20);
 
   /**
    * @type {goog.fx.Animation}
@@ -187,6 +187,17 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   //PI * (How much is 1px on the screen?) * (How much is visible?)
   var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
       (this.scene_.tilesVertically / Math.pow(2, this.scene_.getZoom()));
+
+
+  var rotateAxes = function(angle) {
+    xDiff = xDiff * Math.cos(angle) + yDiff * Math.sin(angle);
+    yDiff = yDiff * Math.cos(angle) - xDiff * Math.sin(angle);
+  }
+
+  //camera transformations
+  rotateAxes(this.scene_.camera.roll);
+  yDiff /= Math.max(Math.abs(Math.cos(this.scene_.camera.tilt)), 0.1);
+  rotateAxes(this.scene_.camera.heading);
 
   this.scene_.camera.longitude =
       this.scene_.camera.longitude - xDiff * 2 * factor;
