@@ -124,7 +124,7 @@ we.ui.SceneDragger = function(scene) {
  */
 we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
   if (!e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT) &&
-      !e.ctrlKey && !e.altKey && !e.shiftKey) {
+      !e.ctrlKey && !e.altKey) {
 
     // Stop inertial animation
     if (this.inertialAnimation_) {
@@ -244,7 +244,9 @@ we.ui.SceneDragger.prototype.onMouseMove_ = function(e) {
   var yDiff = e.screenY - this.oldY_;
 
   this.scenePixelMove_(xDiff, yDiff,
-      e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE));
+      e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE) ||
+      (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
+      e.shiftKey));
 
   this.oldX_ = e.screenX;
   this.oldY_ = e.screenY;
