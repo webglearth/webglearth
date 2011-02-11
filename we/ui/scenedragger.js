@@ -123,7 +123,7 @@ we.ui.SceneDragger = function(scene) {
  * @private
  */
 we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
-  if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
+  if (!e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT) &&
       !e.ctrlKey && !e.altKey && !e.shiftKey) {
 
     // Stop inertial animation
@@ -162,15 +162,22 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
  * @private
  */
 we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
-  if (this.dragging_ && (e.type != goog.events.EventType.MOUSEDOWN ||
-      e.isButton(goog.events.BrowserEvent.MouseButton.LEFT))) {
+  if (this.dragging_ && (e.type != goog.events.EventType.MOUSEDOWN)) {
 
     this.dragEndX_ = e.screenX;
     this.dragEndY_ = e.screenY;
 
     e.preventDefault();
 
-    this.dragEndTimer_.start();
+    if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT)) {
+      this.dragEndTimer_.start();
+    } else {
+      //Unregister onMouseMove_
+      if (!goog.isNull(this.listenKey_)) {
+        goog.events.unlistenByKey(this.listenKey_);
+        this.listenKey_ = null;
+      }
+    }
   }
 };
 
@@ -179,43 +186,50 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
  * Move the scene in given direction defined in actial window pixel coordinates
  * @param {number} xDiff Difference of position in pixels in x-axis.
  * @param {number} yDiff Difference of position in pixels in y-axis.
+ * @param {boolean} tilt Tilt?
  * @private
  */
-we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
+we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff, tilt) {
+  if (tilt) {
+    this.scene_.camera.tilt += (yDiff / this.scene_.context.canvas.height) *
+                               Math.PI / 2;
+    this.scene_.camera.heading += (xDiff / this.scene_.context.canvas.width) *
+                                  Math.PI;
+  } else {
+    //TODO: more exact calculation (just vertically?)
+    //PI * (How much is 1px on the screen?) * (How much is visible?)
+    var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
+        (this.scene_.tilesVertically / Math.pow(2, this.scene_.getZoom()));
 
-  //TODO: more exact calculation (just vertically?)
-  //PI * (How much is 1px on the screen?) * (How much is visible?)
-  var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
-      (this.scene_.tilesVertically / Math.pow(2, this.scene_.getZoom()));
+    var rotateAxes = function(angle) {
+      var x = xDiff;
+      xDiff = x * Math.cos(angle) - yDiff * Math.sin(angle);
+      yDiff = x * Math.sin(angle) + yDiff * Math.cos(angle);
+    }
+
+    //camera transformations
+    rotateAxes(this.scene_.camera.roll);
+    yDiff /= Math.max(Math.abs(Math.cos(this.scene_.camera.tilt)), 0.1);
+    rotateAxes(-this.scene_.camera.heading);
+
+    this.scene_.camera.longitude =
+        this.scene_.camera.longitude - xDiff * 2 * factor;
+    this.scene_.camera.latitude =
+        this.scene_.camera.latitude + yDiff * factor;
 
 
-  var rotateAxes = function(angle) {
-    xDiff = xDiff * Math.cos(angle) + yDiff * Math.sin(angle);
-    yDiff = yDiff * Math.cos(angle) - xDiff * Math.sin(angle);
-  }
+    if (Math.abs(this.scene_.camera.latitude) > Math.PI / 2.1) {
+      this.scene_.camera.latitude =
+          goog.math.sign(this.scene_.camera.latitude) * (Math.PI / 2.1);
+    }
 
-  //camera transformations
-  rotateAxes(this.scene_.camera.roll);
-  yDiff /= Math.max(Math.abs(Math.cos(this.scene_.camera.tilt)), 0.1);
-  rotateAxes(this.scene_.camera.heading);
+    if (this.scene_.camera.longitude > Math.PI) {
+      this.scene_.camera.longitude -= 2 * Math.PI;
+    }
 
-  this.scene_.camera.longitude =
-      this.scene_.camera.longitude - xDiff * 2 * factor;
-  this.scene_.camera.latitude =
-      this.scene_.camera.latitude + yDiff * factor;
-
-
-  if (Math.abs(this.scene_.camera.latitude) > Math.PI / 2.1) {
-    this.scene_.camera.latitude = goog.math.sign(this.scene_.camera.latitude) *
-        (Math.PI / 2.1);
-  }
-
-  if (this.scene_.camera.longitude > Math.PI) {
-    this.scene_.camera.longitude -= 2 * Math.PI;
-  }
-
-  if (this.scene_.camera.longitude < -Math.PI) {
-    this.scene_.camera.longitude += 2 * Math.PI;
+    if (this.scene_.camera.longitude < -Math.PI) {
+      this.scene_.camera.longitude += 2 * Math.PI;
+    }
   }
 };
 
@@ -229,7 +243,8 @@ we.ui.SceneDragger.prototype.onMouseMove_ = function(e) {
   var xDiff = e.screenX - this.oldX_;
   var yDiff = e.screenY - this.oldY_;
 
-  this.scenePixelMove_(xDiff, yDiff);
+  this.scenePixelMove_(xDiff, yDiff,
+      e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE));
 
   this.oldX_ = e.screenX;
   this.oldY_ = e.screenY;
@@ -304,7 +319,7 @@ we.ui.SceneDragger.prototype.inertialStart_ =
  * @private
  */
 we.ui.SceneDragger.prototype.inertialMoveTick_ = function(e) {
-  this.scenePixelMove_(e.x - this.oldX_, e.y - this.oldY_);
+  this.scenePixelMove_(e.x - this.oldX_, e.y - this.oldY_, false);
   this.oldX_ = e.x;
   this.oldY_ = e.y;
 };
