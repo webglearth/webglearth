@@ -263,9 +263,9 @@ weapp.App = function(canvas) {
 
 
     goog.events.listen(window.document,
-        goog.events.EventType.KEYPRESS,
+        goog.events.EventType.KEYDOWN,
         function(e) {
-          if (e.charCode == 102 /* 'f' */ && e.ctrlKey) {
+          if (e.keyCode == 70 /* 'f' */ && e.ctrlKey) {
             this.fixedAltitude = !this.fixedAltitude;
             e.preventDefault();
           }
