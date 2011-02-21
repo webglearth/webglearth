@@ -49,6 +49,7 @@ goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
 
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
   this.context.scene.camera.setPosition(coords[0], coords[1]);
+  this.context.scene.camera.tilt = 0;
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {

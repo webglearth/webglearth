@@ -41,7 +41,13 @@ goog.require('we.scene.Scene');
 /**
  * @define {number} Number of levels to zoom on MouseWheel event.
  */
-we.ui.MOUSERZOOMER_STEP = 0.5;
+we.ui.MOUSERZOOMER_ZOOMSTEP = 0.5;
+
+
+/**
+ * @define {number} How to modify distance on MouseWheel event.
+ */
+we.ui.MOUSERZOOMER_DISTANCEMODIFIER = 2;
 
 
 /**
@@ -132,13 +138,18 @@ we.ui.MouseZoomer = function(scene) {
    * @type {number}
    * @private
    */
-  this.startZoom_ = 0;
+  this.startX_ = 0;
 
   /**
    * @type {number}
    * @private
    */
-  this.targetZoom_ = 0;
+  this.targetX_ = 0;
+
+  /**
+   * @type {boolean}
+   */
+  this.fixedAltitude = scene.camera.fixedAltitude;
 
 };
 goog.inherits(we.ui.MouseZoomer, goog.Disposable);
@@ -151,42 +162,61 @@ goog.inherits(we.ui.MouseZoomer, goog.Disposable);
  * @private
  */
 we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
-  /*var duration = we.ui.MOUSERZOOMER_DURATION;
+  var duration = we.ui.MOUSERZOOMER_DURATION;
+  if (this.animation_ &&
+      this.fixedAltitude != this.scene_.camera.fixedAltitude) {
+    this.animation_.dispose();
+    this.animation_ = null;
+  }
+  this.fixedAltitude = this.scene_.camera.fixedAltitude;
+  if (this.fixedAltitude) direction *= -1;
   if (this.animation_) {
-    if ((this.targetZoom_ > this.startZoom_) == (direction > 0)) { //Same dir
+    if ((this.targetX_ > this.startX_) == (direction > 0)) { //Same dir
       return;
     } else { //Opposite direction - just revert to previous level
       this.animation_.dispose();
-      duration *= (this.scene_.zoomLevel - this.startZoom_) /
-                  (this.targetZoom_ - this.startZoom_);
-      var tempZoom = this.targetZoom_;
-      this.targetZoom_ = this.startZoom_;
-      this.startZoom_ = tempZoom;
+      duration *= ((this.fixedAltitude ? this.scene_.camera.getAltitude() :
+                    this.scene_.getZoom()) - this.startX_) /
+                  (this.targetX_ - this.startX_);
+      var tempX = this.targetX_;
+      this.targetX_ = this.startX_;
+      this.startX_ = tempX;
     }
   } else {
-    this.startZoom_ = this.scene_.zoomLevel;
-    this.targetZoom_ = this.startZoom_ + direction * we.ui.MOUSERZOOMER_STEP;
+    if (this.fixedAltitude) {
+      this.startX_ = this.scene_.camera.getAltitude();
+      this.targetX_ = this.startX_ *
+                      Math.pow(we.ui.MOUSERZOOMER_DISTANCEMODIFIER, direction);
+    } else {
+      this.startX_ = this.scene_.getZoom();
+      this.targetX_ = this.startX_ + direction * we.ui.MOUSERZOOMER_ZOOMSTEP;
+    }
   }
 
-  if (this.scene_.zoomLevel == this.targetZoom_ || duration <= 0)
+  if (duration <= 0)
     return;
 
   this.animation_ = new goog.fx.Animation(
-      [this.scene_.zoomLevel],
-      [this.targetZoom_],
+      [this.fixedAltitude ? this.scene_.camera.getAltitude() :
+       this.scene_.getZoom()],
+      [this.targetX_],
       duration);
 
   goog.events.listen(this.animation_,
       [goog.fx.Animation.EventType.ANIMATE, goog.fx.Animation.EventType.FINISH],
       function(e) {
-        //this.setZoom(e.x);
-      }, false, this.scene_);
+        if (this.fixedAltitude) {
+          this.scene_.camera.setAltitude(e.x);
+        } else {
+          this.scene_.setZoom(e.x);
+        }
+      }, false, this);
 
   goog.events.listen(this.animation_,
       [goog.fx.Animation.EventType.FINISH],
       this.endZooming_, false, this);
 
-  this.animation_.play(false);*/
+  this.animation_.play(false);
 };
 
 

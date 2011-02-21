@@ -371,7 +371,8 @@ we.scene.Scene.prototype.draw = function() {
     this.infobox_.innerHTML =
         goog.math.toDegrees(this.camera.latitude).toFixed(4) + '; ' +
         goog.math.toDegrees(this.camera.longitude).toFixed(4) + ' @ ' +
-        this.camera.altitude.toFixed(0) + 'm <-> z=' +
+        this.camera.altitude.toFixed(0) + 'm ' +
+        (this.camera.fixedAltitude ? '->' : '<-') + ' z=' +
         this.zoomLevel_.toFixed(3) + '; BufferQueue size: ' +
         this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
         this.currentTileProvider_.loadingTileCounter;

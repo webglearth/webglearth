@@ -164,6 +164,7 @@ weapp.App = function(canvas) {
 
     var runNominatimAction = goog.bind(function(item) {
       this.context.scene.camera.setPosition(item['lat'], item['lon']);
+      this.context.scene.camera.tilt = 0;
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];
@@ -190,7 +191,9 @@ weapp.App = function(canvas) {
           this.context.scene.camera.latitude).toFixed(5) +
           ',' + goog.math.toDegrees(
               this.context.scene.camera.longitude).toFixed(5) +
-              ';alt=' + this.context.scene.camera.getAltitude().toFixed(0);
+          (this.context.scene.camera.fixedAltitude ?
+          ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) :
+          ';z=' + this.context.scene.getZoom().toFixed(2));
       window.location.hash = newhash;
     }
 

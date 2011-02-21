@@ -62,7 +62,7 @@ we.scene.Camera = function(opt_scene) {
    * @type {number}
    * Altitude of this camera in meters
    */
-  this.altitude = 1000;
+  this.altitude = 10000000;
 
   /**
    * Camera heading in radians
