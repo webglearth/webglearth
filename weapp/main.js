@@ -260,6 +260,19 @@ weapp.App = function(canvas) {
         goog.events.EventType.CLICK,
         goog.bind(addMarker, this));
 
+
+
+    goog.events.listen(window.document,
+        goog.events.EventType.KEYPRESS,
+        function(e) {
+          if (e.charCode == 102 /* 'f' */ && e.ctrlKey) {
+            this.fixedAltitude = !this.fixedAltitude;
+            e.preventDefault();
+          }
+        },
+        false, this.context.scene.camera);
+
+
     if (goog.DEBUG) {
       weapp.logger.info('Done');
     }
