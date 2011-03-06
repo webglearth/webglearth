@@ -53,6 +53,8 @@ we.gl.Shader.create = function(context, shaderCode, shaderType) {
 
   if (!context.gl.getShaderParameter(shader, context.gl.COMPILE_STATUS)) {
     throw Error('Shader err: ' + context.gl.getShaderInfoLog(shader));
+  } else if (goog.isNull(shader)) {
+    throw Error('Unknown');
   } else if (goog.DEBUG) {
     we.gl.Shader.logger.info('Done');
   }

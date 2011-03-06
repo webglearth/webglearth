@@ -251,7 +251,7 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
  * @return {boolean} gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS > 0.
  */
 we.gl.Context.prototype.isVTFSupported = function() {
-  return this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) > 0;
+  return this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) !== 0;
 };
 
 

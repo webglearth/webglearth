@@ -473,7 +473,7 @@ we.scene.Scene.prototype.draw = function() {
   gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel_));
   gl.uniform1f(locatedProgram.tileCountUniform, this.tileCount);
 
-  gl.uniform2fv(locatedProgram.offsetUniform, this.offset);
+  gl.uniform2fv(locatedProgram.offsetUniform, new Float32Array(this.offset));
 
   gl.drawArrays(gl.TRIANGLES, 0, plane.vertexBuffer.numItems);
 };

@@ -112,6 +112,9 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
       gl.VERTEX_SHADER);
 
   var shaderProgram = gl.createProgram();
+  if (goog.isNull(shaderProgram)) {
+    throw Error('Unknown');
+  }
   gl.attachShader(shaderProgram, vsshader);
   gl.attachShader(shaderProgram, fsshader);
 

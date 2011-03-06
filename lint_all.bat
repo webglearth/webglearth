@@ -10,8 +10,8 @@ set CLOSURE_LINTER=C:/Program Files (x86)/Python27/Scripts
 
 REM @ECHO on
 
-"%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\we" -x "%PROJECT_ROOT%\we\shaderbank_codes.js"
-"%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\we" -x "%PROJECT_ROOT%\we\shaderbank_codes.js"
+"%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\we" -x "%PROJECT_ROOT%\we\shaderbank_codes.js,%PROJECT_ROOT%\we\webgl-externs.js"
+"%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\we" -x "%PROJECT_ROOT%\we\shaderbank_codes.js,%PROJECT_ROOT%\we\webgl-externs.js"
 
 "%CLOSURE_LINTER%\fixjsstyle.exe" --strict -r "%PROJECT_ROOT%\weapp" -x "%PROJECT_ROOT%\weapp\deps.js,%PROJECT_ROOT%\weapp\index.js"
 "%CLOSURE_LINTER%\gjslint.exe" --strict -r "%PROJECT_ROOT%\weapp" -x "%PROJECT_ROOT%\weapp\deps.js,%PROJECT_ROOT%\weapp\index.js"

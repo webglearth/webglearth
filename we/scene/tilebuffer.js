@@ -136,7 +136,7 @@ we.scene.TileBuffer.prototype.recreateBuffers_ = function() {
         this.bufferHeight_ * this.tileSize_);
 
   gl.bindTexture(gl.TEXTURE_2D, this.bufferTexture);
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
       this.bufferWidth_ * this.tileSize_, this.bufferHeight_ * this.tileSize_,
       0, gl.RGBA, gl.UNSIGNED_BYTE, null);
