@@ -87,6 +87,25 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
   vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_INT%',
       (we.scene.LOOKUP_FALLBACK_LEVELS + 1).toFixed(0));
 
+
+  vertexShaderCode = vertexShaderCode.replace('%TERRAIN_BOOL%',
+      this.scene.terrain ? '1' : '0');
+  if (this.scene.terrain) {
+    var dimT = this.scene.getBufferDimensions(true);
+    vertexShaderCode = vertexShaderCode.replace('%BUFFER_WIDTH_T_FLOAT%',
+        dimT.width.toFixed(1));
+    vertexShaderCode = vertexShaderCode.replace('%BUFFER_HEIGHT_T_FLOAT%',
+        dimT.height.toFixed(1));
+    vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_T_INT%',
+        (dimT.width * dimT.height).toFixed(0));
+    vertexShaderCode = vertexShaderCode.replace('%BINARY_SEARCH_CYCLES_T_INT%',
+        (Math.log(dimT.width * dimT.height) / Math.LN2).toFixed(0));
+    vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_T_INT%',
+        (we.scene.LOOKUP_FALLBACK_LEVELS_T + 1).toFixed(0));
+    vertexShaderCode = vertexShaderCode.replace('%MAX_ZOOM_T_FLOAT%',
+        (this.scene.tileBufferT_.tileProvider_.getMaxZoomLevel()).toFixed(1));
+  }
+
   var fsshader = we.gl.Shader.create(this.scene.context, fragmentShaderCode,
       gl.FRAGMENT_SHADER);
   var vsshader = we.gl.Shader.create(this.scene.context, vertexShaderCode,
@@ -104,8 +123,7 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
     throw Error('Shader program err: ' + gl.getProgramInfoLog(shaderProgram));
   }
 
-  this.locatedProgram = new we.scene.LocatedProgram(shaderProgram,
-      this.scene.context);
+  this.locatedProgram = new we.scene.LocatedProgram(shaderProgram, this.scene);
 };
 
 

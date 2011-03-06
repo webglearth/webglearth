@@ -30,17 +30,15 @@
 
 goog.provide('we.scene.LocatedProgram');
 
-goog.require('we.gl.Context');
-
 
 
 /**
  * @param {!WebGLProgram} program Shader program.
- * @param {!we.gl.Context} context Context.
+ * @param {!we.scene.Scene} scene Scene.
  * @constructor
  */
-we.scene.LocatedProgram = function(program, context) {
-  var gl = context.gl;
+we.scene.LocatedProgram = function(program, scene) {
+  var gl = scene.context.gl;
 
   /**
    * @type {!WebGLProgram}
@@ -79,6 +77,25 @@ we.scene.LocatedProgram = function(program, context) {
   this.metaBufferUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uMetaBuffer');
 
+  if (scene.terrain) {
+    /**
+     * @type {!WebGLUniformLocation}
+     */
+    this.tileBufferTUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uTileBufferT');
+
+    /**
+     * @type {!WebGLUniformLocation}
+     */
+    this.metaBufferTUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMetaBufferT');
+
+    /**
+     * @type {!WebGLUniformLocation}
+     */
+    this.tileSizeTUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uTileSize');
+  }
 
   /**
    * @type {!WebGLUniformLocation}
@@ -119,6 +136,6 @@ we.scene.LocatedProgram.prototype.getValidatedUniformLocation_ =
   if (!goog.isNull(result)) {
     return result;
   } else {
-    throw Error('Invalid name');
+    throw Error('Invalid name ' + name);
   }
 };

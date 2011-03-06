@@ -186,6 +186,13 @@ WebGLRenderingContext.prototype.RGBA = 0x1908;
  * @type {number}
  * @const
  */
+WebGLRenderingContext.prototype.MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+
+
+/**
+ * @type {number}
+ * @const
+ */
 WebGLRenderingContext.prototype.TEXTURE_MAG_FILTER = 0x2800;
 
 
@@ -243,6 +250,13 @@ WebGLRenderingContext.prototype.LINK_STATUS = 0x8B82;
  * @const
  */
 WebGLRenderingContext.prototype.TEXTURE0 = 0x84C0;
+
+
+/**
+ * @type {number}
+ * @const
+ */
+WebGLRenderingContext.prototype.TEXTURE1 = 0x84C1;
 
 
 /**
@@ -446,6 +460,13 @@ WebGLRenderingContext.prototype.getUniformLocation = function(program, what) {};
  * @param {number} what
  */
 WebGLRenderingContext.prototype.activeTexture = function(what) {};
+
+
+/**
+ * @param {number} what
+ * @return {*}
+ */
+WebGLRenderingContext.prototype.getParameter = function(what) {};
 
 
 /**

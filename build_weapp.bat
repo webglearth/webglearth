@@ -23,6 +23,6 @@ REM --define=goog.DEBUG=true
 
 @ECHO off
 
-REM --compiler_flags="--formatting=PRETTY_PRINT"
+REM --compiler_flags="--formatting=PRETTY_PRINT" --compiler_flags="--debug"
 
 PAUSE

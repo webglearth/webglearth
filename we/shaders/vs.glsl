@@ -27,6 +27,14 @@
 #define BINARY_SEARCH_CYCLES %BINARY_SEARCH_CYCLES_INT%
 #define LOOKUP_LEVELS %LOOKUP_LEVELS_INT%
 
+#define TERRAIN %TERRAIN_BOOL%
+#define BUFF_W_T %BUFFER_WIDTH_T_FLOAT%
+#define BUFF_H_T %BUFFER_HEIGHT_T_FLOAT%
+#define BUFF_SIZE_T %BUFFER_SIZE_T_INT%
+#define BINARY_SEARCH_CYCLES_T %BINARY_SEARCH_CYCLES_T_INT%
+#define LOOKUP_LEVELS_T %LOOKUP_LEVELS_T_INT%
+#define MAX_ZOOM_T %MAX_ZOOM_T_FLOAT%
+
 precision highp float;
 
 const float PI=3.1415927;
@@ -43,6 +51,12 @@ uniform float uTileCount;
 uniform vec2 uOffset;
 
 uniform vec4 uMetaBuffer[BUFF_SIZE];
+
+#if TERRAIN
+uniform vec4 uMetaBufferT[BUFF_SIZE_T];
+uniform sampler2D uTileBufferT;
+uniform float uTileSize;
+#endif
 
 varying vec2 vTile;
 varying vec2 vTC;
@@ -87,15 +101,85 @@ int lookup(inout vec3 key,out vec2 off) {
   return mid;
 }
 
+#if TERRAIN
+int findInBufferT(vec3 key) {
+  int mid;float min=0.0,max=float(BUFF_SIZE_T)-1.0;
+  for (int _i=0;_i<BINARY_SEARCH_CYCLES_T;++_i) {
+    if (min>max) break;
+    mid=int((min+max)*0.5);
+    float res=compareMeta(uMetaBufferT[mid].xyz,key);
+    if (res>0.0){
+      max=float(mid)-1.0;
+    } else if (res<0.0){
+      min=float(mid)+1.0;
+    } else {
+      return mid;
+    }
+  }
+  return -1;
+}
+
+int lookupT(inout vec3 key,inout vec2 off) {
+  float lastZoomLevel=max(0.0,uZoomLevel-float(LOOKUP_LEVELS_T)+1.0);
+  int mid=-1;
+  for (int _i=0;_i<LOOKUP_LEVELS_T;++_i) {
+    mid=findInBufferT(key);
+    if (mid<0 && key.r>lastZoomLevel) {
+      key.r--;
+      off.x=off.x*0.5+mod(key.g,2.0);
+      off.y=off.y*0.5+1.0-mod(key.b,2.0);
+      key.gb=floor(key.gb/2.0);
+    } else {
+      break;
+    }
+  }
+  return mid;
+}
+#endif
+
 void main(){
   vec2 phi=PI2*vec2(aVertexPosition.x+uOffset.x,aVertexPosition.y+uOffset.y)/uTileCount;
   
   float tilex=mod(aVertexPosition.x-aTextureCoord.x+uOffset.x+uTileCount*0.5,uTileCount);
   float tiley=aTextureCoord.y-1.0-aVertexPosition.y-uOffset.y+uTileCount*0.5;
   
+  float elev=0.0;
+  
+#if TERRAIN
+
+  float zoomdiff = max(3.0, uZoomLevel - MAX_ZOOM_T);
+  
+  vec2 offT = vec2(0.0,0.0);  
+  vec3 keyT=vec3(uZoomLevel-zoomdiff,tilex,tiley);
+    
+  for (float i=0.0;i<15.0;++i) {
+    if (i>=zoomdiff) break;
+    offT.x=offT.x*0.5+mod(keyT.g,2.0);
+    offT.y=offT.y*0.5+1.0-mod(keyT.b,2.0);
+    keyT.gb=floor(keyT.gb/2.0);
+  }
+  
+  int tileT=lookupT(keyT,offT);
+  
+  if (tileT>=0) {
+    float i=uMetaBufferT[tileT].a;
+    float reduction=exp2(uZoomLevel-keyT.r);
+
+    vec2 vTileT=vec2(mod(i,BUFF_W_T),floor(i/BUFF_W_T));
+    vec2 vTCT=offT*0.5+(aTextureCoord)/reduction;
+    
+    vec2 TCT_=clamp(vTCT*uTileSize,0.5,uTileSize-0.5);
+    vec2 BCT_=(vTileT+(TCT_/uTileSize));
+    
+    float value=texture2D(uTileBufferT,vec2(BCT_.s/BUFF_W_T,BCT_.t/BUFF_H_T)).r;
+    elev = value * 8248.0 / 6371009.0;
+  }
+  
+#endif
+  
 %VERTEX_TRANSFORM%
- 
-  vec2 off=vec2(0.0,0.0);
+
+  vec2 off;
   vec3 key=vec3(uZoomLevel,tilex,tiley);
   int tile=lookup(key,off);
   
@@ -114,4 +198,5 @@ void main(){
 
   if ((abs(phi.y)-MAX_PHI)>0.01)
     vTC=vec2(0.5,0.5);
+    
 }

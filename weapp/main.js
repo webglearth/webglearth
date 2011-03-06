@@ -331,21 +331,26 @@ weapp.run = function() {
 
   var app = new weapp.App(goog.dom.getElement('weapp-canvas'));
 
-  app.addTileProvider(new we.texturing.MapQuestTileProvider());
-  app.addTileProvider(new we.texturing.OSMTileProvider());
-
   if (!COMPILED) {
     app.addTileProvider(
         new we.texturing.GenericTileProvider('Local TMS',
-            './natural-earth-III-balanced-001.merc/{z}/{x}/{y}.jpg',
+            '../../resources/tms/{z}/{x}/{y}.jpg',
             0, 5, 256, true));
   }
+
+  app.addTileProvider(new we.texturing.MapQuestTileProvider());
+  app.addTileProvider(new we.texturing.OSMTileProvider());
+
   app.addTileProvider(
       new we.texturing.BingTileProvider('Aerial', weapp.BING_KEY));
   app.addTileProvider(
       new we.texturing.BingTileProvider('AerialWithLabels', weapp.BING_KEY));
   app.addTileProvider(
       new we.texturing.BingTileProvider('Road', weapp.BING_KEY));
+
+
+  app.addTileProvider(new we.texturing.GenericTileProvider('CleanTOPO2',
+      '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 0, 5, 256));
 
   app.addRenderShape('Globe',
                      new we.scene.rendershapes.Sphere(app.context.scene));

@@ -53,7 +53,16 @@ goog.require('we.texturing.TileProvider');
  * looking up appropriate tile. This is the bottleneck of shader
  * compilation and performance and should be chosen very carefully.
  */
-we.scene.LOOKUP_FALLBACK_LEVELS = 5;
+we.scene.LOOKUP_FALLBACK_LEVELS = 4;
+
+
+/**
+ * @define {number}
+ * Maximum number of zoom levels, the shader should fall back when
+ * looking up appropriate tile. This is the bottleneck of shader
+ * compilation and performance and should be chosen very carefully.
+ */
+we.scene.LOOKUP_FALLBACK_LEVELS_T = 2;
 
 
 /**
@@ -137,6 +146,25 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_, context,
       8, 8);
 
+
+  /**
+   * @type {boolean}
+   */
+  this.terrain = this.context.isVTFSupported();
+
+  if (this.terrain) {
+    /**
+     * @type {!we.scene.TileBuffer}
+     * @private
+     */
+    this.tileBufferT_ = new we.scene.TileBuffer(
+        new we.texturing.GenericTileProvider('CleanTOPO2',
+        '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 0, 5, 256),
+        context, 4, 4);
+  } else if (goog.DEBUG) {
+    we.scene.Scene.logger.warning('VTF not supported..');
+  }
+
   this.changeTileProvider(this.currentTileProvider_);
 
 
@@ -191,17 +219,19 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
                           new we.gl.SegmentedPlane(context, 6, 6, 8),    //2
                           new we.gl.SegmentedPlane(context, 8, 8, 8),    //3
                           new we.gl.SegmentedPlane(context, 10, 10, 8),    //4
-                          new we.gl.SegmentedPlane(context, 16, 16, 2)];
+                          new we.gl.SegmentedPlane(context, 16, 16, 8)];
 
 };
 
 
 /**
  * Returns dimension of underlying buffer.
+ * @param {boolean=} opt_terrain Terrain buffer?
  * @return {!Object} Object containing "width" and "height" keys.
  */
-we.scene.Scene.prototype.getBufferDimensions = function() {
-  return this.tileBuffer_.getDimensions();
+we.scene.Scene.prototype.getBufferDimensions = function(opt_terrain) {
+  return (opt_terrain && this.terrain) ? this.tileBufferT_.getDimensions() :
+                                         this.tileBuffer_.getDimensions();
 };
 
 
@@ -321,15 +351,15 @@ we.scene.Scene.prototype.updateTiles = function() {
 
   var batchTime = goog.now();
 
-  var getPointsAround = function(x, y, d, zoom, batchTime, scene) {
+  var getPointsAround = function(x, y, d, zoom, batchTime, tilebuffer) {
     var result = [];
     for (var i = -d; i <= d; i++) {
       var absi = Math.abs(i);
-      scene.tileBuffer_.needTile(zoom, x + i, y - d, batchTime - absi);
-      scene.tileBuffer_.needTile(zoom, x + i, y + d, batchTime - absi);
+      tilebuffer.needTile(zoom, x + i, y - d, batchTime - absi);
+      tilebuffer.needTile(zoom, x + i, y + d, batchTime - absi);
       if (absi != d) {
-        scene.tileBuffer_.needTile(zoom, x - d, y + i, batchTime - absi);
-        scene.tileBuffer_.needTile(zoom, x + d, y + i, batchTime - absi);
+        tilebuffer.needTile(zoom, x - d, y + i, batchTime - absi);
+        tilebuffer.needTile(zoom, x + d, y + i, batchTime - absi);
       }
     }
   };
@@ -344,18 +374,33 @@ we.scene.Scene.prototype.updateTiles = function() {
   //Request tiles close to "parent" tile.
   getPointsAround(position.x >> 1,
                   position.y >> 1,
-                  1, flooredZoom - 1, batchTime, this);
+                  1, flooredZoom - 1, batchTime, this.tileBuffer_);
 
 
   //Request the best tile.
   this.tileBuffer_.needTile(flooredZoom, position.x, position.y, batchTime + 3);
 
   //Request close tiles.
-  getPointsAround(position.x, position.y, 1, flooredZoom, batchTime + 2, this);
-  getPointsAround(position.x, position.y, 2, flooredZoom, batchTime - 5, this);
+  getPointsAround(position.x, position.y, 1,
+                  flooredZoom, batchTime + 2, this.tileBuffer_);
+  getPointsAround(position.x, position.y, 2,
+                  flooredZoom, batchTime - 5, this.tileBuffer_);
 
   this.tileBuffer_.purge(500);
+
   this.tileBuffer_.processTiles(2, 12);
+
+  if (this.terrain) {
+    var terrainZoom = goog.math.clamp(flooredZoom - 3, 0,
+        this.tileBufferT_.tileProvider_.getMaxZoomLevel());
+    var zoomdiff = flooredZoom - terrainZoom;
+    this.tileBuffer_.needTile(terrainZoom, position.x >> zoomdiff,
+                              position.y >> zoomdiff, batchTime + 1);
+    getPointsAround(position.x >> zoomdiff, position.y >> zoomdiff, 1,
+                    terrainZoom, batchTime, this.tileBufferT_);
+    //this.tileBufferT_.purge(500);
+    this.tileBufferT_.processTiles(1, 4);
+  }
 };
 
 
@@ -392,6 +437,19 @@ we.scene.Scene.prototype.draw = function() {
 
   gl.uniform4fv(locatedProgram.metaBufferUniform,
                 new Float32Array(metaBufferFlat));
+
+  if (this.terrain) {
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.tileBufferT_.bufferTexture);
+    gl.uniform1i(locatedProgram.tileBufferTUniform, 1);
+
+    var metaBufferTFlat = goog.array.flatten(this.tileBufferT_.metaBuffer);
+
+    gl.uniform4fv(locatedProgram.metaBufferTUniform,
+                  new Float32Array(metaBufferTFlat));
+    gl.uniform1f(locatedProgram.tileSizeTUniform,
+        this.tileBufferT_.tileProvider_.getTileSize());
+  }
 
   var mvpm = new Float32Array(goog.array.flatten(
       this.context.flushMVPM().getTranspose().toArray()));
