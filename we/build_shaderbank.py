@@ -25,6 +25,7 @@
 #
 
 import os
+import string
 
 output = open('./shaderbank_codes.js', 'w')
 
@@ -68,37 +69,37 @@ def isGLSL(x): return x.endswith('.glsl')
 files = filter(isGLSL, os.listdir(shaderDir))
 
 for file in files:
-  output.write("\n\n/** @type {string} */\nwe.shaderbank.codes['");
-  output.write(file);
-  output.write("'] = '");
+  output.write("\n\n/** @type {string} */\nwe.shaderbank.codes['")
+  output.write(file)
+  output.write("'] = '")
 
   inComment = False
   newLine = True
 
   shader = open(shaderDir + file, 'r')
   for line in shader:
-    line = line.strip()
+    line = string.split(line.strip(), '\\', 1)[0]
 
-    if (line.startswith('//') or len(line) == 0):
+    if len(line) == 0:
       continue
 
-    if ((not inComment) and (line.find('/*') != -1)):
+    if (not inComment) and (line.find('/*') != -1):
       inComment = True
 
-    if (not inComment):
-      if (line.startswith('#') and not newLine):
+    if not inComment:
+      if line.startswith('#') and not newLine:
         output.write('\\n')
 
       output.write(line)
       newLine = False
 
-      if (line.startswith('#')):
+      if line.startswith('#'):
         output.write('\\n')
         newLine = True
 
-    if (inComment and (line.find('*/') != -1)):
+    if inComment and (line.find('*/') != -1):
       inComment = False
 
-  output.write("\';\n");
+  output.write("\';\n")
 
 output.close()
