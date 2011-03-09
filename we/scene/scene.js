@@ -24,6 +24,7 @@
  * @fileoverview WebGL Earth scene handling.
  *
  * @author petr.sloup@klokantech.com (Petr Sloup)
+ * @author leosamu@ai2.upv.es (Leonardo Salom)
  *
  */
 
@@ -33,6 +34,8 @@ goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 goog.require('goog.events');
+goog.require('goog.events.Event');
+goog.require('goog.events.EventTarget');
 goog.require('goog.math');
 
 goog.require('we.gl.Context');
@@ -89,6 +92,7 @@ we.scene.EARTH_RADIUS = 6371009;
  * @param {we.scene.rendershapes.RenderShape=} opt_renderShape Default shape.
  * @param {Element=} opt_copyright Additional copyright info to display
  *                                 before map copyright info.
+ * @extends {goog.events.EventTarget}
  * @constructor
  */
 we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
@@ -167,6 +171,14 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
 
   this.changeTileProvider(this.currentTileProvider_);
 
+  /**
+    * Returns the current tile provider.
+    * @return {!we.texturing.TileProvider} scene tile provider.
+    *
+    */
+  we.scene.Scene.prototype.getCurrentTileProvider = function() {
+    return this.currentTileProvider_;
+  };
 
   this.updateTilesTimer = new goog.Timer(150);
   goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,
@@ -222,6 +234,51 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
                           new we.gl.SegmentedPlane(context, 16, 16, 8)];
 
 };
+goog.inherits(we.scene.Scene, goog.events.EventTarget);
+
+
+/**
+ * Events fired by the scene.
+ * @enum {string}
+ */
+we.scene.Scene.EventType = {
+  /**
+   * Dispatched when the zoomlevel of the scene is changed.
+   */
+  ZOOMCHANGED: 'zoomchanged'
+};
+
+
+/**
+ * Dispatches the ZOOMED event. Sub classes should override this instead
+ * of listening to the event, should be protected.
+ */
+we.scene.Scene.prototype.onZoomChanged = function() {
+  this.dispatchSceneEvent_(we.scene.Scene.EventType.ZOOMCHANGED);
+};
+
+
+/**
+ * Returns an event object for the current scene.
+ * @param {string} type Event type that will be dispatched.
+ * @private
+ */
+we.scene.Scene.prototype.dispatchSceneEvent_ = function(type) {
+  this.dispatchEvent(new we.scene.SceneEvent(type));
+};
+
+
+
+/**
+ * Class for an scene event object.
+ * @param {string} type Event type.
+ * @constructor
+ * @extends {goog.events.Event}
+ */
+we.scene.SceneEvent = function(type) {
+  goog.events.Event.call(this, type);
+};
+goog.inherits(we.scene.SceneEvent, goog.events.Event);
 
 
 /**
@@ -302,6 +359,7 @@ we.scene.Scene.prototype.setZoom = function(zoom) {
   this.tileCount = 1 << Math.floor(this.zoomLevel_);
 
   this.camera.fixedAltitude = false;
+  this.onZoomChanged();
 };
 
 

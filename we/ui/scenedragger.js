@@ -196,7 +196,6 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff, tilt) {
     this.scene_.camera.heading += (xDiff / this.scene_.context.canvas.width) *
                                   Math.PI;
   } else {
-    //TODO: more exact calculation (just vertically?)
     //PI * (How much is 1px on the screen?) * (How much is visible?)
     var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
         (this.scene_.tilesVertically / Math.pow(2, this.scene_.getZoom()));

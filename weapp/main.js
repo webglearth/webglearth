@@ -52,8 +52,10 @@ goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
 
 goog.require('weapp.ui.Nominatim');
+goog.require('weapp.ui.PanControl');
 goog.require('weapp.ui.RenderShapeSelector');
 goog.require('weapp.ui.TileProviderSelector');
+goog.require('weapp.ui.ZoomSlider');
 
 //Dummy dependencies
 goog.addDependency('',
@@ -130,6 +132,20 @@ weapp.App = function(canvas) {
      */
     this.tpSelector_ = new weapp.ui.TileProviderSelector(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('weapp-tileprovider')));
+
+    /**
+     * @type {!weapp.ui.ZoomSlider}
+     * @private
+     */
+    this.zslider_ = new weapp.ui.ZoomSlider(this.context.scene,
+        /** @type {!Element} */(goog.dom.getElement('weapp-zoomslider')));
+
+    /**
+     * @type {!weapp.ui.PanControl}
+     * @private
+     */
+    this.pcontrol_ = new weapp.ui.PanControl(this.context.scene,
+        /** @type {!Element} */(goog.dom.getElement('weapp-pancontrol')));
 
     /**
      * @type {!weapp.ui.RenderShapeSelector}
