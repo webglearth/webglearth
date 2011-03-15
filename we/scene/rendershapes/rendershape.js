@@ -64,14 +64,14 @@ we.scene.rendershapes.RenderShape.prototype.compileProgram = function() {
   var dim = this.scene.getBufferDimensions();
   var gl = this.scene.context.gl;
 
-  var fragmentShaderCode = we.shaderbank.getShaderCode('fs.glsl');
+  var fragmentShaderCode = we.shaderbank.getShaderCode('earth-fs.glsl');
 
   fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
       dim.width.toFixed(1));
   fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
       dim.height.toFixed(1));
 
-  var vertexShaderCode = we.shaderbank.getShaderCode('vs.glsl');
+  var vertexShaderCode = we.shaderbank.getShaderCode('earth-vs.glsl');
 
   vertexShaderCode = vertexShaderCode.replace('%VERTEX_TRANSFORM%',
       this.vertexTransform);

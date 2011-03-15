@@ -18,6 +18,7 @@
  * section 4, provided you include this license notice and a URL
  * through which recipients can access the Corresponding Source.
  *
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
 #define BUFF_W %BUFFER_WIDTH_FLOAT%

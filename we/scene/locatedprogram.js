@@ -60,63 +60,63 @@ we.scene.LocatedProgram = function(program, scene) {
   gl.enableVertexAttribArray(this.textureCoordAttribute);
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.mvpMatrixUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uMVPMatrix');
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.tileBufferUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uTileBuffer');
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.metaBufferUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uMetaBuffer');
 
   if (scene.terrain) {
     /**
-     * @type {!WebGLUniformLocation}
+     * @type {WebGLUniformLocation}
      */
     this.tileBufferTUniform =
         this.getValidatedUniformLocation_(gl, this.program, 'uTileBufferT');
 
     /**
-     * @type {!WebGLUniformLocation}
+     * @type {WebGLUniformLocation}
      */
     this.metaBufferTUniform =
         this.getValidatedUniformLocation_(gl, this.program, 'uMetaBufferT');
 
     /**
-     * @type {!WebGLUniformLocation}
+     * @type {WebGLUniformLocation}
      */
     this.tileSizeTUniform =
         this.getValidatedUniformLocation_(gl, this.program, 'uTileSize');
   }
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.tileSizeUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uTileSize');
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.zoomLevelUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uZoomLevel');
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.tileCountUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uTileCount');
 
   /**
-   * @type {!WebGLUniformLocation}
+   * @type {WebGLUniformLocation}
    */
   this.offsetUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uOffset');
@@ -127,15 +127,18 @@ we.scene.LocatedProgram = function(program, scene) {
  * @param {!WebGLRenderingContext} gl GL.
  * @param {!WebGLProgram} program Program.
  * @param {string} name Identifier.
- * @return {!WebGLUniformLocation} Validated location.
+ * @return {WebGLUniformLocation} Validated location.
  * @private
  */
 we.scene.LocatedProgram.prototype.getValidatedUniformLocation_ =
     function(gl, program, name) {
   var result = gl.getUniformLocation(program, name);
-  if (!goog.isNull(result)) {
-    return result;
-  } else {
-    throw Error('Invalid name ' + name);
+  if (goog.isNull(result)) {
+    if (goog.DEBUG) {
+      we.scene.Scene.logger.warning('Invalid name ' + name);
+    } else {
+      throw Error('Invalid name ' + name);
+    }
   }
+  return result;
 };
