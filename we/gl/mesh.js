@@ -50,3 +50,16 @@ we.gl.Mesh.vertexBuffer;
  * @type {WebGLBuffer}
  */
 we.gl.Mesh.texCoordBuffer;
+
+
+/**
+ * Buffer containing indices
+ * @type {WebGLBuffer}
+ */
+we.gl.Mesh.indexBuffer;
+
+
+/**
+ * @type {number}
+ */
+we.gl.Mesh.numIndices;

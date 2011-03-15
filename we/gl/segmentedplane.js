@@ -38,68 +38,245 @@ goog.require('we.gl.Mesh');
  * @param {!we.gl.Context} context WebGL context.
  * @param {number} width Width of plane in segments.
  * @param {number} height Height of plane in segments.
- * @param {number=} opt_subdiv Optional subdivision of each segment.
+ * @param {number} subdiv Subdivision of each segment.
+ * @param {boolean=} opt_nolod If true, the plane is created with same amount of
+ *                             subdivision even in more excentric areas.
  * @constructor
  * @implements {we.gl.Mesh}
  */
-we.gl.SegmentedPlane = function(context, width, height, opt_subdiv) {
+we.gl.SegmentedPlane = function(context, width, height, subdiv, opt_nolod) {
+  /** @type {!WebGLRenderingContext} */
+  var gl = context.gl;
+
   /**
-   * WebGL context
-   * @type {!WebGLRenderingContext}
+   * @type {Array.<number>}
+   * @private
    */
-  this.gl = context.gl;
+  this.vertices_ = [];
 
-  opt_subdiv = opt_subdiv ? opt_subdiv : 1;
-  width = width * opt_subdiv;
-  height = height * opt_subdiv;
+  /**
+   * @type {Array.<number>}
+   * @private
+   */
+  this.coords_ = [];
 
-  /** @inheritDoc */
-  this.vertexBuffer = this.gl.createBuffer();
+  /**
+   * @type {Array.<number>}
+   * @private
+   */
+  this.indices_ = [];
 
-  /** @inheritDoc */
-  this.texCoordBuffer = this.gl.createBuffer();
+  var nearestLowerPOT = function(num) {
+    return Math.max(1, Math.pow(2, Math.ceil(Math.log(num) / Math.LN2)));
+  };
 
-  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
-  var numItems = width * height * 6 * 2;
-  var vertices = new Float32Array(numItems * 2);
-  var coords = new Float32Array(numItems * 2);
-
-  for (var y = 0; y < height; ++y)
+  var calcSubdiv = function(nolod, subdiv, x, y) {
+    return nolod ? subdiv :
+        nearestLowerPOT(subdiv / Math.max(1, Math.sqrt(x * x + y * y)));
+  };
+  //this.generateTile_(0,0,subdiv,[false,true,false,false]);
+  for (var x = -width / 2; x < width / 2; ++x)
   {
-    for (var x = 0; x < width; ++x)
+    for (var y = -height / 2; y < height / 2; ++y)
     {
-      var addVertex = function(i_, x_, y_) {
-        var baseIndex = ((x * width + y) * 6 + i_);
-        vertices[baseIndex * 2 + 0] = (x - width / 2 + x_) / opt_subdiv;
-        vertices[baseIndex * 2 + 1] = (y - height / 2 + y_) / opt_subdiv;
-
-        coords[baseIndex * 2 + 0] =
-            (x % opt_subdiv) / opt_subdiv + x_ / opt_subdiv;
-        coords[baseIndex * 2 + 1] =
-            (y % opt_subdiv) / opt_subdiv + y_ / opt_subdiv;
-      };
-      addVertex(0, 1, 1);
-      addVertex(1, 0, 1);
-      addVertex(2, 1, 0);
-      addVertex(3, 0, 1);
-      addVertex(4, 0, 0);
-      addVertex(5, 1, 0);
+      var thisSubdiv = calcSubdiv(opt_nolod, subdiv, x, y);
+      var doubles = [y + 1 < height / 2 &&
+                     calcSubdiv(opt_nolod, subdiv, x, y + 1) > thisSubdiv,
+                     x + 1 < width / 2 &&
+                     calcSubdiv(opt_nolod, subdiv, x + 1, y) > thisSubdiv,
+                     y - 1 > -height / 2 &&
+                     calcSubdiv(opt_nolod, subdiv, x, y - 1) > thisSubdiv,
+                     x - 1 > -width / 2 &&
+                     calcSubdiv(opt_nolod, subdiv, x - 1, y) > thisSubdiv];
+      this.generateTile_(x, y, thisSubdiv, doubles);
     }
   }
-  this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      vertices,
-      this.gl.STATIC_DRAW
-  );
-  this.vertexBuffer.itemSize = 2;
-  this.vertexBuffer.numItems = numItems;
 
-  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-  this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      coords,
-      this.gl.STATIC_DRAW
-  );
+  /** @inheritDoc */
+  this.vertexBuffer = gl.createBuffer();
+
+  /** @inheritDoc */
+  this.texCoordBuffer = gl.createBuffer();
+
+  /** @inheritDoc */
+  this.indexBuffer = gl.createBuffer();
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER,
+                new Float32Array(this.vertices_), gl.STATIC_DRAW);
+  this.vertexBuffer.itemSize = 2;
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER,
+                new Float32Array(this.coords_), gl.STATIC_DRAW);
   this.texCoordBuffer.itemSize = 2;
-  this.texCoordBuffer.numItems = numItems;
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+                new Uint16Array(this.indices_), gl.STATIC_DRAW);
+
+  /** @inheritDoc */
+  this.numIndices = this.indices_.length;
+};
+
+
+/**
+ * @param {number} offX Offset of the tile.
+ * @param {number} offY Offset of the tile.
+ * @param {number} subdiv Subdivision of this tile.
+ * @param {Array.<boolean>} doubles TRBL.
+ * @private
+ */
+we.gl.SegmentedPlane.prototype.generateTile_ = function(offX, offY,
+                                                        subdiv, doubles) {
+  /** @type {number} */
+  var offIndices = this.vertices_.length / 2;
+
+  for (var y = 0; y <= subdiv; ++y) {
+    for (var x = 0; x <= subdiv; ++x) {
+      this.vertices_.push(offX + x / subdiv, offY + y / subdiv);
+      this.coords_.push(x / subdiv, y / subdiv);
+    }
+  }
+
+  /** @type {Array.<number>} */
+  var additionStarts = [0, 0, 0, 0];
+  if (doubles[0]) { //TOP
+    additionStarts[0] = this.vertices_.length / 2;
+    for (var x = 0; x < subdiv; ++x) {
+      this.vertices_.push(offX + (x + 0.5) / subdiv, offY + 1);
+      this.coords_.push((x + 0.5) / subdiv, 1);
+    }
+  }
+  if (doubles[1]) { //RIGHT
+    additionStarts[1] = this.vertices_.length / 2;
+    for (var y = 0; y < subdiv; ++y) {
+      this.vertices_.push(offX + 1, offY + (y + 0.5) / subdiv);
+      this.coords_.push(1, (y + 0.5) / subdiv);
+    }
+  }
+  if (doubles[2]) { //BOTTOM
+    additionStarts[2] = this.vertices_.length / 2;
+    for (var x = 0; x < subdiv; ++x) {
+      this.vertices_.push(offX + (x + 0.5) / subdiv, offY);
+      this.coords_.push((x + 0.5) / subdiv, 0);
+    }
+  }
+  if (doubles[3]) { //LEFT
+    additionStarts[3] = this.vertices_.length / 2;
+    for (var y = 0; y < subdiv; ++y) {
+      this.vertices_.push(offX, offY + (y + 0.5) / subdiv);
+      this.coords_.push(0, (y + 0.5) / subdiv);
+    }
+  }
+
+  var finishTriangle = goog.bind(function() {
+    /*
+    // Useful for debugging - Uncomment this if you want to render
+    // this segplane as gl.LINES instead of gl.TRIANGLES
+    // (gets compiled-out if commented)
+    var last = this.indices_.pop();
+    var prelast = this.indices_.pop();
+    var preprelast = this.indices_.pop();
+    this.indices_.push(preprelast, prelast, prelast, last, last, preprelast);
+    */
+  }, this);
+
+  //TRIANGLE version
+  var line = subdiv + 1;
+  for (var y = 0; y < subdiv; ++y) {
+    for (var x = 0; x < subdiv; ++x) {
+      var base = offIndices + y * line + x;
+      this.indices_.push(base);
+      // insert transition triangles
+      var bottom = y == 0 && doubles[2];
+      var left = x == 0 && doubles[3];
+      if (bottom && !left) {
+        this.indices_.push(additionStarts[2] + x);
+        this.indices_.push(base + line);
+        finishTriangle();
+        this.indices_.push(additionStarts[2] + x);
+      } else if (left && !bottom) {
+        this.indices_.push(base + 1);
+        this.indices_.push(additionStarts[3] + y);
+        finishTriangle();
+
+        this.indices_.push(additionStarts[3] + y);
+      } else if (left && bottom) {
+        this.indices_.push(additionStarts[2] + x);
+        this.indices_.push(additionStarts[3] + y);
+        finishTriangle();
+
+        this.indices_.push(additionStarts[3] + y);
+        this.indices_.push(additionStarts[2] + x);
+        this.indices_.push(base + line);
+        finishTriangle();
+
+        this.indices_.push(additionStarts[2] + x);
+      }
+      this.indices_.push(base + 1);
+      this.indices_.push(base + line);
+      finishTriangle();
+
+      this.indices_.push(base + line + 1);
+      // insert transition triangles
+      var top = y == subdiv - 1 && doubles[0];
+      var right = x == subdiv - 1 && doubles[1];
+      if (top && !right) {
+        this.indices_.push(additionStarts[0] + x);
+        this.indices_.push(base + 1);
+        finishTriangle();
+        this.indices_.push(additionStarts[0] + x);
+      } else if (right && !top) {
+        this.indices_.push(base + line);
+        this.indices_.push(additionStarts[1] + y);
+        finishTriangle();
+
+        this.indices_.push(additionStarts[1] + y);
+      } else if (top && right) {
+        this.indices_.push(additionStarts[0] + x);
+        this.indices_.push(additionStarts[1] + y);
+        finishTriangle();
+
+        this.indices_.push(additionStarts[1] + y);
+        this.indices_.push(additionStarts[0] + x);
+        this.indices_.push(base + 1);
+        finishTriangle();
+
+        this.indices_.push(additionStarts[0] + x);
+      }
+      this.indices_.push(base + line);
+      this.indices_.push(base + 1);
+      finishTriangle();
+    }
+  }
+
+  /* //TRIANGLE_STRIP version - buggy and not respecting doubles atm
+  var line = 2*(subdiv+1);
+  for (var y = 0; y < subdiv; ++y) {
+    for (var x = 0; x < line; ++x) {
+      if (y%2 == 0) {
+        if (x%2 == 1) {
+          this.indices_.push(
+            offIndices + Math.floor(y/2)*line + Math.floor(x/2));
+        } else {
+          this.indices_.push(
+            offIndices + (Math.floor(y/2)+0.5)*line + Math.floor(x/2));
+        }
+      } else {
+        if (x%2 == 1) {
+          this.indices_.push(
+            offIndices + (Math.ceil(y/2)+0.5)*line - 1 - Math.floor(x/2));
+        } else {
+          this.indices_.push(
+            offIndices + Math.ceil(y/2)*line - 1 - Math.floor(x/2));
+        }
+      }
+    }
+  }
+
+  //degenerate the strip
+  //var last = this.indices_.pop();
+  //this.indices_.push(last, last);
+  */
 };

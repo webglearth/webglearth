@@ -226,12 +226,12 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   /**
    * @type {!Array.<!we.gl.SegmentedPlane>}
    */
-  this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 1, 1, 1),   //0
-                          new we.gl.SegmentedPlane(context, 4, 4, 16),   //1
-                          new we.gl.SegmentedPlane(context, 6, 6, 8),    //2
-                          new we.gl.SegmentedPlane(context, 8, 8, 8),    //3
-                          new we.gl.SegmentedPlane(context, 10, 10, 8),    //4
-                          new we.gl.SegmentedPlane(context, 16, 16, 8)];
+  this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 1, 1, 1),        //0
+                          new we.gl.SegmentedPlane(context, 4, 4, 16, true), //1
+                          new we.gl.SegmentedPlane(context, 6, 6, 8, true),  //2
+                          new we.gl.SegmentedPlane(context, 8, 8, 8, true),  //3
+                          new we.gl.SegmentedPlane(context, 10, 10, 8),      //4
+                          new we.gl.SegmentedPlane(context, 32, 32, 8)];
 
 };
 goog.inherits(we.scene.Scene, goog.events.EventTarget);
@@ -533,7 +533,11 @@ we.scene.Scene.prototype.draw = function() {
 
   gl.uniform2fv(locatedProgram.offsetUniform, new Float32Array(this.offset));
 
-  gl.drawArrays(gl.TRIANGLES, 0, plane.vertexBuffer.numItems);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indexBuffer);
+  //if (Math.floor(goog.now() / 10000) % 2 === 1)
+  gl.drawElements(gl.TRIANGLES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
+  //else
+  //  gl.drawElements(gl.LINES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
 };
 
 
