@@ -128,7 +128,6 @@ weapi.App = function(divid, opt_options) {
       maplogoEl,
       (goog.isDef(opt_options) && 'map' in opt_options) ?
       weapi.maps.getMap(opt_options['map']) : undefined,
-      undefined, //rendershape
       goog.dom.createDom('p', null, 'Powered by ',
       goog.dom.createDom('a',
           {href: 'http://www.webglearth.org/', style: 'color:#00f'},
@@ -171,6 +170,6 @@ weapi.App.prototype.setMap = function(type, opt_subtype) {
   var tileProvider = weapi.maps.getMap(type, opt_subtype);
 
   if (goog.isDefAndNotNull(tileProvider)) {
-    this.context.scene.changeTileProvider(tileProvider);
+    this.context.scene.earth.changeTileProvider(tileProvider);
   }
 };

@@ -65,7 +65,7 @@ weapp.ui.TileProviderSelector = function(scene, element) {
   this.listenKey_ = goog.events.listen(this.select_,
       goog.ui.Component.EventType.ACTION,
       function(e) {
-        scene.changeTileProvider(e.target.getValue());
+        scene.earth.changeTileProvider(e.target.getValue());
       });
 
   this.select_.render(element);
@@ -84,7 +84,7 @@ weapp.ui.TileProviderSelector.prototype.addTileProvider =
   this.select_.addItem(item);
   if (opt_select || (this.select_.getItemCount() == 1)) {
     this.select_.setSelectedItem(item);
-    this.scene_.changeTileProvider(tileprovider);
+    this.scene_.earth.changeTileProvider(tileprovider);
   }
 };
 

@@ -39,8 +39,6 @@ goog.require('goog.ui.AutoComplete.EventType');
 goog.require('we.debug');
 goog.require('we.gl.Context');
 goog.require('we.scene.Scene');
-goog.require('we.scene.rendershapes.Plane');
-goog.require('we.scene.rendershapes.Sphere');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
@@ -53,7 +51,6 @@ goog.require('we.ui.markers.MarkerManager');
 
 goog.require('weapp.ui.Nominatim');
 goog.require('weapp.ui.PanControl');
-goog.require('weapp.ui.RenderShapeSelector');
 goog.require('weapp.ui.TileProviderSelector');
 goog.require('weapp.ui.ZoomSlider');
 
@@ -146,13 +143,6 @@ weapp.App = function(canvas) {
      */
     this.pcontrol_ = new weapp.ui.PanControl(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('weapp-pancontrol')));
-
-    /**
-     * @type {!weapp.ui.RenderShapeSelector}
-     * @private
-     */
-    this.rsSelector_ = new weapp.ui.RenderShapeSelector(this.context.scene,
-        /** @type {!Element} */(goog.dom.getElement('weapp-rendershape')));
 
 
     /**
@@ -316,16 +306,6 @@ weapp.App.prototype.addTileProvider = function(tileprovider) {
 
 
 /**
- * Adds rendershape
- * @param {string} name Name to be displayed.
- * @param {!we.scene.rendershapes.RenderShape} rendershape RenderShape to add.
- */
-weapp.App.prototype.addRenderShape = function(name, rendershape) {
-  this.rsSelector_.addRenderShape(name, rendershape);
-};
-
-
-/**
  * Starts the inner loop
  */
 weapp.App.prototype.start = function() {
@@ -367,11 +347,6 @@ weapp.run = function() {
 
   app.addTileProvider(new we.texturing.GenericTileProvider('CleanTOPO2',
       '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 0, 5, 256));
-
-  app.addRenderShape('Globe',
-                     new we.scene.rendershapes.Sphere(app.context.scene));
-  app.addRenderShape('Mercator',
-                     new we.scene.rendershapes.Plane(app.context.scene));
 
   app.start();
 };

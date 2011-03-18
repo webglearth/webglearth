@@ -177,7 +177,11 @@ void main(){
   
 #endif
   
-%VERTEX_TRANSFORM%
+  float exp_2y=exp(2.0*phi.y);
+  float tanh=((exp_2y-1.0)/(exp_2y+1.0));
+  float cosy=sqrt(1.0-tanh*tanh);
+  vec3 pos=vec3(sin(phi.x)*cosy,tanh,cos(phi.x)*cosy);
+  gl_Position=uMVPMatrix*vec4(pos*(1.0+elev),1.0);
 
   vec2 off;
   vec3 key=vec3(uZoomLevel,tilex,tiley);

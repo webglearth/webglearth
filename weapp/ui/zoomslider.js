@@ -59,16 +59,15 @@ weapp.ui.ZoomSlider = function(scene, element) {
   this.slider_ = new goog.ui.Slider();
   this.slider_.setOrientation(goog.ui.SliderBase.Orientation.VERTICAL);
   this.slider_.setMaximum(400);
-  var minZoom = Math.max(we.scene.MIN_ZOOM,
-      scene.getCurrentTileProvider().getMinZoomLevel());
+
   /**
    * @type {boolean}
    * @protected
    */
   weapp.ui.ZoomSlider.updateMutex_ = false;
 
-  this.slider_.setValue((this.scene_.getZoom() - minZoom) * 400 /
-      this.scene_.getCurrentTileProvider().getMaxZoomLevel());
+  this.slider_.setValue((this.scene_.getZoom() - this.scene_.getMinZoom()) *
+                        400 / this.scene_.getMaxZoom());
 
   /**
    * @type {?number}
@@ -79,8 +78,8 @@ weapp.ui.ZoomSlider = function(scene, element) {
       function(e) {
         if (weapp.ui.ZoomSlider.updateMutex_ == false) {
           scene.setZoom((e.target.getValue() *
-              (scene.getCurrentTileProvider().getMaxZoomLevel() - minZoom) /
-              400) + minZoom);
+              (scene.getMaxZoom() - scene.getMinZoom()) /
+              400) + scene.getMinZoom());
         }
         weapp.ui.ZoomSlider.updateMutex_ = false;
       });
@@ -140,12 +139,10 @@ goog.inherits(weapp.ui.ZoomSlider, goog.Disposable);
  * @private
  */
 weapp.ui.ZoomSlider.prototype.zoomChanged_ = function() {
-  var minZoom = Math.max(we.scene.MIN_ZOOM,
-      this.scene_.getCurrentTileProvider().getMinZoomLevel());
   weapp.ui.ZoomSlider.updateMutex_ = true;
 
-  this.slider_.setValue((this.scene_.getZoom() - minZoom) * 400 /
-      this.scene_.getCurrentTileProvider().getMaxZoomLevel());
+  this.slider_.setValue((this.scene_.getZoom() - this.scene_.getMinZoom()) *
+                        400 / this.scene_.getMaxZoom());
 };
 
 

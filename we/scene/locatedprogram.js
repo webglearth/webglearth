@@ -34,11 +34,12 @@ goog.provide('we.scene.LocatedProgram');
 
 /**
  * @param {!WebGLProgram} program Shader program.
- * @param {!we.scene.Scene} scene Scene.
+ * @param {!we.gl.Context} context Context.
+ * @param {boolean} terrain Terrain?
  * @constructor
  */
-we.scene.LocatedProgram = function(program, scene) {
-  var gl = scene.context.gl;
+we.scene.LocatedProgram = function(program, context, terrain) {
+  var gl = context.gl;
 
   /**
    * @type {!WebGLProgram}
@@ -77,7 +78,7 @@ we.scene.LocatedProgram = function(program, scene) {
   this.metaBufferUniform =
       this.getValidatedUniformLocation_(gl, this.program, 'uMetaBuffer');
 
-  if (scene.terrain) {
+  if (terrain) {
     /**
      * @type {WebGLUniformLocation}
      */

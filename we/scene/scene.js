@@ -30,55 +30,23 @@
 
 goog.provide('we.scene.Scene');
 
-goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
 goog.require('goog.math');
+goog.require('goog.math.Vec3');
 
-goog.require('we.gl.Context');
-goog.require('we.gl.SegmentedPlane');
 goog.require('we.gl.utils');
 goog.require('we.scene.Camera');
-goog.require('we.scene.LocatedProgram');
-goog.require('we.scene.TileBuffer');
-goog.require('we.scene.rendershapes.RenderShape');
-goog.require('we.scene.rendershapes.Sphere');
-goog.require('we.texturing.MapQuestTileProvider');
-goog.require('we.texturing.TileProvider');
-
-
-/**
- * @define {number}
- * Maximum number of zoom levels, the shader should fall back when
- * looking up appropriate tile. This is the bottleneck of shader
- * compilation and performance and should be chosen very carefully.
- */
-we.scene.LOOKUP_FALLBACK_LEVELS = 4;
-
-
-/**
- * @define {number}
- * Maximum number of zoom levels, the shader should fall back when
- * looking up appropriate tile. This is the bottleneck of shader
- * compilation and performance and should be chosen very carefully.
- */
-we.scene.LOOKUP_FALLBACK_LEVELS_T = 2;
+goog.require('we.scene.Earth');
 
 
 /**
  * @define {number} Minimum zoom level - really low zoom levels are useless.
  */
 we.scene.MIN_ZOOM = 1;
-
-
-/**
- * TODO: define this somewhere else?
- * @define {number} Average radius of Earth in meters.
- */
-we.scene.EARTH_RADIUS = 6371009;
 
 
 
@@ -89,14 +57,13 @@ we.scene.EARTH_RADIUS = 6371009;
  * @param {Element=} opt_copyrightbox Element to output mapdata information to.
  * @param {Element=} opt_logobox Element to output logo of mapdata source to.
  * @param {we.texturing.TileProvider=} opt_tileProvider Default TileProvider.
- * @param {we.scene.rendershapes.RenderShape=} opt_renderShape Default shape.
  * @param {Element=} opt_copyright Additional copyright info to display
  *                                 before map copyright info.
  * @extends {goog.events.EventTarget}
  * @constructor
  */
 we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
-                          opt_tileProvider, opt_renderShape, opt_copyright) {
+                          opt_tileProvider, opt_copyright) {
   /**
    * @type {!we.gl.Context}
    */
@@ -137,62 +104,9 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.additionalCopyright_ = opt_copyright || null;
 
   /**
-   * @type {!we.texturing.TileProvider}
-   * @private
+   * @type {!we.scene.Earth}
    */
-  this.currentTileProvider_ = opt_tileProvider ||
-                              new we.texturing.MapQuestTileProvider();
-
-  /**
-   * @type {!we.scene.TileBuffer}
-   * @private
-   */
-  this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_, context,
-      8, 8);
-
-
-  /**
-   * @type {boolean}
-   */
-  this.terrain = this.context.isVTFSupported();
-
-  if (this.terrain) {
-    /**
-     * @type {!we.scene.TileBuffer}
-     * @private
-     */
-    this.tileBufferT_ = new we.scene.TileBuffer(
-        new we.texturing.GenericTileProvider('CleanTOPO2',
-        '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 0, 5, 256),
-        context, 4, 4);
-  } else if (goog.DEBUG) {
-    we.scene.Scene.logger.warning('VTF not supported..');
-  }
-
-  this.changeTileProvider(this.currentTileProvider_);
-
-  /**
-    * Returns the current tile provider.
-    * @return {!we.texturing.TileProvider} scene tile provider.
-    *
-    */
-  we.scene.Scene.prototype.getCurrentTileProvider = function() {
-    return this.currentTileProvider_;
-  };
-
-  this.updateTilesTimer = new goog.Timer(150);
-  goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,
-                     goog.bind(this.updateTiles, this));
-
-  this.updateTilesTimer.start();
-
-
-  /**
-   * This says how many tiles should be visible vertically.
-   * @type {number}
-   */
-  this.tilesVertically = 0;
-  this.recalcTilesVertically();
+  this.earth = new we.scene.Earth(this, opt_tileProvider);
 
   /**
    * @type {number}
@@ -201,38 +115,19 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.zoomLevel_ = 3;
 
   /**
+   * This says how many tiles should be visible vertically.
    * @type {number}
-   * This should always equal 1 << this.zoomLevel_ !
    */
-  this.tileCount = 1;
+  this.tilesVertically = 0;
 
   /**
    * @type {!we.scene.Camera}
    */
   this.camera = new we.scene.Camera(this);
 
-  /**
-   * @type {Array.<number>}
-   */
-  this.offset = [0, 0];
 
-  /**
-   * @type {!we.scene.rendershapes.RenderShape}
-   * @private
-   */
-  this.renderShape_ = opt_renderShape || new we.scene.rendershapes.Sphere(this);
-
-
-  /**
-   * @type {!Array.<!we.gl.SegmentedPlane>}
-   */
-  this.segmentedPlanes = [new we.gl.SegmentedPlane(context, 1, 1, 1),        //0
-                          new we.gl.SegmentedPlane(context, 4, 4, 16, true), //1
-                          new we.gl.SegmentedPlane(context, 6, 6, 8, true),  //2
-                          new we.gl.SegmentedPlane(context, 8, 8, 8, true),  //3
-                          new we.gl.SegmentedPlane(context, 10, 10, 8),      //4
-                          new we.gl.SegmentedPlane(context, 32, 32, 8)];
-
+  this.recalcTilesVertically();
+  this.updateCopyrights();
 };
 goog.inherits(we.scene.Scene, goog.events.EventTarget);
 
@@ -282,29 +177,18 @@ goog.inherits(we.scene.SceneEvent, goog.events.Event);
 
 
 /**
- * Returns dimension of underlying buffer.
- * @param {boolean=} opt_terrain Terrain buffer?
- * @return {!Object} Object containing "width" and "height" keys.
- */
-we.scene.Scene.prototype.getBufferDimensions = function(opt_terrain) {
-  return (opt_terrain && this.terrain) ? this.tileBufferT_.getDimensions() :
-                                         this.tileBuffer_.getDimensions();
-};
-
-
-/**
  * Updates display of copyright info of the map.
- * @private
  */
-we.scene.Scene.prototype.updateCopyrights_ = function() {
+we.scene.Scene.prototype.updateCopyrights = function() {
   if (!goog.isNull(this.tpCopyrightElement_)) {
     goog.dom.removeChildren(this.tpCopyrightElement_);
     goog.dom.append(this.tpCopyrightElement_, this.additionalCopyright_);
-    this.currentTileProvider_.appendCopyrightContent(this.tpCopyrightElement_);
+    this.earth.getCurrentTileProvider().appendCopyrightContent(
+        this.tpCopyrightElement_);
   }
   if (!goog.isNull(this.tpLogoImg_)) {
-    if (!goog.isNull(this.currentTileProvider_.getLogoUrl())) {
-      this.tpLogoImg_.src = this.currentTileProvider_.getLogoUrl();
+    if (!goog.isNull(this.earth.getCurrentTileProvider().getLogoUrl())) {
+      this.tpLogoImg_.src = this.earth.getCurrentTileProvider().getLogoUrl();
       this.tpLogoImg_.style.visibility = 'visible';
     } else {
       this.tpLogoImg_.style.visibility = 'hidden';
@@ -314,49 +198,11 @@ we.scene.Scene.prototype.updateCopyrights_ = function() {
 
 
 /**
- * Changes tile provider of this scene.
- * @param {!we.texturing.TileProvider} tileprovider Tile provider to be set.
- */
-we.scene.Scene.prototype.changeTileProvider = function(tileprovider) {
-  this.currentTileProvider_ = tileprovider;
-  this.tileBuffer_.changeTileProvider(this.currentTileProvider_);
-  this.currentTileProvider_.copyrightInfoChangedHandler =
-      goog.bind(this.updateCopyrights_, this);
-  //this.setZoom(this.zoomLevel_);
-  this.recalcTilesVertically();
-  this.updateCopyrights_();
-};
-
-
-/**
- * Changes tile provider of this scene.
- * @param {!we.scene.rendershapes.RenderShape} rendershape RenderShape to use.
- */
-we.scene.Scene.prototype.changeRenderShape = function(rendershape) {
-  this.renderShape_ = rendershape;
-};
-
-
-/**
- * Recalculates @code {tilesVertically}. This should be called
- * after changing canvas size or tile provider.
- */
-we.scene.Scene.prototype.recalcTilesVertically = function() {
-  this.tilesVertically = 0.9 * this.context.canvas.height /
-      this.currentTileProvider_.getTileSize();
-};
-
-
-/**
  * Sets zoom level and calculates other appropriate cached variables
  * @param {number} zoom New zoom level.
  */
 we.scene.Scene.prototype.setZoom = function(zoom) {
-  var minZoom = Math.max(we.scene.MIN_ZOOM,
-      this.currentTileProvider_.getMinZoomLevel());
-  this.zoomLevel_ = goog.math.clamp(zoom, minZoom,
-      this.currentTileProvider_.getMaxZoomLevel());
-  this.tileCount = 1 << Math.floor(this.zoomLevel_);
+  this.zoomLevel_ = goog.math.clamp(zoom, this.getMinZoom(), this.getMaxZoom());
 
   this.camera.fixedAltitude = false;
   this.onZoomChanged();
@@ -372,92 +218,51 @@ we.scene.Scene.prototype.getZoom = function() {
 
 
 /**
+ * @return {number} Minimal zoom level.
+ */
+we.scene.Scene.prototype.getMinZoom = function() {
+  return Math.max(we.scene.MIN_ZOOM,
+                  this.earth.getCurrentTileProvider().getMinZoomLevel());
+};
+
+
+/**
+ * @return {number} Maximal zoom level.
+ */
+we.scene.Scene.prototype.getMaxZoom = function() {
+  return this.earth.getCurrentTileProvider().getMaxZoomLevel();
+};
+
+
+/**
+ * Recalculates @code {tilesVertically}. This should be called
+ * after changing canvas size or tile provider.
+ */
+we.scene.Scene.prototype.recalcTilesVertically = function() {
+  this.tilesVertically = 0.9 * this.context.canvas.height /
+      this.earth.getCurrentTileProvider().getTileSize();
+};
+
+
+/**
  * Recalculates altitude or zoomLevel depending on camera behavior type.
  * @private
  */
 we.scene.Scene.prototype.adjustZoomAndAltitude_ = function() {
   if (this.camera.fixedAltitude) {
-    var minZoom = Math.max(we.scene.MIN_ZOOM,
-                           this.currentTileProvider_.getMinZoomLevel());
-    this.zoomLevel_ = goog.math.clamp(this.renderShape_.calcZoom(), minZoom,
-        this.currentTileProvider_.getMaxZoomLevel());
-    this.tileCount = 1 << Math.floor(this.zoomLevel_);
+    var sizeISee = 2 * (this.camera.altitude / we.scene.EARTH_RADIUS) *
+                   Math.tan(this.context.fov / 2);
+    var sizeOfOneTile = sizeISee / this.tilesVertically;
+    var o = Math.cos(Math.abs(this.camera.latitude)) * 2 * Math.PI;
+
+    this.zoomLevel_ = goog.math.clamp(Math.log(o / sizeOfOneTile) / Math.LN2,
+                                      this.getMinZoom(), this.getMaxZoom());
   } else {
-    this.camera.altitude = this.renderShape_.calcAltitude();
-  }
-};
-
-
-/**
- * Calculates which tiles are needed and tries to buffer them
- */
-we.scene.Scene.prototype.updateTiles = function() {
-
-  var cameraTarget = this.camera.getTarget(this);
-  if (goog.isNull(cameraTarget)) {
-    //If camera is not pointed at Earth, just fallback to latlon now
-    cameraTarget = [this.camera.latitude, this.camera.longitude];
-  }
-  this.offset[0] = Math.floor(cameraTarget[1] / (2 * Math.PI) * this.tileCount);
-  this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(cameraTarget[0]) /
-      (Math.PI * 2) * this.tileCount);
-
-  var position = {x: this.offset[0] + this.tileCount / 2,
-    y: (this.tileCount - 1) - (this.offset[1] + this.tileCount / 2)};
-
-  var flooredZoom = Math.floor(this.zoomLevel_);
-
-  var batchTime = goog.now();
-
-  var getPointsAround = function(x, y, d, zoom, batchTime, tilebuffer) {
-    var result = [];
-    for (var i = -d; i <= d; i++) {
-      var absi = Math.abs(i);
-      tilebuffer.needTile(zoom, x + i, y - d, batchTime - absi);
-      tilebuffer.needTile(zoom, x + i, y + d, batchTime - absi);
-      if (absi != d) {
-        tilebuffer.needTile(zoom, x - d, y + i, batchTime - absi);
-        tilebuffer.needTile(zoom, x + d, y + i, batchTime - absi);
-      }
-    }
-  };
-
-  for (var i = 1; i <= we.scene.LOOKUP_FALLBACK_LEVELS; i++) {
-    //Request "parent" tiles.
-    var need = 4;
-    this.tileBuffer_.needTile(flooredZoom - i, position.x >> i, position.y >> i,
-        batchTime + i, i > need);
-  }
-
-  //Request tiles close to "parent" tile.
-  getPointsAround(position.x >> 1,
-                  position.y >> 1,
-                  1, flooredZoom - 1, batchTime, this.tileBuffer_);
-
-
-  //Request the best tile.
-  this.tileBuffer_.needTile(flooredZoom, position.x, position.y, batchTime + 3);
-
-  //Request close tiles.
-  getPointsAround(position.x, position.y, 1,
-                  flooredZoom, batchTime + 2, this.tileBuffer_);
-  getPointsAround(position.x, position.y, 2,
-                  flooredZoom, batchTime - 5, this.tileBuffer_);
-
-  this.tileBuffer_.purge(500);
-
-  this.tileBuffer_.processTiles(2, 12);
-
-  if (this.terrain) {
-    var terrainZoom = goog.math.clamp(flooredZoom - 3, 0,
-        this.tileBufferT_.tileProvider_.getMaxZoomLevel());
-    var zoomdiff = flooredZoom - terrainZoom;
-    this.tileBuffer_.needTile(terrainZoom, position.x >> zoomdiff,
-                              position.y >> zoomdiff, batchTime + 1);
-    getPointsAround(position.x >> zoomdiff, position.y >> zoomdiff, 1,
-                    terrainZoom, batchTime, this.tileBufferT_);
-    //this.tileBufferT_.purge(500);
-    this.tileBufferT_.processTiles(1, 4);
+    var o = Math.cos(Math.abs(this.camera.latitude)) * 2 * Math.PI;
+    var thisPosDeformation = o / Math.pow(2, this.zoomLevel_);
+    var sizeIWannaSee = thisPosDeformation * this.tilesVertically;
+    this.camera.altitude = (1 / Math.tan(this.context.fov / 2)) *
+        (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
   }
 };
 
@@ -477,67 +282,38 @@ we.scene.Scene.prototype.draw = function() {
         this.camera.altitude.toFixed(0) + 'm ' +
         (this.camera.fixedAltitude ? '->' : '<-') + ' z=' +
         this.zoomLevel_.toFixed(3) + '; BufferQueue size: ' +
-        this.tileBuffer_.bufferQueueSize() + '; Currently loading tiles: ' +
-        this.currentTileProvider_.loadingTileCounter;
+        this.earth.tileBuffer_.bufferQueueSize() + '; Loading tiles: ' +
+        this.earth.getCurrentTileProvider().loadingTileCounter;
   }
 
-  this.renderShape_.transformContext();
+  this.earth.draw();
+};
 
-  gl.useProgram(this.renderShape_.locatedProgram.program);
 
-  var locatedProgram = this.renderShape_.locatedProgram;
+/**
+ * Calculates distance from point of view to surface of the sphere.
+ * @param {!goog.math.Vec3} origin Point of origin.
+ * @param {!goog.math.Vec3} direction Normalized vector direction.
+ * @return {?Array.<number>} distances.
+ * @private
+ */
+we.scene.Scene.prototype.traceDistance_ =
+    function(origin, direction) {
+  /** @type {!goog.math.Vec3} */
+  var sphereCenter = origin.clone().invert(); //[0,0,0] - origin
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer_.bufferTexture);
-  gl.uniform1i(locatedProgram.tileBufferUniform, 0);
+  var ldotc = goog.math.Vec3.dot(direction, sphereCenter);
+  var cdotc = goog.math.Vec3.dot(sphereCenter, sphereCenter);
 
-  var metaBufferFlat = goog.array.flatten(this.tileBuffer_.metaBuffer);
+  var val = ldotc * ldotc - cdotc + 1;
 
-  gl.uniform4fv(locatedProgram.metaBufferUniform,
-                new Float32Array(metaBufferFlat));
-
-  if (this.terrain) {
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.tileBufferT_.bufferTexture);
-    gl.uniform1i(locatedProgram.tileBufferTUniform, 1);
-
-    var metaBufferTFlat = goog.array.flatten(this.tileBufferT_.metaBuffer);
-
-    gl.uniform4fv(locatedProgram.metaBufferTUniform,
-                  new Float32Array(metaBufferTFlat));
-    gl.uniform1f(locatedProgram.tileSizeTUniform,
-        this.tileBufferT_.tileProvider_.getTileSize());
+  if (val < 0) {
+    return null;
+  } else {
+    var d1 = Math.min(ldotc + Math.sqrt(val), ldotc - Math.sqrt(val));
+    var d2 = Math.max(ldotc + Math.sqrt(val), ldotc - Math.sqrt(val));
+    return [d1, d2];
   }
-
-  var mvpm = new Float32Array(goog.array.flatten(
-      this.context.flushMVPM().getTranspose().toArray()));
-
-  var plane = this.segmentedPlanes[Math.min(Math.floor(this.zoomLevel_),
-                                            this.segmentedPlanes.length - 1)];
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, plane.vertexBuffer);
-  gl.vertexAttribPointer(locatedProgram.vertexPositionAttribute,
-      plane.vertexBuffer.itemSize,
-      gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, plane.texCoordBuffer);
-  gl.vertexAttribPointer(locatedProgram.textureCoordAttribute,
-      plane.texCoordBuffer.itemSize,
-      gl.FLOAT, false, 0, 0);
-
-  gl.uniformMatrix4fv(locatedProgram.mvpMatrixUniform, false, mvpm);
-  gl.uniform1f(locatedProgram.tileSizeUniform,
-      this.currentTileProvider_.getTileSize());
-  gl.uniform1f(locatedProgram.zoomLevelUniform, Math.floor(this.zoomLevel_));
-  gl.uniform1f(locatedProgram.tileCountUniform, this.tileCount);
-
-  gl.uniform2fv(locatedProgram.offsetUniform, new Float32Array(this.offset));
-
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, plane.indexBuffer);
-  //if (Math.floor(goog.now() / 10000) % 2 === 1)
-  gl.drawElements(gl.TRIANGLES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
-  //else
-  //  gl.drawElements(gl.LINES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
 };
 
 
@@ -560,15 +336,23 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y, opt_radians) {
   dir.subtract(orig);
   dir.normalize();
 
-  /** @type {Array.<number>} */
-  var result = this.renderShape_.traceRayToGeoSpace(orig, dir);
+  var ds = this.traceDistance_(orig, dir);
 
-  if (!goog.isDefAndNotNull(result)) {
+  if (goog.isNull(ds)) {
     return null;
-  } else if (opt_radians == true) {
-    return [result[0], result[1]];
+  }
+  var bod = goog.math.Vec3.sum(orig, dir.scale(ds[0]));
+
+  var lon = Math.asin(bod.x / Math.sqrt(1 - bod.y * bod.y));
+
+  if (bod.z < 0) // The point is on the "other side" of the sphere
+    lon = Math.PI - lon;
+
+  if (opt_radians == true) {
+    return [Math.asin(bod.y), we.utils.standardLongitudeRadians(lon)];
   } else {
-    return [goog.math.toDegrees(result[0]), goog.math.toDegrees(result[1])];
+    return [goog.math.toDegrees(Math.asin(bod.y)),
+            goog.math.toDegrees(we.utils.standardLongitudeRadians(lon))];
   }
 };
 
@@ -580,8 +364,11 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y, opt_radians) {
  * @return {?Array.<number>} Array [x, y, visibility] or null.
  */
 we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
-  var point = this.renderShape_.getPointForLatLon(goog.math.toRadians(lat),
-                                                  goog.math.toRadians(lon));
+
+  var cosy = Math.cos(lat);
+  var point = new goog.math.Vec3(Math.sin(lon) * cosy,
+                                 Math.sin(lat),
+                                 Math.cos(lon) * cosy);
 
   var result = this.context.mvpm.multiply(new goog.math.Matrix([[point.x],
                                                                 [point.y],
@@ -611,7 +398,16 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
     if (goog.isNull(cameraPos))
       return null;
 
-    visibility = this.renderShape_.isPointVisible(point, cameraPos) ? 1 : 0;
+    var distance = goog.math.Vec3.distance(point, cameraPos);
+    var direction = point.subtract(cameraPos).normalize();
+    var ds = this.traceDistance_(cameraPos, direction);
+
+    if (goog.isNull(ds)) {
+      visibility = 0; // Wait.. what? This should never happen..
+    } else {
+      visibility = (Math.abs(distance - ds[0]) < Math.abs(distance - ds[1])) ?
+                   1 : 0;
+    }
   }
 
   return [x, y, visibility];

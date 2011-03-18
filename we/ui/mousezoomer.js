@@ -100,6 +100,12 @@ we.ui.MouseZoomer = function(scene) {
         } else {
           this.setZoom(Math.floor(this.zoomLevel_ + 1));
         }
+        var target = this.getLatLongForXY(e.offsetX, e.offsetY, true) ||
+                     this.camera.getTarget(this);
+        if (target) {
+          this.camera.latitude = (this.camera.latitude + target[0]) / 2;
+          this.camera.longitude = (this.camera.longitude + target[1]) / 2;
+        }
         e.preventDefault();
       }, scene));
 
@@ -115,6 +121,12 @@ we.ui.MouseZoomer = function(scene) {
             this.camera.setAltitude(this.camera.getAltitude() * 2);
           } else {
             this.setZoom(Math.ceil(this.zoomLevel_ - 1));
+          }
+          var target = this.getLatLongForXY(e.offsetX, e.offsetY, true) ||
+                       this.camera.getTarget(this);
+          if (target) {
+            this.camera.latitude -= (target[0] - this.camera.latitude);
+            this.camera.longitude -= (target[1] - this.camera.longitude);
           }
           e.preventDefault();
         }
