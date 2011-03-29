@@ -49,6 +49,12 @@ we.scene.EARTH_RADIUS = 6371009;
 
 
 /**
+ * @define {boolean} Enable terrain rendering.
+ */
+we.scene.TERRAIN = true;
+
+
+/**
  * @define {number} Defines how many zoom levels the terrain is "delayed" -
  *                  for texture level 8 we don't need level 8 terrain.
  */
@@ -92,7 +98,7 @@ we.scene.Earth = function(scene, opt_tileProvider) {
   /**
    * @type {boolean}
    */
-  this.terrain = this.context.isVTFSupported();
+  this.terrain = we.scene.TERRAIN && this.context.isVTFSupported();
 
   if (this.terrain) {
 
@@ -101,7 +107,8 @@ we.scene.Earth = function(scene, opt_tileProvider) {
      * @private
      */
     this.terrainProvider_ = new we.texturing.GenericTileProvider('CleanTOPO2',
-        '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 3, 5, 256);
+        'http://webglearth.googlecode.com/svn/resources/terrain/CleanTOPO2/' +
+        '{z}/{x}/{y}.png', 3, 5, 256);
 
     /**
      * @type {!we.scene.ClipStack}
