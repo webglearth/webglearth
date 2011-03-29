@@ -363,6 +363,8 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y, opt_radians) {
  * @return {?Array.<number>} Array [x, y, visibility] or null.
  */
 we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
+  lat = goog.math.toRadians(lat);
+  lon = goog.math.toRadians(lon);
 
   var cosy = Math.cos(lat);
   var point = new goog.math.Vec3(Math.sin(lon) * cosy,
