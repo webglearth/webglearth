@@ -78,7 +78,7 @@ for file in files:
 
   shader = open(shaderDir + file, 'r')
   for line in shader:
-    line = string.split(line.strip(), '\\', 1)[0]
+    line = string.split(line.strip(), '//', 1)[0]
 
     if len(line) == 0:
       continue

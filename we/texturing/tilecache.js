@@ -61,7 +61,7 @@ we.texturing.TileCache = function(tileprovider) {
   /**
    * @type {number}
    */
-  this.targetSize = 1024;
+  this.targetSize = 512;
 
   /**
    * @type {goog.Timer}
@@ -125,9 +125,9 @@ we.texturing.TileCache.prototype.getTileFromCache = function(key) {
  * Removes LRU tiles from cache
  */
 we.texturing.TileCache.prototype.cleanCache = function() {
-  if (goog.DEBUG) {
-    we.texturing.TileCache.logger.info('Cleaning cache..');
-  }
+  //if (goog.DEBUG) {
+  //  we.texturing.TileCache.logger.info('Cleaning cache..');
+  //}
 
   // The filtering is here just to be on the safe side. Buffered tiles wouldn't
   // probably get removed due to high request times, but it would be VERY bad.
@@ -169,6 +169,16 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
     tile = new we.texturing.Tile(zoom, x, y, requestTime);
     this.tileMap_.set(key, tile);
     this.loadRequests_.push(tile);
+  } else if (tile.state == we.texturing.Tile.State.ERROR) {
+    if (requestTime - tile.requestTime > 7000) {
+      //tile failed some time ago -> retry
+
+      tile.dispose();
+
+      tile = new we.texturing.Tile(zoom, x, y, requestTime);
+      this.tileMap_.set(key, tile);
+      this.loadRequests_.push(tile);
+    }
   } else {
     tile.requestTime = requestTime;
   }
@@ -203,6 +213,8 @@ we.texturing.TileCache.prototype.tileLoaded_ = function(tile) {
       we.texturing.TileCache.logger.info('Ignoring late tile..');
     }
     tile.state = we.texturing.Tile.State.ERROR;
+    this.tileMap_.remove(tile.getKey());
+    tile.dispose();
     return;
   }
 

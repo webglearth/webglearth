@@ -21,19 +21,25 @@
  * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
-#define BUFF_W %BUFFER_WIDTH_FLOAT%
-#define BUFF_H %BUFFER_HEIGHT_FLOAT%
-
 precision mediump float;
 
-varying vec2 vTile;
-varying vec2 vTC;
+uniform sampler2D uBufferL0;
+uniform sampler2D uBufferL1;
+uniform sampler2D uBufferL2;
+uniform sampler2D uBufferLn;
 
-uniform sampler2D uTileBuffer;
-uniform float uTileSize;
+varying float vFallbackA;
+varying vec2 vTCA;
 
 void main(){
-vec2 TC=clamp(vTC*uTileSize,0.5,uTileSize-0.5);
-vec2 BC=(vTile+(TC/uTileSize));
-gl_FragColor=texture2D(uTileBuffer,vec2(BC.s/BUFF_W,BC.t/BUFF_H));
+  if (vFallbackA == 0.0) {
+    gl_FragColor=texture2D(uBufferL0,vTCA);
+  } else if (vFallbackA == 1.0) {
+    gl_FragColor=texture2D(uBufferL1,vTCA);
+  } else if (vFallbackA == 2.0) {
+    gl_FragColor=texture2D(uBufferL2,vTCA);
+  } else {
+    gl_FragColor=texture2D(uBufferLn,vTCA);
+  }
+  //gl_FragColor = mix(gl_FragColor, vec4(1.0,0.0,0.0,1.0), float(vFallbackA)/4.0); //useful for clipstack debugging - fallback levels are red and LevelN is slightly cyan
 }

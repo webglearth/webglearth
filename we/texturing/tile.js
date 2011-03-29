@@ -133,7 +133,5 @@ we.texturing.Tile.State = {
   ERROR: -10,
   PREPARING: 0,
   LOADING: 10,
-  LOADED: 20,
-  QUEUED_FOR_BUFFERING: 30,
-  BUFFERED: 40
+  LOADED: 20
 };

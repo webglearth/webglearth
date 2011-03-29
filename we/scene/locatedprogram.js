@@ -69,47 +69,94 @@ we.scene.LocatedProgram = function(program, context, terrain) {
   /**
    * @type {WebGLUniformLocation}
    */
-  this.tileBufferUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uTileBuffer');
+  this.metaL0Uniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL0');
 
   /**
    * @type {WebGLUniformLocation}
    */
-  this.metaBufferUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaBuffer');
+  this.metaL1Uniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL1');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.metaL2Uniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL2');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.levelOffsetsUniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uOffL');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.bufferL0Uniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL0');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.bufferL1Uniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL1');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.bufferL2Uniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL2');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.bufferLnUniform =
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferLn');
 
   if (terrain) {
     /**
      * @type {WebGLUniformLocation}
      */
-    this.tileBufferTUniform =
-        this.getValidatedUniformLocation_(gl, this.program, 'uTileBufferT');
+    this.degradationTUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uDegradationT');
 
     /**
      * @type {WebGLUniformLocation}
      */
-    this.metaBufferTUniform =
-        this.getValidatedUniformLocation_(gl, this.program, 'uMetaBufferT');
+    this.metaL0TUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMetaL0T');
 
     /**
      * @type {WebGLUniformLocation}
      */
-    this.tileSizeTUniform =
-        this.getValidatedUniformLocation_(gl, this.program, 'uTileSize');
+    this.metaL1TUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMetaL1T');
+
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.levelOffsetsTUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uOffLT');
+
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.bufferL0TUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uBufferL0T');
+
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.bufferL1TUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uBufferL1T');
+
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.bufferLnTUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uBufferLnT');
   }
-
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.tileSizeUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uTileSize');
-
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.zoomLevelUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uZoomLevel');
-
   /**
    * @type {WebGLUniformLocation}
    */

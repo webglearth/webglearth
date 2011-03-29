@@ -21,186 +21,131 @@
  * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
-#define BUFF_W %BUFFER_WIDTH_FLOAT%
-#define BUFF_H %BUFFER_HEIGHT_FLOAT%
-#define BUFF_SIZE %BUFFER_SIZE_INT%
-#define BINARY_SEARCH_CYCLES %BINARY_SEARCH_CYCLES_INT%
-#define LOOKUP_LEVELS %LOOKUP_LEVELS_INT%
+#define BUFF_SIDE %BUFFER_SIDE_FLOAT%
+#define BUFF_SIZE int(BUFF_SIDE*BUFF_SIDE)
 
 #define TERRAIN %TERRAIN_BOOL%
-#define BUFF_W_T %BUFFER_WIDTH_T_FLOAT%
-#define BUFF_H_T %BUFFER_HEIGHT_T_FLOAT%
-#define BUFF_SIZE_T %BUFFER_SIZE_T_INT%
-#define BINARY_SEARCH_CYCLES_T %BINARY_SEARCH_CYCLES_T_INT%
-#define LOOKUP_LEVELS_T %LOOKUP_LEVELS_T_INT%
-#define MAX_ZOOM_T %MAX_ZOOM_T_FLOAT%
+#define BUFF_SIDE_T %BUFFER_SIDE_T_FLOAT%
+#define BUFF_SIZE_T int(BUFF_SIDE_T*BUFF_SIDE_T)
 
 precision highp float;
 
 const float PI=3.1415927;
 const float PI2=6.2831855;
-const float MAX_PHI=1.4844222;
+const float EARTH_RADIUS=6371009.0; //in meters
 
 attribute vec2 aVertexPosition;
 attribute vec2 aTextureCoord;
 
 uniform mat4 uMVPMatrix;
 
-uniform float uZoomLevel;
 uniform float uTileCount;
 uniform vec2 uOffset;
 
-uniform vec4 uMetaBuffer[BUFF_SIZE];
+uniform float uMetaL0[BUFF_SIZE];
+uniform float uMetaL1[BUFF_SIZE];
+uniform float uMetaL2[BUFF_SIZE];
+uniform vec2 uOffL[3];
+varying float vFallbackA;
+varying vec2 vTCA;
 
 #if TERRAIN
-uniform vec4 uMetaBufferT[BUFF_SIZE_T];
-uniform sampler2D uTileBufferT;
-uniform float uTileSize;
+  uniform float uMetaL0T[BUFF_SIZE_T];
+  uniform float uMetaL1T[BUFF_SIZE_T];
+  uniform vec2 uOffLT[2];
+  uniform sampler2D uBufferL0T;
+  uniform sampler2D uBufferL1T;
+  uniform sampler2D uBufferLnT;
+
+  uniform float uDegradationT;
+
+  bool validateOffsetT(vec2 off) {
+    return off.x>= 0.0 && off.y >= 0.0 && off.x < BUFF_SIDE_T && off.y < BUFF_SIDE_T;
+  }
 #endif
 
-varying vec2 vTile;
-varying vec2 vTC;
-
-float compareMeta(vec3 a,vec3 b){
-  vec3 c=a-b;
-  return bool(c.x)?c.x:(bool(c.y)?c.y:c.z);
+bool validateOffset(vec2 off) {
+  return off.x >= 0.0 && off.y >= 0.0 && off.x < BUFF_SIDE && off.y < BUFF_SIDE;
 }
 
-int findInBuffer(vec3 key) {
-  int mid;float min=0.0,max=float(BUFF_SIZE)-1.0;
-  for (int _i=0;_i<BINARY_SEARCH_CYCLES;++_i) {
-    if (min>max) break;
-    mid=int((min+max)*0.5);
-    float res=compareMeta(uMetaBuffer[mid].xyz,key);
-    if (res>0.0){
-      max=float(mid)-1.0;
-    } else if (res<0.0){
-      min=float(mid)+1.0;
-    } else {
-      return mid;
-    }
-  }
-  return -1;
+vec2 modFirst(vec2 x, float y) {
+  // This is faster than standard mod - because
+  // we need to mod only the first element.
+  // And "x-y*floor(x/y)" seems to be 3 instructions shorter (2 vs 5) on my
+  //  ATI card than "mod(x,y)" which is strange..
+  return vec2(x.x-y*floor(x.x/y), x.y);
 }
-
-int lookup(inout vec3 key,out vec2 off) {
-  off=vec2(0.0,0.0);
-  float lastZoomLevel=max(0.0,uZoomLevel-float(LOOKUP_LEVELS)+1.0);
-  int mid=-1;
-  for (int _i=0;_i<LOOKUP_LEVELS;++_i) {
-    mid=findInBuffer(key);
-    if (mid<0 && key.r>lastZoomLevel) {
-      key.r--;
-      off.x=off.x*0.5+mod(key.g,2.0);
-      off.y=off.y*0.5+1.0-mod(key.b,2.0);
-      key.gb=floor(key.gb/2.0);
-    } else {
-      break;
-    }
-  }
-  return mid;
-}
-
-#if TERRAIN
-int findInBufferT(vec3 key) {
-  int mid;float min=0.0,max=float(BUFF_SIZE_T)-1.0;
-  for (int _i=0;_i<BINARY_SEARCH_CYCLES_T;++_i) {
-    if (min>max) break;
-    mid=int((min+max)*0.5);
-    float res=compareMeta(uMetaBufferT[mid].xyz,key);
-    if (res>0.0){
-      max=float(mid)-1.0;
-    } else if (res<0.0){
-      min=float(mid)+1.0;
-    } else {
-      return mid;
-    }
-  }
-  return -1;
-}
-
-int lookupT(inout vec3 key,inout vec2 off) {
-  float lastZoomLevel=max(0.0,uZoomLevel-float(LOOKUP_LEVELS_T)+1.0);
-  int mid=-1;
-  for (int _i=0;_i<LOOKUP_LEVELS_T;++_i) {
-    mid=findInBufferT(key);
-    if (mid<0 && key.r>lastZoomLevel) {
-      key.r--;
-      off.x=off.x*0.5+mod(key.g,2.0);
-      off.y=off.y*0.5+1.0-mod(key.b,2.0);
-      key.gb=floor(key.gb/2.0);
-    } else {
-      break;
-    }
-  }
-  return mid;
-}
-#endif
 
 void main(){
+  // real world coordinates
   vec2 phi=PI2*vec2(aVertexPosition.x+uOffset.x,aVertexPosition.y+uOffset.y)/uTileCount;
-  
-  float tilex=mod(aVertexPosition.x-aTextureCoord.x+uOffset.x+uTileCount*0.5,uTileCount);
-  float tiley=aTextureCoord.y-1.0-aVertexPosition.y-uOffset.y+uTileCount*0.5;
-  
+
+  //tile coordinates
+  vec2 tileCoords=vec2(mod(aVertexPosition.x-aTextureCoord.x+uOffset.x+uTileCount*0.5,uTileCount),
+                       -aTextureCoord.y-aVertexPosition.y-uOffset.y+uTileCount*0.5);
+
+  //elevation
   float elev=0.0;
-  
+
+//terrain
 #if TERRAIN
-
-  float zoomdiff = max(3.0, uZoomLevel - MAX_ZOOM_T);
-  
-  vec2 offT = vec2(0.0,0.0);  
-  vec3 keyT=vec3(uZoomLevel-zoomdiff,tilex,tiley);
-    
-  for (float i=0.0;i<15.0;++i) {
-    if (i>=zoomdiff) break;
-    offT.x=offT.x*0.5+mod(keyT.g,2.0);
-    offT.y=offT.y*0.5+1.0-mod(keyT.b,2.0);
-    keyT.gb=floor(keyT.gb/2.0);
+  vec2 TCT;
+  float fallbackT = -1.0;
+  float degradationModifier = exp2(uDegradationT);
+  vec2 offT = modFirst(tileCoords/degradationModifier - uOffLT[0],uTileCount/degradationModifier);
+  float rawElev = 0.0;
+  if (validateOffsetT(offT) && uMetaL0T[int(floor(offT.y)*BUFF_SIDE_T+offT.x)] == 1.0) {
+    fallbackT = 0.0;
+  } else {
+    offT = modFirst((tileCoords/(2.0*degradationModifier)) - uOffLT[1],uTileCount/(2.0*degradationModifier));
+    if (validateOffsetT(offT) && uMetaL1T[int(floor(offT.y)*BUFF_SIDE_T+offT.x)] == 1.0) {
+      fallbackT = 1.0;
+    } else {
+      TCT=(tileCoords + aTextureCoord)/uTileCount;
+    }
   }
-  
-  int tileT=lookupT(keyT,offT);
-  
-  if (tileT>=0) {
-    float i=uMetaBufferT[tileT].a;
-    float reduction=exp2(uZoomLevel-keyT.r);
-
-    vec2 vTileT=vec2(mod(i,BUFF_W_T),floor(i/BUFF_W_T));
-    vec2 vTCT=offT*0.5+(aTextureCoord)/reduction;
-    
-    vec2 TCT_=clamp(vTCT*uTileSize,0.5,uTileSize-0.5);
-    vec2 BCT_=(vTileT+(TCT_/uTileSize));
-    
-    float value=texture2D(uTileBufferT,vec2(BCT_.s/BUFF_W_T,BCT_.t/BUFF_H_T)).r;
-    elev = value * 8248.0 / 6371009.0;
+  if (fallbackT >= 0.0) {
+    TCT=(offT+aTextureCoord/(exp2(fallbackT)*degradationModifier)+mod(uOffLT[int(fallbackT)],BUFF_SIDE_T))/BUFF_SIDE_T;
   }
-  
+  TCT.y = 1.0-TCT.y; //flip Y axis
+  if (fallbackT == 0.0) {
+    rawElev=texture2D(uBufferL0T,TCT).r;
+  } else if (fallbackT == 1.0) {
+    rawElev=texture2D(uBufferL1T,TCT).r;
+  } else {
+    rawElev=texture2D(uBufferLnT,TCT).r;
+  }
+
+  elev = rawElev * 8248.0 / EARTH_RADIUS; //raw elevation (0-1) * earth radius
 #endif
-  
+
+  //bend the segplane
   float exp_2y=exp(2.0*phi.y);
   float tanh=((exp_2y-1.0)/(exp_2y+1.0));
   float cosy=sqrt(1.0-tanh*tanh);
   vec3 pos=vec3(sin(phi.x)*cosy,tanh,cos(phi.x)*cosy);
   gl_Position=uMVPMatrix*vec4(pos*(1.0+elev),1.0);
 
-  vec2 off;
-  vec3 key=vec3(uZoomLevel,tilex,tiley);
-  int tile=lookup(key,off);
-  
-  if (tile>=0) {
-    float i=uMetaBuffer[tile].a;
-    float reduction=exp2(uZoomLevel-key.r);
-    vTile.x=mod(i,BUFF_W);
-    vTile.y=floor(i/BUFF_W);
-    vTC.x=off.x*0.5+(aTextureCoord.x)/reduction;
-    vTC.y=off.y*0.5+(aTextureCoord.y)/reduction;
-    return;
+  //texture A
+  vFallbackA = -1.0;
+  vec2 off = modFirst(tileCoords - uOffL[0],uTileCount);
+  if (validateOffset(off) && uMetaL0[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+    vFallbackA = 0.0;
+  } else {
+    off = modFirst((tileCoords / 2.0) - uOffL[1],uTileCount/2.0);
+    if (validateOffset(off) && uMetaL1[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+      vFallbackA = 1.0;
+    } else {
+      off = modFirst((tileCoords / 4.0) - uOffL[2],uTileCount/4.0);
+      if (validateOffset(off) && uMetaL2[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+        vFallbackA = 2.0;
+      }
+    }
   }
-
-  vTile=vec2(0.0,0.0);
-  vTC=vec2(0.0,0.0);
-
-  if ((abs(phi.y)-MAX_PHI)>0.01)
-    vTC=vec2(0.5,0.5);
-    
+  if (vFallbackA >= 0.0) {
+    vTCA = (off+aTextureCoord/exp2(vFallbackA)+mod(uOffL[int(vFallbackA)],BUFF_SIDE))/BUFF_SIDE;
+  } else {
+    vTCA = (tileCoords + aTextureCoord)/uTileCount;
+  }
+  vTCA.y = 1.0-vTCA.y; //flip Y axis
 }

@@ -106,7 +106,8 @@ we.texturing.TileProvider.prototype.loadTile = function(tile) {
   var onerror = function(tileprovider) {return (function() {
     if (goog.DEBUG) {
       we.texturing.TileProvider.logger.severe('Error loading tile: ' +
-                                              tile.getKey());
+                                              tile.getKey() + ' (' +
+                                              tileprovider.name + ')');
     }
     tile.state = we.texturing.Tile.State.ERROR;
     tileprovider.loadingTileCounter--;

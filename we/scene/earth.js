@@ -29,35 +29,16 @@
 
 goog.provide('we.scene.Earth');
 
-goog.require('goog.Timer');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
 goog.require('goog.math');
 
 goog.require('we.gl.SegmentedPlane');
 goog.require('we.gl.Shader');
+goog.require('we.scene.ClipStack');
 goog.require('we.scene.LocatedProgram');
-goog.require('we.scene.TileBuffer');
 goog.require('we.shaderbank');
 goog.require('we.texturing.MapQuestTileProvider');
-
-
-/**
- * @define {number}
- * Maximum number of zoom levels, the shader should fall back when
- * looking up appropriate tile. This is the bottleneck of shader
- * compilation and performance and should be chosen very carefully.
- */
-we.scene.LOOKUP_FALLBACK_LEVELS = 4;
-
-
-/**
- * @define {number}
- * Maximum number of zoom levels, the shader should fall back when
- * looking up appropriate tile. This is the bottleneck of shader
- * compilation and performance and should be chosen very carefully.
- */
-we.scene.LOOKUP_FALLBACK_LEVELS_T = 2;
 
 
 /**
@@ -65,6 +46,13 @@ we.scene.LOOKUP_FALLBACK_LEVELS_T = 2;
  * @define {number} Average radius of Earth in meters.
  */
 we.scene.EARTH_RADIUS = 6371009;
+
+
+/**
+ * @define {number} Defines how many zoom levels the terrain is "delayed" -
+ *                  for texture level 8 we don't need level 8 terrain.
+ */
+we.scene.TERRAIN_ZOOM_DIFFERENCE = 3;
 
 
 
@@ -95,12 +83,11 @@ we.scene.Earth = function(scene, opt_tileProvider) {
                               new we.texturing.MapQuestTileProvider();
 
   /**
-   * @type {!we.scene.TileBuffer}
+   * @type {!we.scene.ClipStack}
    * @private
    */
-  this.tileBuffer_ = new we.scene.TileBuffer(this.currentTileProvider_,
-                                             this.context, 8, 8);
-
+  this.clipStackA_ = new we.scene.ClipStack(this.currentTileProvider_,
+                                            this.context, 8, 3, 1, 19);
 
   /**
    * @type {boolean}
@@ -108,25 +95,25 @@ we.scene.Earth = function(scene, opt_tileProvider) {
   this.terrain = this.context.isVTFSupported();
 
   if (this.terrain) {
+
     /**
-     * @type {!we.scene.TileBuffer}
+     * @type {!we.texturing.TileProvider}
      * @private
      */
-    this.tileBufferT_ = new we.scene.TileBuffer(
-        new we.texturing.GenericTileProvider('CleanTOPO2',
-        '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 0, 5, 256),
-        this.context, 4, 4);
+    this.terrainProvider_ = new we.texturing.GenericTileProvider('CleanTOPO2',
+        '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 3, 5, 256);
+
+    /**
+     * @type {!we.scene.ClipStack}
+     * @private
+     */
+    this.clipStackT_ = new we.scene.ClipStack(this.terrainProvider_,
+                                              this.context, 2, 3, 2, 5);
   } else if (goog.DEBUG) {
     we.scene.Earth.logger.warning('VTF not supported..');
   }
 
   this.changeTileProvider(this.currentTileProvider_, true);
-
-  this.updateTilesTimer = new goog.Timer(150);
-  goog.events.listen(this.updateTilesTimer, goog.Timer.TICK,
-                     goog.bind(this.updateTiles, this));
-
-  this.updateTilesTimer.start();
 
   /**
    * @type {number}
@@ -151,46 +138,18 @@ we.scene.Earth = function(scene, opt_tileProvider) {
                      new we.gl.SegmentedPlane(this.context, 32, 32, 8)];
 
 
-  var dim = this.getBufferDimensions();
-
   var fragmentShaderCode = we.shaderbank.getShaderCode('earth-fs.glsl');
-
-  fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
-      dim.width.toFixed(1));
-  fragmentShaderCode = fragmentShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
-      dim.height.toFixed(1));
-
   var vertexShaderCode = we.shaderbank.getShaderCode('earth-vs.glsl');
 
-  vertexShaderCode = vertexShaderCode.replace('%BUFFER_WIDTH_FLOAT%',
-      dim.width.toFixed(1));
-  vertexShaderCode = vertexShaderCode.replace('%BUFFER_HEIGHT_FLOAT%',
-      dim.height.toFixed(1));
-  vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_INT%',
-      (dim.width * dim.height).toFixed(0));
-  vertexShaderCode = vertexShaderCode.replace('%BINARY_SEARCH_CYCLES_INT%',
-      (Math.log(dim.width * dim.height) / Math.LN2).toFixed(0));
-  vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_INT%',
-      (we.scene.LOOKUP_FALLBACK_LEVELS + 1).toFixed(0));
+  vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIDE_FLOAT%',
+      this.getBufferSideSize_().toFixed(1));
 
   vertexShaderCode = vertexShaderCode.replace('%TERRAIN_BOOL%',
       this.terrain ? '1' : '0');
   if (this.terrain) {
-    var dimT = this.getBufferDimensions(true);
-    vertexShaderCode = vertexShaderCode.replace('%BUFFER_WIDTH_T_FLOAT%',
-        dimT.width.toFixed(1));
-    vertexShaderCode = vertexShaderCode.replace('%BUFFER_HEIGHT_T_FLOAT%',
-        dimT.height.toFixed(1));
-    vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIZE_T_INT%',
-        (dimT.width * dimT.height).toFixed(0));
-    vertexShaderCode = vertexShaderCode.replace('%BINARY_SEARCH_CYCLES_T_INT%',
-        (Math.log(dimT.width * dimT.height) / Math.LN2).toFixed(0));
-    vertexShaderCode = vertexShaderCode.replace('%LOOKUP_LEVELS_T_INT%',
-        (we.scene.LOOKUP_FALLBACK_LEVELS_T + 1).toFixed(0));
-    vertexShaderCode = vertexShaderCode.replace('%MAX_ZOOM_T_FLOAT%',
-        (this.tileBufferT_.tileProvider_.getMaxZoomLevel()).toFixed(1));
+    vertexShaderCode = vertexShaderCode.replace('%BUFFER_SIDE_T_FLOAT%',
+        this.getBufferSideSize_(true).toFixed(1));
   }
-
   var fsshader = we.gl.Shader.create(this.context, fragmentShaderCode,
       gl.FRAGMENT_SHADER);
   var vsshader = we.gl.Shader.create(this.context, vertexShaderCode,
@@ -220,13 +179,22 @@ we.scene.Earth = function(scene, opt_tileProvider) {
 
 
 /**
- * Returns dimension of underlying buffer.
+ * Returns size of one side of underlying buffer in tiles.
  * @param {boolean=} opt_terrain Terrain buffer?
- * @return {!Object} Object containing "width" and "height" keys.
+ * @return {number} Size.
+ * @private
  */
-we.scene.Earth.prototype.getBufferDimensions = function(opt_terrain) {
-  return (opt_terrain && this.terrain) ? this.tileBufferT_.getDimensions() :
-                                         this.tileBuffer_.getDimensions();
+we.scene.Earth.prototype.getBufferSideSize_ = function(opt_terrain) {
+  return (opt_terrain ? this.clipStackT_ : this.clipStackA_).getSideLength();
+};
+
+
+/**
+ * @return {string} Debugging text to show to the user/developer.
+ */
+we.scene.Earth.prototype.getInfoText = function() {
+  return 'BufferQueue size: ' + this.clipStackA_.getQueueSizesText() +
+         '; Loading tiles: ' + this.currentTileProvider_.loadingTileCounter;
 };
 
 
@@ -238,7 +206,7 @@ we.scene.Earth.prototype.getBufferDimensions = function(opt_terrain) {
 we.scene.Earth.prototype.changeTileProvider = function(tileprovider,
     opt_firstRun) {
   this.currentTileProvider_ = tileprovider;
-  this.tileBuffer_.changeTileProvider(this.currentTileProvider_);
+  this.clipStackA_.changeTileProvider(this.currentTileProvider_);
   this.currentTileProvider_.copyrightInfoChangedHandler =
       goog.bind(this.scene.updateCopyrights, this);
 
@@ -260,8 +228,9 @@ we.scene.Earth.prototype.getCurrentTileProvider = function() {
 
 /**
  * Calculates which tiles are needed and tries to buffer them
+ * @private
  */
-we.scene.Earth.prototype.updateTiles = function() {
+we.scene.Earth.prototype.updateTiles_ = function() {
   this.tileCount = 1 << this.scene.getZoom();
 
   var cameraTarget = this.scene.camera.getTarget(this.scene);
@@ -273,62 +242,12 @@ we.scene.Earth.prototype.updateTiles = function() {
   this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(cameraTarget[0]) /
       (Math.PI * 2) * this.tileCount);
 
-  var position = {x: this.offset[0] + this.tileCount / 2,
-    y: (this.tileCount - 1) - (this.offset[1] + this.tileCount / 2)};
-
-  var flooredZoom = Math.floor(this.scene.getZoom());
-
-  var batchTime = goog.now();
-
-  var getPointsAround = function(x, y, d, zoom, batchTime, tilebuffer) {
-    var result = [];
-    for (var i = -d; i <= d; i++) {
-      var absi = Math.abs(i);
-      tilebuffer.needTile(zoom, x + i, y - d, batchTime - absi);
-      tilebuffer.needTile(zoom, x + i, y + d, batchTime - absi);
-      if (absi != d) {
-        tilebuffer.needTile(zoom, x - d, y + i, batchTime - absi);
-        tilebuffer.needTile(zoom, x + d, y + i, batchTime - absi);
-      }
-    }
-  };
-
-  for (var i = 1; i <= we.scene.LOOKUP_FALLBACK_LEVELS; i++) {
-    //Request "parent" tiles.
-    var need = 4;
-    this.tileBuffer_.needTile(flooredZoom - i, position.x >> i, position.y >> i,
-        batchTime + i, i > need);
-  }
-
-  //Request tiles close to "parent" tile.
-  getPointsAround(position.x >> 1,
-                  position.y >> 1,
-                  1, flooredZoom - 1, batchTime, this.tileBuffer_);
-
-
-  //Request the best tile.
-  this.tileBuffer_.needTile(flooredZoom, position.x, position.y, batchTime + 3);
-
-  //Request close tiles.
-  getPointsAround(position.x, position.y, 1,
-                  flooredZoom, batchTime + 2, this.tileBuffer_);
-  getPointsAround(position.x, position.y, 2,
-                  flooredZoom, batchTime - 5, this.tileBuffer_);
-
-  this.tileBuffer_.purge(500);
-
-  this.tileBuffer_.processTiles(2, 12);
-
+  this.clipStackA_.moveCenter(cameraTarget[0], cameraTarget[1],
+                              Math.floor(this.scene.getZoom()));
   if (this.terrain) {
-    var terrainZoom = goog.math.clamp(flooredZoom - 3, 0,
-        this.tileBufferT_.tileProvider_.getMaxZoomLevel());
-    var zoomdiff = flooredZoom - terrainZoom;
-    this.tileBuffer_.needTile(terrainZoom, position.x >> zoomdiff,
-                              position.y >> zoomdiff, batchTime + 1);
-    getPointsAround(position.x >> zoomdiff, position.y >> zoomdiff, 1,
-                    terrainZoom, batchTime, this.tileBufferT_);
-    //this.tileBufferT_.purge(500);
-    this.tileBufferT_.processTiles(1, 4);
+    this.clipStackT_.moveCenter(cameraTarget[0], cameraTarget[1],
+                                Math.floor(this.scene.getZoom()) -
+                                we.scene.TERRAIN_ZOOM_DIFFERENCE);
   }
 };
 
@@ -339,7 +258,11 @@ we.scene.Earth.prototype.updateTiles = function() {
 we.scene.Earth.prototype.draw = function() {
   var gl = this.context.gl;
 
-  this.tileCount = 1 << this.scene.getZoom();
+  this.updateTiles_();
+
+  var zoom = Math.floor(this.scene.getZoom());
+
+  this.tileCount = 1 << zoom;
 
   this.context.rotate001(-this.scene.camera.roll);
   this.context.rotate100(-this.scene.camera.tilt);
@@ -352,32 +275,65 @@ we.scene.Earth.prototype.draw = function() {
   gl.useProgram(this.locatedProgram.program);
 
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, this.tileBuffer_.bufferTexture);
-  gl.uniform1i(this.locatedProgram.tileBufferUniform, 0);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.getBuffer(zoom, 0));
+  gl.uniform1i(this.locatedProgram.bufferL0Uniform, 0);
 
-  var metaBufferFlat = goog.array.flatten(this.tileBuffer_.metaBuffer);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.getBuffer(zoom, 1));
+  gl.uniform1i(this.locatedProgram.bufferL1Uniform, 1);
 
-  gl.uniform4fv(this.locatedProgram.metaBufferUniform,
-                new Float32Array(metaBufferFlat));
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.getBuffer(zoom, 2));
+  gl.uniform1i(this.locatedProgram.bufferL2Uniform, 2);
+
+  gl.activeTexture(gl.TEXTURE3);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.leveln.texture);
+  gl.uniform1i(this.locatedProgram.bufferLnUniform, 3);
+
+  gl.uniform1fv(this.locatedProgram.metaL0Uniform,
+                new Float32Array(this.clipStackA_.getMeta(zoom, 0)));
+  gl.uniform1fv(this.locatedProgram.metaL1Uniform,
+                new Float32Array(this.clipStackA_.getMeta(zoom, 1)));
+  gl.uniform1fv(this.locatedProgram.metaL2Uniform,
+                new Float32Array(this.clipStackA_.getMeta(zoom, 2)));
+
+  gl.uniform2fv(this.locatedProgram.levelOffsetsUniform,
+                new Float32Array(this.clipStackA_.getOffsets(zoom, 3)));
 
   if (this.terrain) {
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.tileBufferT_.bufferTexture);
-    gl.uniform1i(this.locatedProgram.tileBufferTUniform, 1);
 
-    var metaBufferTFlat = goog.array.flatten(this.tileBufferT_.metaBuffer);
+    var terrainZoom = goog.math.clamp(zoom - we.scene.TERRAIN_ZOOM_DIFFERENCE,
+                                      2,
+                                      this.terrainProvider_.getMaxZoomLevel());
 
-    gl.uniform4fv(this.locatedProgram.metaBufferTUniform,
-                  new Float32Array(metaBufferTFlat));
-    gl.uniform1f(this.locatedProgram.tileSizeTUniform,
-        this.tileBufferT_.tileProvider_.getTileSize());
+    gl.uniform1f(this.locatedProgram.degradationTUniform, zoom - terrainZoom);
+
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, this.clipStackT_.getBuffer(terrainZoom, 0));
+    gl.uniform1i(this.locatedProgram.bufferL0TUniform, 4);
+
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D, this.clipStackT_.getBuffer(terrainZoom, 1));
+    gl.uniform1i(this.locatedProgram.bufferL1TUniform, 5);
+
+    gl.activeTexture(gl.TEXTURE6);
+    gl.bindTexture(gl.TEXTURE_2D, this.clipStackT_.leveln.texture);
+    gl.uniform1i(this.locatedProgram.bufferLnTUniform, 6);
+
+    gl.uniform1fv(this.locatedProgram.metaL0TUniform,
+                  new Float32Array(this.clipStackT_.getMeta(terrainZoom, 0)));
+    gl.uniform1fv(this.locatedProgram.metaL1TUniform,
+                  new Float32Array(this.clipStackT_.getMeta(terrainZoom, 1)));
+
+    gl.uniform2fv(this.locatedProgram.levelOffsetsTUniform,
+                  new Float32Array(
+        this.clipStackT_.getOffsets(terrainZoom, 2)));
   }
 
   var mvpm = new Float32Array(goog.array.flatten(
       this.context.flushMVPM().getTranspose().toArray()));
 
-  var plane = this.segPlanes_[Math.min(Math.floor(this.scene.getZoom()),
-                                       this.segPlanes_.length - 1)];
+  var plane = this.segPlanes_[Math.min(zoom, this.segPlanes_.length - 1)];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, plane.vertexBuffer);
   gl.vertexAttribPointer(this.locatedProgram.vertexPositionAttribute,
@@ -390,10 +346,6 @@ we.scene.Earth.prototype.draw = function() {
       gl.FLOAT, false, 0, 0);
 
   gl.uniformMatrix4fv(this.locatedProgram.mvpMatrixUniform, false, mvpm);
-  gl.uniform1f(this.locatedProgram.tileSizeUniform,
-      this.currentTileProvider_.getTileSize());
-  gl.uniform1f(this.locatedProgram.zoomLevelUniform,
-               Math.floor(this.scene.getZoom()));
   gl.uniform1f(this.locatedProgram.tileCountUniform, this.tileCount);
 
   gl.uniform2fv(this.locatedProgram.offsetUniform,

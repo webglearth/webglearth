@@ -281,9 +281,8 @@ we.scene.Scene.prototype.draw = function() {
         goog.math.toDegrees(this.camera.longitude).toFixed(4) + ' @ ' +
         this.camera.altitude.toFixed(0) + 'm ' +
         (this.camera.fixedAltitude ? '->' : '<-') + ' z=' +
-        this.zoomLevel_.toFixed(3) + '; BufferQueue size: ' +
-        this.earth.tileBuffer_.bufferQueueSize() + '; Loading tiles: ' +
-        this.earth.getCurrentTileProvider().loadingTileCounter;
+        this.zoomLevel_.toFixed(3) + '; ' +
+        this.earth.getInfoText();
   }
 
   this.earth.draw();

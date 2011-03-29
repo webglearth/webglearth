@@ -135,7 +135,7 @@ we.gl.SegmentedPlane.prototype.generateTile_ = function(offX, offY,
   for (var y = 0; y <= subdiv; ++y) {
     for (var x = 0; x <= subdiv; ++x) {
       this.vertices_.push(offX + x / subdiv, offY + y / subdiv);
-      this.coords_.push(x / subdiv, y / subdiv);
+      this.coords_.push(x / subdiv, 1 - y / subdiv);
     }
   }
 
@@ -145,28 +145,28 @@ we.gl.SegmentedPlane.prototype.generateTile_ = function(offX, offY,
     additionStarts[0] = this.vertices_.length / 2;
     for (var x = 0; x < subdiv; ++x) {
       this.vertices_.push(offX + (x + 0.5) / subdiv, offY + 1);
-      this.coords_.push((x + 0.5) / subdiv, 1);
+      this.coords_.push((x + 0.5) / subdiv, 0);
     }
   }
   if (doubles[1]) { //RIGHT
     additionStarts[1] = this.vertices_.length / 2;
     for (var y = 0; y < subdiv; ++y) {
       this.vertices_.push(offX + 1, offY + (y + 0.5) / subdiv);
-      this.coords_.push(1, (y + 0.5) / subdiv);
+      this.coords_.push(1, 1 - (y + 0.5) / subdiv);
     }
   }
   if (doubles[2]) { //BOTTOM
     additionStarts[2] = this.vertices_.length / 2;
     for (var x = 0; x < subdiv; ++x) {
       this.vertices_.push(offX + (x + 0.5) / subdiv, offY);
-      this.coords_.push((x + 0.5) / subdiv, 0);
+      this.coords_.push((x + 0.5) / subdiv, 1);
     }
   }
   if (doubles[3]) { //LEFT
     additionStarts[3] = this.vertices_.length / 2;
     for (var y = 0; y < subdiv; ++y) {
       this.vertices_.push(offX, offY + (y + 0.5) / subdiv);
-      this.coords_.push(0, (y + 0.5) / subdiv);
+      this.coords_.push(0, 1 - (y + 0.5) / subdiv);
     }
   }
 
