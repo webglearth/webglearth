@@ -14,7 +14,6 @@ api/api.js: \
 		--compiler_flags=--compilation_level=ADVANCED_OPTIMIZATIONS \
 		--compiler_flags=--define=goog.DEBUG=false \
 		--compiler_flags=--define=we.CALC_FPS=false \
-		--compiler_flags=--externs=we/webgl-externs.js \
 		--compiler_flags=--warning_level=VERBOSE \
 		--compiler_jar=$(COMPILER_JAR) \
 		--root=$(CLOSURE_LIBRARY)/closure/goog/ \
@@ -54,7 +53,6 @@ weapp/index.js: \
 		--compiler_flags=--define=goog.DEBUG=false \
 		--compiler_flags=--define=we.CALC_FPS=true \
 		--compiler_flags=--define=weapp.BING_KEY=\"$(BING_KEY)\" \
-		--compiler_flags=--externs=we/webgl-externs.js \
 		--compiler_flags=--warning_level=VERBOSE \
 		--compiler_jar=$(COMPILER_JAR) \
 		--root=$(CLOSURE_LIBRARY)/closure/goog/ \
@@ -73,5 +71,4 @@ clean:
 lint:
 	gjslint \
 		$(foreach target,$(TARGETS),--exclude_files=$(target)) \
-		--exclude_files=we/webgl-externs.js \
 		$(filter-out $(TARGETS), $(shell find api we weapp -name \*.js))
