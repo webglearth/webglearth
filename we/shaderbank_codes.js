@@ -33,7 +33,7 @@ goog.provide('we.shaderbank.codes');
 
 
 /** @type {string} */
-we.shaderbank.codes['earth-fs.glsl'] = 'precision mediump float;uniform sampler2D uBufferL0;uniform sampler2D uBufferL1;uniform sampler2D uBufferL2;uniform sampler2D uBufferLn;varying float vFallbackA;varying vec2 vTCA;void main(){if(vFallbackA==0.0){gl_FragColor=texture2D(uBufferL0,vTCA);}else if(vFallbackA==1.0){gl_FragColor=texture2D(uBufferL1,vTCA);}else if(vFallbackA==2.0){gl_FragColor=texture2D(uBufferL2,vTCA);}else{gl_FragColor=texture2D(uBufferLn,vTCA);}}';
+we.shaderbank.codes['earth-fs.glsl'] = 'precision mediump float;uniform sampler2D uBufferL0;uniform sampler2D uBufferL1;uniform sampler2D uBufferL2;uniform sampler2D uBufferLn;varying float vFallbackA;varying vec2 vTCA;void main(){int fallback=int(vFallbackA+0.5);if(fallback==0){gl_FragColor=texture2D(uBufferL0,vTCA);}else if(fallback==1){gl_FragColor=texture2D(uBufferL1,vTCA);}else if(fallback==2){gl_FragColor=texture2D(uBufferL2,vTCA);}else{gl_FragColor=texture2D(uBufferLn,vTCA);}}';
 
 
 /** @type {string} */
