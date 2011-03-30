@@ -64,6 +64,13 @@ goog.provide('we.shaderbank.codes');\n""")
 
 shaderDir = './shaders/'
 
+# Following operators serve as token delimiters,
+# so we can safely remove any whitespace around them.
+# Hopefully I didn't underestimate anything and this won't break anything :)
+operators = ['(', ')', '[', ']', '*', '/', '+', '-', '<', '>', '<=', '>=', '==',
+             '!=', '&&', '^^', '||', '=', '+=', '-=', '*=', '/=', '{', '}', ';',
+             ',']
+
 def isGLSL(x): return x.endswith('.glsl')
 
 files = filter(isGLSL, os.listdir(shaderDir))
@@ -78,7 +85,7 @@ for file in files:
 
   shader = open(shaderDir + file, 'r')
   for line in shader:
-    line = string.split(line.strip(), '//', 1)[0]
+    line = string.split(line.strip(), '//', 1)[0].expandtabs(1)
 
     if len(line) == 0:
       continue
@@ -89,6 +96,10 @@ for file in files:
     if not inComment:
       if line.startswith('#') and not newLine:
         output.write('\\n')
+
+      for operator in operators:
+        line = line.replace(' ' + operator, operator)
+        line = line.replace(operator + ' ', operator)
 
       output.write(line)
       newLine = False
