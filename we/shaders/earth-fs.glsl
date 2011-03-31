@@ -32,12 +32,12 @@ varying float vFallbackA;
 varying vec2 vTCA;
 
 void main(){
-  int fallback = int(vFallbackA + 0.5);
-  if (fallback  == 0) {
+  float fallback = floor(vFallbackA + 0.5);
+  if (fallback  == 0.0) {
     gl_FragColor=texture2D(uBufferL0,vTCA);
-  } else if (fallback  == 1) {
+  } else if (fallback  == 1.0) {
     gl_FragColor=texture2D(uBufferL1,vTCA);
-  } else if (fallback  == 2) {
+  } else if (fallback  == 2.0) {
     gl_FragColor=texture2D(uBufferL2,vTCA);
   } else {
     gl_FragColor=texture2D(uBufferLn,vTCA);
