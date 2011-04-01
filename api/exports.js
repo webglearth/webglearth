@@ -40,20 +40,20 @@ goog.exportSymbol('WebGLEarth', weapi.App);
 
 //Simple mappings
 goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
-  this.context.scene.setZoom(zoom);
+  this.context.scene.camera.setZoom(zoom);
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
-  return this.context.scene.getZoom();
+  return this.context.scene.camera.getZoom();
 });
 
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
-  this.context.scene.camera.setPosition(coords[0], coords[1]);
+  this.context.scene.camera.setPositionDegrees(coords[0], coords[1]);
   this.context.scene.camera.tilt = 0;
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
-  return this.context.scene.camera.getPosition();
+  return this.context.scene.camera.getPositionDegrees();
 });
 
 // Handle canvas resizing - this is necessary to prevent weird deformations

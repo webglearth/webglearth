@@ -24,6 +24,7 @@
  * @fileoverview Pan Control.
  *
  * @author leosamu@ai2.upv.es (Leonardo Salom)
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
 goog.provide('weapp.ui.PanControl');
@@ -230,7 +231,7 @@ weapp.ui.PanControl.prototype.disposeInternal = function() {
 weapp.ui.PanControl.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   //PI * (How much is 1px on the screen?) * (How much is visible?)
   var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
-      (this.scene_.tilesVertically / Math.pow(2, this.scene_.getZoom()));
+      (this.scene_.tilesVertically / Math.pow(2, this.scene_.camera.getZoom()));
 
   var rotateAxes = function(angle) {
     var x = xDiff;
@@ -243,22 +244,8 @@ weapp.ui.PanControl.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   yDiff /= Math.max(Math.abs(Math.cos(this.scene_.camera.tilt)), 0.1);
   rotateAxes(-this.scene_.camera.heading);
 
-  this.scene_.camera.longitude =
-      this.scene_.camera.longitude - xDiff * 2 * factor;
-  this.scene_.camera.latitude =
-      this.scene_.camera.latitude + yDiff * factor;
+  this.scene_.camera.setPosition(
+      this.scene_.camera.getLatitude() + yDiff * factor,
+      this.scene_.camera.getLongitude() - xDiff * 2 * factor);
 
-
-  if (Math.abs(this.scene_.camera.latitude) > Math.PI / 2.1) {
-    this.scene_.camera.latitude =
-        goog.math.sign(this.scene_.camera.latitude) * (Math.PI / 2.1);
-  }
-
-  if (this.scene_.camera.longitude > Math.PI) {
-    this.scene_.camera.longitude -= 2 * Math.PI;
-  }
-
-  if (this.scene_.camera.longitude < -Math.PI) {
-    this.scene_.camera.longitude += 2 * Math.PI;
-  }
 };

@@ -34,7 +34,6 @@ goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.Event');
-goog.require('goog.events.EventTarget');
 goog.require('goog.math');
 goog.require('goog.math.Vec3');
 
@@ -59,7 +58,6 @@ we.scene.MIN_ZOOM = 1;
  * @param {we.texturing.TileProvider=} opt_tileProvider Default TileProvider.
  * @param {Element=} opt_copyright Additional copyright info to display
  *                                 before map copyright info.
- * @extends {goog.events.EventTarget}
  * @constructor
  */
 we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
@@ -108,11 +106,6 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    */
   this.earth = new we.scene.Earth(this, opt_tileProvider);
 
-  /**
-   * @type {number}
-   * @private
-   */
-  this.zoomLevel_ = 3;
 
   /**
    * This says how many tiles should be visible vertically.
@@ -129,51 +122,6 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.recalcTilesVertically();
   this.updateCopyrights();
 };
-goog.inherits(we.scene.Scene, goog.events.EventTarget);
-
-
-/**
- * Events fired by the scene.
- * @enum {string}
- */
-we.scene.Scene.EventType = {
-  /**
-   * Dispatched when the zoomlevel of the scene is changed.
-   */
-  ZOOMCHANGED: 'zoomchanged'
-};
-
-
-/**
- * Dispatches the ZOOMED event. Sub classes should override this instead
- * of listening to the event, should be protected.
- */
-we.scene.Scene.prototype.onZoomChanged = function() {
-  this.dispatchSceneEvent_(we.scene.Scene.EventType.ZOOMCHANGED);
-};
-
-
-/**
- * Returns an event object for the current scene.
- * @param {string} type Event type that will be dispatched.
- * @private
- */
-we.scene.Scene.prototype.dispatchSceneEvent_ = function(type) {
-  this.dispatchEvent(new we.scene.SceneEvent(type));
-};
-
-
-
-/**
- * Class for an scene event object.
- * @param {string} type Event type.
- * @constructor
- * @extends {goog.events.Event}
- */
-we.scene.SceneEvent = function(type) {
-  goog.events.Event.call(this, type);
-};
-goog.inherits(we.scene.SceneEvent, goog.events.Event);
 
 
 /**
@@ -194,26 +142,6 @@ we.scene.Scene.prototype.updateCopyrights = function() {
       this.tpLogoImg_.style.visibility = 'hidden';
     }
   }
-};
-
-
-/**
- * Sets zoom level and calculates other appropriate cached variables
- * @param {number} zoom New zoom level.
- */
-we.scene.Scene.prototype.setZoom = function(zoom) {
-  this.zoomLevel_ = goog.math.clamp(zoom, this.getMinZoom(), this.getMaxZoom());
-
-  this.camera.fixedAltitude = false;
-  this.onZoomChanged();
-};
-
-
-/**
- * @return {number} Zoom level.
- */
-we.scene.Scene.prototype.getZoom = function() {
-  return this.zoomLevel_;
 };
 
 
@@ -245,43 +173,18 @@ we.scene.Scene.prototype.recalcTilesVertically = function() {
 
 
 /**
- * Recalculates altitude or zoomLevel depending on camera behavior type.
- * @private
- */
-we.scene.Scene.prototype.adjustZoomAndAltitude_ = function() {
-  if (this.camera.fixedAltitude) {
-    var sizeISee = 2 * (this.camera.altitude / we.scene.EARTH_RADIUS) *
-                   Math.tan(this.context.fov / 2);
-    var sizeOfOneTile = sizeISee / this.tilesVertically;
-    var o = Math.cos(Math.abs(this.camera.latitude)) * 2 * Math.PI;
-
-    this.zoomLevel_ = goog.math.clamp(Math.log(o / sizeOfOneTile) / Math.LN2,
-                                      this.getMinZoom(), this.getMaxZoom());
-  } else {
-    var o = Math.cos(Math.abs(this.camera.latitude)) * 2 * Math.PI;
-    var thisPosDeformation = o / Math.pow(2, this.zoomLevel_);
-    var sizeIWannaSee = thisPosDeformation * this.tilesVertically;
-    this.camera.altitude = (1 / Math.tan(this.context.fov / 2)) *
-        (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
-  }
-};
-
-
-/**
  * Draw scene
  */
 we.scene.Scene.prototype.draw = function() {
   var gl = this.context.gl;
 
-  this.adjustZoomAndAltitude_();
-
   if (!goog.isNull(this.infobox_)) {
     this.infobox_.innerHTML =
-        goog.math.toDegrees(this.camera.latitude).toFixed(4) + '; ' +
-        goog.math.toDegrees(this.camera.longitude).toFixed(4) + ' @ ' +
-        this.camera.altitude.toFixed(0) + 'm ' +
+        goog.math.toDegrees(this.camera.getLatitude()).toFixed(4) + '; ' +
+        goog.math.toDegrees(this.camera.getLongitude()).toFixed(4) + ' @ ' +
+        this.camera.getAltitude().toFixed(0) + 'm ' +
         (this.camera.fixedAltitude ? '->' : '<-') + ' z=' +
-        this.zoomLevel_.toFixed(3) + '; ' +
+        this.camera.getZoom().toFixed(3) + '; ' +
         this.earth.getInfoText();
   }
 

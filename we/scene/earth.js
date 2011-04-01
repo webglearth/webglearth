@@ -220,6 +220,8 @@ we.scene.Earth.prototype.changeTileProvider = function(tileprovider,
   if (opt_firstRun !== true) {
     this.scene.recalcTilesVertically();
     this.scene.updateCopyrights();
+
+    this.scene.camera.setZoom(this.scene.camera.getZoom()); //revalidate
   }
 };
 
@@ -238,22 +240,22 @@ we.scene.Earth.prototype.getCurrentTileProvider = function() {
  * @private
  */
 we.scene.Earth.prototype.updateTiles_ = function() {
-  this.tileCount = 1 << this.scene.getZoom();
+  this.tileCount = 1 << this.scene.camera.getZoom();
 
   var cameraTarget = this.scene.camera.getTarget(this.scene);
   if (goog.isNull(cameraTarget)) {
     //If camera is not pointed at Earth, just fallback to latlon now
-    cameraTarget = [this.scene.camera.latitude, this.scene.camera.longitude];
+    cameraTarget = this.scene.camera.getPosition();
   }
   this.offset[0] = Math.floor(cameraTarget[1] / (2 * Math.PI) * this.tileCount);
   this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(cameraTarget[0]) /
       (Math.PI * 2) * this.tileCount);
 
   this.clipStackA_.moveCenter(cameraTarget[0], cameraTarget[1],
-                              Math.floor(this.scene.getZoom()));
+                              Math.floor(this.scene.camera.getZoom()));
   if (this.terrain) {
     this.clipStackT_.moveCenter(cameraTarget[0], cameraTarget[1],
-                                Math.floor(this.scene.getZoom()) -
+                                Math.floor(this.scene.camera.getZoom()) -
                                 we.scene.TERRAIN_ZOOM_DIFFERENCE);
   }
 };
@@ -267,17 +269,17 @@ we.scene.Earth.prototype.draw = function() {
 
   this.updateTiles_();
 
-  var zoom = Math.floor(this.scene.getZoom());
+  var zoom = Math.floor(this.scene.camera.getZoom());
 
   this.tileCount = 1 << zoom;
 
   this.context.rotate001(-this.scene.camera.roll);
   this.context.rotate100(-this.scene.camera.tilt);
   this.context.rotate001(-this.scene.camera.heading);
-  this.context.translate(0, 0, -1 - this.scene.camera.altitude /
+  this.context.translate(0, 0, -1 - this.scene.camera.getAltitude() /
       we.scene.EARTH_RADIUS);
-  this.context.rotate100(this.scene.camera.latitude);
-  this.context.rotate010(-this.scene.camera.longitude);
+  this.context.rotate100(this.scene.camera.getLatitude());
+  this.context.rotate010(-this.scene.camera.getLongitude());
 
   gl.useProgram(this.locatedProgram.program);
 

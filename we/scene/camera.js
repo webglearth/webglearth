@@ -28,41 +28,56 @@
  */
 
 goog.provide('we.scene.Camera');
+goog.provide('we.scene.CameraEvent');
 
+goog.require('goog.events.Event');
+goog.require('goog.events.EventTarget');
 goog.require('goog.math');
+
+goog.require('we.utils');
 
 
 
 /**
  * Camera object
- * @param {we.scene.Scene=} opt_scene Scene.
+ * @param {!we.scene.Scene} scene Scene.
+ * @extends {goog.events.EventTarget}
  * @constructor
  */
-we.scene.Camera = function(opt_scene) {
+we.scene.Camera = function(scene) {
 
   /**
-   * @type {we.scene.Scene}
+   * @type {!we.scene.Scene}
    * @private
    */
-  this.scene_ = opt_scene || null;
+  this.scene_ = scene;
 
   /**
    * Latitude in radians
    * @type {number}
+   * @private
    */
-  this.latitude = 0;
+  this.latitude_ = 0;
 
   /**
    * Longitude in radians
    * @type {number}
+   * @private
    */
-  this.longitude = 0;
+  this.longitude_ = 0;
 
   /**
-   * @type {number}
+   * @type {?number}
    * Altitude of this camera in meters
+   * @private
    */
-  this.altitude = 10000000;
+  this.altitude_ = 10000000;
+
+  /**
+   * @type {?number}
+   * @private
+   */
+  this.zoom_ = 3;
 
   /**
    * Camera heading in radians
@@ -93,6 +108,7 @@ we.scene.Camera = function(opt_scene) {
   this.fixedAltitude = true;
 
 };
+goog.inherits(we.scene.Camera, goog.events.EventTarget);
 
 
 /**
@@ -100,9 +116,30 @@ we.scene.Camera = function(opt_scene) {
  * @param {number} latitude Latitude in degrees.
  * @param {number} longitude Longitude in degrees.
  */
+we.scene.Camera.prototype.setPositionDegrees = function(latitude, longitude) {
+  this.setPosition(goog.math.toRadians(latitude),
+                   goog.math.toRadians(longitude));
+};
+
+
+/**
+ * Immediately sets position of this camera to given location.
+ * @param {number} latitude Latitude in radians.
+ * @param {number} longitude Longitude in radians.
+ */
 we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
-  this.latitude = goog.math.toRadians(goog.math.clamp(latitude, -89, 89));
-  this.longitude = goog.math.toRadians(longitude);
+  this.latitude_ = goog.math.clamp(latitude, -1.5, 1.5);
+  this.longitude_ = we.utils.standardLongitudeRadians(longitude);
+
+  if (this.fixedAltitude) {
+    this.zoom_ = null;
+    this.dispatchEvent(new we.scene.CameraEvent(
+        we.scene.Camera.EventType.ZOOMCHANGED));
+  } else {
+    this.altitude_ = null;
+    this.dispatchEvent(new we.scene.CameraEvent(
+        we.scene.Camera.EventType.ALTITUDECHANGED));
+  }
 };
 
 
@@ -110,9 +147,34 @@ we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
  * Returns Array [latitude, longitude] converted to degrees.
  * @return {Array.<number>} Array [lat, long].
  */
+we.scene.Camera.prototype.getPositionDegrees = function() {
+  return [goog.math.toDegrees(this.latitude_),
+          goog.math.toDegrees(this.longitude_)];
+};
+
+
+/**
+ * Returns Array [latitude, longitude] in radians.
+ * @return {Array.<number>} Array [lat, long].
+ */
 we.scene.Camera.prototype.getPosition = function() {
-  return [goog.math.toDegrees(this.latitude),
-          goog.math.toDegrees(this.longitude)];
+  return [this.latitude_, this.longitude_];
+};
+
+
+/**
+ * @return {number} Latitude.
+ */
+we.scene.Camera.prototype.getLatitude = function() {
+  return this.latitude_;
+};
+
+
+/**
+ * @return {number} Longitude.
+ */
+we.scene.Camera.prototype.getLongitude = function() {
+  return this.longitude_;
 };
 
 
@@ -121,8 +183,18 @@ we.scene.Camera.prototype.getPosition = function() {
  * @param {number} altitude Altitude in meters.
  */
 we.scene.Camera.prototype.setAltitude = function(altitude) {
-  this.altitude = goog.math.clamp(altitude, 250, 10000000);
-  this.fixedAltitude = true;
+  this.altitude_ = goog.math.clamp(altitude, 250, 10000000);
+
+  if (!this.fixedAltitude) {
+    this.calcZoom_(); //recount
+  } else {
+    this.zoom_ = null; //invalidate
+  }
+
+  this.dispatchEvent(new we.scene.CameraEvent(
+      we.scene.Camera.EventType.ALTITUDECHANGED));
+  this.dispatchEvent(new we.scene.CameraEvent(
+      we.scene.Camera.EventType.ZOOMCHANGED));
 };
 
 
@@ -130,7 +202,42 @@ we.scene.Camera.prototype.setAltitude = function(altitude) {
  * @return {number} Altitude in meters.
  */
 we.scene.Camera.prototype.getAltitude = function() {
-  return this.altitude;
+  if (goog.isNull(this.altitude_)) {
+    this.calcAltitude_();
+  }
+  return /** @type {number} */(this.altitude_);
+};
+
+
+/**
+ * Sets zoom level and calculates other appropriate cached variables
+ * @param {number} zoom New zoom level.
+ */
+we.scene.Camera.prototype.setZoom = function(zoom) {
+  this.zoom_ = goog.math.clamp(zoom, this.scene_.getMinZoom(),
+                               this.scene_.getMaxZoom());
+
+  if (this.fixedAltitude) {
+    this.calcAltitude_(); //recount
+  } else {
+    this.altitude_ = null; //invalidate
+  }
+
+  this.dispatchEvent(new we.scene.CameraEvent(
+      we.scene.Camera.EventType.ZOOMCHANGED));
+  this.dispatchEvent(new we.scene.CameraEvent(
+      we.scene.Camera.EventType.ALTITUDECHANGED));
+};
+
+
+/**
+ * @return {number} Zoom level.
+ */
+we.scene.Camera.prototype.getZoom = function() {
+  if (goog.isNull(this.zoom_)) {
+    this.calcZoom_();
+  }
+  return /** @type {number} */(this.zoom_);
 };
 
 
@@ -144,3 +251,61 @@ we.scene.Camera.prototype.getTarget = function(scene) {
   return scene.getLatLongForXY(scene.context.viewportWidth / 2,
                                scene.context.viewportHeight / 2, true);
 };
+
+
+/**
+ * Calculates zoom from altitude
+ * @private
+ */
+we.scene.Camera.prototype.calcZoom_ = function() {
+  var sizeISee = 2 * (this.altitude_ / we.scene.EARTH_RADIUS) *
+                 Math.tan(this.scene_.context.fov / 2);
+  var sizeOfOneTile = sizeISee / this.scene_.tilesVertically;
+  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
+
+  this.zoom_ = goog.math.clamp(Math.log(o / sizeOfOneTile) / Math.LN2,
+                               this.scene_.getMinZoom(),
+                               this.scene_.getMaxZoom());
+};
+
+
+/**
+ * Calculates altitude from zoom
+ * @private
+ */
+we.scene.Camera.prototype.calcAltitude_ = function() {
+  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, this.zoom_);
+  var sizeIWannaSee = thisPosDeformation * this.scene_.tilesVertically;
+  this.altitude_ = (1 / Math.tan(this.scene_.context.fov / 2)) *
+      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
+};
+
+
+/**
+ * Events fired by the camera.
+ * @enum {string}
+ */
+we.scene.Camera.EventType = {
+  /**
+   * Dispatched when the zoom of the camera is changed or recalculated.
+   */
+  ZOOMCHANGED: 'zoomchanged',
+  /**
+   * Dispatched when the altitude of the camera is changed or recalculated.
+   */
+  ALTITUDECHANGED: 'altchanged'
+};
+
+
+
+/**
+ * Class for an scene event object.
+ * @param {string} type Event type.
+ * @constructor
+ * @extends {goog.events.Event}
+ */
+we.scene.CameraEvent = function(type) {
+  goog.events.Event.call(this, type);
+};
+goog.inherits(we.scene.CameraEvent, goog.events.Event);

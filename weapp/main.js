@@ -169,7 +169,7 @@ weapp.App = function(canvas) {
     this.markerManager_.addMarker('nominatimMarker', nominMarker);
 
     var runNominatimAction = goog.bind(function(item) {
-      this.context.scene.camera.setPosition(item['lat'], item['lon']);
+      this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
       this.context.scene.camera.tilt = 0;
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
@@ -193,13 +193,11 @@ weapp.App = function(canvas) {
 
 
     var updateHash = function() {
-      var newhash = '#ll=' + goog.math.toDegrees(
-          this.context.scene.camera.latitude).toFixed(5) +
-          ',' + goog.math.toDegrees(
-              this.context.scene.camera.longitude).toFixed(5) +
+      var pos = this.context.scene.camera.getPositionDegrees();
+      var newhash = '#ll=' + pos[0].toFixed(5) + ',' + pos[1].toFixed(5) +
           (this.context.scene.camera.fixedAltitude ?
           ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) :
-          ';z=' + this.context.scene.getZoom().toFixed(2));
+          ';z=' + this.context.scene.camera.getZoom().toFixed(2));
       window.location.hash = newhash;
     }
 
@@ -217,7 +215,7 @@ weapp.App = function(canvas) {
 
       var zoom = getValue('zoom') || getValue('z');
       if (!isNaN(zoom))
-        this.context.scene.setZoom(zoom);
+        this.context.scene.camera.setZoom(zoom);
 
       var altitude = getValue('alt');
       if (!isNaN(altitude))
@@ -227,12 +225,12 @@ weapp.App = function(canvas) {
       if (goog.isDefAndNotNull(ll)) {
         var llsplit = ll.split(',');
         if (llsplit.length > 1 && !isNaN(llsplit[0]) && !isNaN(llsplit[1]))
-          this.context.scene.camera.setPosition(llsplit[0], llsplit[1]);
+          this.context.scene.camera.setPositionDegrees(llsplit[0], llsplit[1]);
       } else {
         var lat = getValue('lat');
         var lon = getValue('lon') || getValue('long');
         if (!isNaN(lat) && !isNaN(lon))
-          this.context.scene.camera.setPosition(lat, lon);
+          this.context.scene.camera.setPositionDegrees(lat, lon);
       }
     }, this);
 

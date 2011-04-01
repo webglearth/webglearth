@@ -66,7 +66,8 @@ weapp.ui.ZoomSlider = function(scene, element) {
    */
   weapp.ui.ZoomSlider.updateMutex_ = false;
 
-  this.slider_.setValue((this.scene_.getZoom() - this.scene_.getMinZoom()) *
+  this.slider_.setValue((this.scene_.camera.getZoom() -
+                        this.scene_.getMinZoom()) *
                         400 / this.scene_.getMaxZoom());
 
   /**
@@ -77,7 +78,7 @@ weapp.ui.ZoomSlider = function(scene, element) {
       goog.ui.Component.EventType.CHANGE,
       function(e) {
         if (weapp.ui.ZoomSlider.updateMutex_ == false) {
-          scene.setZoom((e.target.getValue() *
+          scene.camera.setZoom((e.target.getValue() *
               (scene.getMaxZoom() - scene.getMinZoom()) /
               400) + scene.getMinZoom());
         }
@@ -88,8 +89,8 @@ weapp.ui.ZoomSlider = function(scene, element) {
    * @type {?number}
    * @private
    */
-  this.zoomEvent_ = goog.events.listen(this.scene_,
-      we.scene.Scene.EventType.ZOOMCHANGED,
+  this.zoomEvent_ = goog.events.listen(this.scene_.camera,
+      we.scene.Camera.EventType.ZOOMCHANGED,
       this.zoomChanged_, false, this);
 
   /**
@@ -113,7 +114,7 @@ weapp.ui.ZoomSlider = function(scene, element) {
   this.addZoomEvent_ = goog.events.listen(this.addZoom_,
       goog.ui.Component.EventType.ACTION,
       function() {
-        scene.setZoom(Math.floor(scene.getZoom() + 1));
+        scene.camera.setZoom(Math.floor(scene.camera.getZoom() + 1));
       });
 
   /**
@@ -123,7 +124,7 @@ weapp.ui.ZoomSlider = function(scene, element) {
   this.substractZoomEvent_ = goog.events.listen(this.substractZoom_,
       goog.ui.Component.EventType.ACTION,
       function(e) {
-        scene.setZoom(Math.floor(scene.getZoom() - 1));
+        scene.camera.setZoom(Math.floor(scene.camera.getZoom() - 1));
       });
 
 
@@ -141,7 +142,8 @@ goog.inherits(weapp.ui.ZoomSlider, goog.Disposable);
 weapp.ui.ZoomSlider.prototype.zoomChanged_ = function() {
   weapp.ui.ZoomSlider.updateMutex_ = true;
 
-  this.slider_.setValue((this.scene_.getZoom() - this.scene_.getMinZoom()) *
+  this.slider_.setValue((this.scene_.camera.getZoom() -
+                        this.scene_.getMinZoom()) *
                         400 / this.scene_.getMaxZoom());
 };
 

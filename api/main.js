@@ -135,14 +135,16 @@ weapi.App = function(divid, opt_options) {
       '.')
       );
 
+  this.context.scene.camera.fixedAltitude = false; //use fixedZoom mode for api
+
   //Parsing options
   if (goog.isDef(opt_options) && 'zoom' in opt_options) {
-    this.context.scene.setZoom(opt_options['zoom']);
+    this.context.scene.camera.setZoom(opt_options['zoom']);
   }
 
   if (goog.isDef(opt_options) && 'center' in opt_options) {
-    this.context.scene.camera.setPosition(opt_options['center'][0],
-                                          opt_options['center'][1]);
+    this.context.scene.camera.setPositionDegrees(opt_options['center'][0],
+                                                 opt_options['center'][1]);
   }
 
   /**

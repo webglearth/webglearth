@@ -98,13 +98,17 @@ we.ui.MouseZoomer = function(scene) {
         if (this.camera.fixedAltitude) {
           this.camera.setAltitude(this.camera.getAltitude() / 2);
         } else {
-          this.setZoom(Math.floor(this.zoomLevel_ + 1));
+          this.camera.setZoom(Math.floor(this.camera.getZoom() + 1));
         }
         var target = this.getLatLongForXY(e.offsetX, e.offsetY, true) ||
                      this.camera.getTarget(this);
         if (target) {
-          this.camera.latitude = (this.camera.latitude + target[0]) / 2;
-          this.camera.longitude = (this.camera.longitude + target[1]) / 2;
+          var lon = (this.camera.getLongitude() + target[1]) / 2;
+          if (Math.abs(this.camera.getLongitude() - target[1]) > Math.PI) {
+            lon += Math.PI;
+          }
+          this.camera.setPosition((this.camera.getLatitude() + target[0]) / 2,
+                                  lon);
         }
         e.preventDefault();
       }, scene));
@@ -120,13 +124,13 @@ we.ui.MouseZoomer = function(scene) {
           if (this.camera.fixedAltitude) {
             this.camera.setAltitude(this.camera.getAltitude() * 2);
           } else {
-            this.setZoom(Math.ceil(this.zoomLevel_ - 1));
+            this.camera.setZoom(Math.ceil(this.camera.getZoom() - 1));
           }
           var target = this.getLatLongForXY(e.offsetX, e.offsetY, true) ||
                        this.camera.getTarget(this);
           if (target) {
-            this.camera.latitude -= (target[0] - this.camera.latitude);
-            this.camera.longitude -= (target[1] - this.camera.longitude);
+            this.camera.setPosition(2 * this.camera.getLatitude() - target[0],
+                                    2 * this.camera.getLongitude() - target[1]);
           }
           e.preventDefault();
         }
@@ -188,7 +192,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
     } else { //Opposite direction - just revert to previous level
       this.animation_.dispose();
       duration *= ((this.fixedAltitude ? this.scene_.camera.getAltitude() :
-                    this.scene_.getZoom()) - this.startX_) /
+                    this.scene_.camera.getZoom()) - this.startX_) /
                   (this.targetX_ - this.startX_);
       var tempX = this.targetX_;
       this.targetX_ = this.startX_;
@@ -200,7 +204,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
       this.targetX_ = this.startX_ *
                       Math.pow(we.ui.MOUSERZOOMER_DISTANCEMODIFIER, direction);
     } else {
-      this.startX_ = this.scene_.getZoom();
+      this.startX_ = this.scene_.camera.getZoom();
       this.targetX_ = this.startX_ + direction * we.ui.MOUSERZOOMER_ZOOMSTEP;
     }
   }
@@ -210,7 +214,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
 
   this.animation_ = new goog.fx.Animation(
       [this.fixedAltitude ? this.scene_.camera.getAltitude() :
-       this.scene_.getZoom()],
+       this.scene_.camera.getZoom()],
       [this.targetX_],
       duration);
 
@@ -220,7 +224,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
         if (this.fixedAltitude) {
           this.scene_.camera.setAltitude(e.x);
         } else {
-          this.scene_.setZoom(e.x);
+          this.scene_.camera.setZoom(e.x);
         }
       }, false, this);
 
