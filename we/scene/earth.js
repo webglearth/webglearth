@@ -43,9 +43,9 @@ goog.require('we.texturing.MapQuestTileProvider');
 
 /**
  * TODO: define this somewhere else?
- * @define {number} Average radius of Earth in meters.
+ * @define {number} Radius of Earth in meters.
  */
-we.scene.EARTH_RADIUS = 6371009;
+we.scene.EARTH_RADIUS = 6378137;
 
 
 /**

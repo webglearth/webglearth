@@ -32,7 +32,7 @@ precision highp float;
 
 const float PI=3.1415927;
 const float PI2=6.2831855;
-const float EARTH_RADIUS=6371009.0; //in meters
+const float EARTH_RADIUS=6378137.0; //in meters
 
 attribute vec2 aVertexPosition;
 attribute vec2 aTextureCoord;
