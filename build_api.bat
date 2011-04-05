@@ -8,7 +8,7 @@ set LIB_ROOT=%PROJECT_ROOT%/closure-library/closure
 set LEVEL=ADVANCED_OPTIMIZATIONS
 set DEFINE_FLAGS1=--define=goog.DEBUG=false
 set DEFINE_FLAGS2=--define=we.CALC_FPS=true
-set WARNING_FLAGS=--compiler_flags="--warning_level=VERBOSE" --compiler_flags="--jscomp_warning=deprecated" --compiler_flags="--jscomp_warning=visibility" --compiler_flags="--jscomp_warning=accessControls" --compiler_flags="--jscomp_warning=strictModuleDepCheck" --compiler_flags="--jscomp_warning=missingProperties" 
+set WARNING_FLAGS=--compiler_flags="--summary_detail_level=3" --compiler_flags="--warning_level=VERBOSE" --compiler_flags="--jscomp_warning=deprecated" --compiler_flags="--jscomp_warning=visibility" --compiler_flags="--jscomp_warning=accessControls" --compiler_flags="--jscomp_warning=strictModuleDepCheck" --compiler_flags="--jscomp_warning=missingProperties" 
 
 REM --define=goog.DEBUG=true 
 
