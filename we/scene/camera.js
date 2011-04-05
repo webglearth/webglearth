@@ -128,7 +128,9 @@ we.scene.Camera.prototype.setPositionDegrees = function(latitude, longitude) {
  * @param {number} longitude Longitude in radians.
  */
 we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
-  this.latitude_ = goog.math.clamp(latitude, -1.5, 1.5);
+  // we can't allow latitude to be PI/2 (1.570796..)
+  //    - some calculation would return Infinity/NaN
+  this.latitude_ = goog.math.clamp(latitude, -1.57, 1.57);
   this.longitude_ = we.utils.standardLongitudeRadians(longitude);
 
   if (this.fixedAltitude) {

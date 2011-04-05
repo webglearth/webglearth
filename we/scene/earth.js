@@ -248,8 +248,9 @@ we.scene.Earth.prototype.updateTiles_ = function() {
     cameraTarget = this.scene.camera.getPosition();
   }
   this.offset[0] = Math.floor(cameraTarget[1] / (2 * Math.PI) * this.tileCount);
-  this.offset[1] = Math.floor(we.scene.Scene.projectLatitude(cameraTarget[0]) /
-      (Math.PI * 2) * this.tileCount);
+  this.offset[1] = goog.math.clamp(Math.floor(
+      we.scene.Scene.projectLatitude(cameraTarget[0]) / (Math.PI * 2) *
+      this.tileCount), -this.tileCount / 2, this.tileCount / 2);
 
   this.clipStackA_.moveCenter(cameraTarget[0], cameraTarget[1],
                               Math.floor(this.scene.camera.getZoom()));
