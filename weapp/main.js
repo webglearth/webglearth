@@ -65,6 +65,12 @@ goog.addDependency('',
 weapp.BING_KEY = '';
 
 
+/**
+ * @define {boolean} Use local TMS tiles by default.
+ */
+weapp.LOCAL_TMS = false;
+
+
 
 /**
  * Creates new WebGL Earth Application object and initializes everything
@@ -325,7 +331,7 @@ weapp.run = function() {
 
   var app = new weapp.App(goog.dom.getElement('weapp-canvas'));
 
-  if (!COMPILED) {
+  if (weapp.LOCAL_TMS) {
     app.addTileProvider(
         new we.texturing.GenericTileProvider('Local TMS',
             '../../resources/tms/{z}/{x}/{y}.jpg',
@@ -342,9 +348,11 @@ weapp.run = function() {
   app.addTileProvider(
       new we.texturing.BingTileProvider('Road', weapp.BING_KEY));
 
-
-  app.addTileProvider(new we.texturing.GenericTileProvider('CleanTOPO2',
-      '../../resources/terrain/CleanTOPO2/{z}/{x}/{y}.png', 0, 5, 256));
+  if (goog.DEBUG) {
+    app.addTileProvider(new we.texturing.GenericTileProvider('CleanTOPO2',
+        'http://webglearth.googlecode.com/svn/resources/terrain/CleanTOPO2/' +
+        '{z}/{x}/{y}.png', 0, 5, 256));
+  }
 
   app.start();
 };
