@@ -146,6 +146,26 @@ we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
 
 
 /**
+ * Move the camera relatively to it's settings
+ * @param {number} vertical Vertical change in radians.
+ * @param {number} horizontal Horizontal change in radians.
+ */
+we.scene.Camera.prototype.moveRelative = function(vertical, horizontal) {
+  var rotateAxes = function(angle) {
+    var x = horizontal;
+    horizontal = x * Math.cos(angle) - 2 * vertical * Math.sin(angle);
+    vertical = x * Math.sin(angle) / 2 + vertical * Math.cos(angle);
+  }
+
+  rotateAxes(this.roll);
+  vertical /= Math.max(Math.abs(Math.cos(this.tilt)), 0.1);
+  rotateAxes(this.heading);
+
+  this.setPosition(this.latitude_ + vertical, this.longitude_ + horizontal);
+};
+
+
+/**
  * Returns Array [latitude, longitude] converted to degrees.
  * @return {Array.<number>} Array [lat, long].
  */

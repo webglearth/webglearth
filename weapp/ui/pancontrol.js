@@ -233,19 +233,5 @@ weapp.ui.PanControl.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
       (this.scene_.tilesVertically / Math.pow(2, this.scene_.camera.getZoom()));
 
-  var rotateAxes = function(angle) {
-    var x = xDiff;
-    xDiff = x * Math.cos(angle) - yDiff * Math.sin(angle);
-    yDiff = x * Math.sin(angle) + yDiff * Math.cos(angle);
-  }
-
-  //camera transformations
-  rotateAxes(this.scene_.camera.roll);
-  yDiff /= Math.max(Math.abs(Math.cos(this.scene_.camera.tilt)), 0.1);
-  rotateAxes(-this.scene_.camera.heading);
-
-  this.scene_.camera.setPosition(
-      this.scene_.camera.getLatitude() + yDiff * factor,
-      this.scene_.camera.getLongitude() - xDiff * 2 * factor);
-
+  this.scene_.camera.moveRelative(yDiff * factor, -2 * xDiff * factor);
 };
