@@ -33,6 +33,7 @@ goog.provide('we.scene.CameraEvent');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
 goog.require('goog.math');
+goog.require('goog.math.Vec2');
 
 goog.require('we.utils');
 
@@ -166,6 +167,34 @@ we.scene.Camera.prototype.moveRelative = function(vertical, horizontal) {
 
 
 /**
+ * Rotates the camera around fixed point
+ * @param {number} latitude Latitude of fixed point in radians.
+ * @param {number} longitude Longitude of fixed point in radians.
+ * @param {number} horizontalAngle Angle in radians.
+ */
+we.scene.Camera.prototype.rotateAround = function(latitude, longitude,
+                                                  horizontalAngle) {
+
+  this.heading += horizontalAngle;
+
+  var direction = new goog.math.Vec2(this.longitude_ - longitude,
+                                     this.latitude_ - latitude);
+  var distance = direction.magnitude();
+
+  direction.normalize();
+
+  var x = direction.x;
+  direction.x = x * Math.cos(horizontalAngle) -
+                direction.y * Math.sin(horizontalAngle);
+  direction.y = x * Math.sin(horizontalAngle) +
+                direction.y * Math.cos(horizontalAngle);
+
+  this.setPosition(latitude + direction.y * distance,
+                   longitude + direction.x * distance);
+};
+
+
+/**
  * Returns Array [latitude, longitude] converted to degrees.
  * @return {Array.<number>} Array [lat, long].
  */
@@ -265,13 +294,13 @@ we.scene.Camera.prototype.getZoom = function() {
 
 /**
  * Returns latlon of the place the camera is currently looking at
- * @param {!we.scene.Scene} scene Scene.
  * @return {?Array.<number>} Array [lat, lon] in radians or null.
  */
-we.scene.Camera.prototype.getTarget = function(scene) {
+we.scene.Camera.prototype.getTarget = function() {
   //This can be optimized a lot
-  return scene.getLatLongForXY(scene.context.viewportWidth / 2,
-                               scene.context.viewportHeight / 2, true);
+  return this.scene_.getLatLongForXY(this.scene_.context.viewportWidth / 2,
+                                     this.scene_.context.viewportHeight / 2,
+                                     true);
 };
 
 

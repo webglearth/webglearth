@@ -242,7 +242,7 @@ we.scene.Earth.prototype.getCurrentTileProvider = function() {
 we.scene.Earth.prototype.updateTiles_ = function() {
   this.tileCount = 1 << this.scene.camera.getZoom();
 
-  var cameraTarget = this.scene.camera.getTarget(this.scene);
+  var cameraTarget = this.scene.camera.getTarget();
   if (goog.isNull(cameraTarget)) {
     //If camera is not pointed at Earth, just fallback to latlon now
     cameraTarget = this.scene.camera.getPosition();

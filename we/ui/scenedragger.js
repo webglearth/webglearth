@@ -63,6 +63,12 @@ we.ui.SceneDragger = function(scene) {
   this.dragging_ = false;
 
   /**
+   * @type {?Array.<number>}
+   * @private
+   */
+  this.headingTarget_ = null;
+
+  /**
    * @type {number}
    * @private
    */
@@ -138,6 +144,15 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
     this.oldY_ = e.screenY;
 
 
+    if (e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE) ||
+        (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
+        e.shiftKey)) {
+      this.headingTarget_ = /*this.scene_.camera.getTarget() ||*/
+                            this.scene_.getLatLongForXY(e.offsetX, e.offsetY,
+                                                        true);
+    }
+
+
     //Unregister onMouseMove_
     if (!goog.isNull(this.listenKey_)) {
       goog.events.unlistenByKey(this.listenKey_);
@@ -169,6 +184,8 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
 
     e.preventDefault();
 
+    this.headingTarget_ = null;
+
     if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT)) {
       this.dragEndTimer_.start();
     } else {
@@ -186,15 +203,16 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
  * Move the scene in given direction defined in actial window pixel coordinates
  * @param {number} xDiff Difference of position in pixels in x-axis.
  * @param {number} yDiff Difference of position in pixels in y-axis.
- * @param {boolean} tilt Tilt?
  * @private
  */
-we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff, tilt) {
-  if (tilt) {
+we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
+  if (goog.isDefAndNotNull(this.headingTarget_)) {
     this.scene_.camera.tilt += (yDiff / this.scene_.context.canvas.height) *
                                Math.PI / 2;
-    this.scene_.camera.heading += (xDiff / this.scene_.context.canvas.width) *
-                                  Math.PI;
+    this.scene_.camera.rotateAround(this.headingTarget_[0],
+                                    this.headingTarget_[1],
+                                    (xDiff / this.scene_.context.canvas.width) *
+                                    Math.PI * -2);
   } else {
     //PI * (How much is 1px on the screen?) * (How much is visible?)
     var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
@@ -215,10 +233,7 @@ we.ui.SceneDragger.prototype.onMouseMove_ = function(e) {
   var xDiff = e.screenX - this.oldX_;
   var yDiff = e.screenY - this.oldY_;
 
-  this.scenePixelMove_(xDiff, yDiff,
-      e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE) ||
-      (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
-      e.shiftKey));
+  this.scenePixelMove_(xDiff, yDiff);
 
   this.oldX_ = e.screenX;
   this.oldY_ = e.screenY;
@@ -293,7 +308,7 @@ we.ui.SceneDragger.prototype.inertialStart_ =
  * @private
  */
 we.ui.SceneDragger.prototype.inertialMoveTick_ = function(e) {
-  this.scenePixelMove_(e.x - this.oldX_, e.y - this.oldY_, false);
+  this.scenePixelMove_(e.x - this.oldX_, e.y - this.oldY_);
   this.oldX_ = e.x;
   this.oldY_ = e.y;
 };
