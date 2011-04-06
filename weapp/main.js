@@ -203,20 +203,25 @@ weapp.App = function(canvas) {
       var newhash = '#ll=' + pos[0].toFixed(5) + ',' + pos[1].toFixed(5) +
           (this.context.scene.camera.fixedAltitude ?
           ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) :
-          ';z=' + this.context.scene.camera.getZoom().toFixed(2));
+          ';z=' + this.context.scene.camera.getZoom().toFixed(2)) +
+          ';h=' + this.context.scene.camera.heading.toFixed(3) +
+          ';t=' + this.context.scene.camera.tilt.toFixed(3);
       window.location.hash = newhash;
     }
 
     var fromHash = goog.bind(function() {
-      var hash = window.location.hash;
+      var params = window.location.hash.substr(1).split(';');
       var getValue = function(name) {
-        var start = hash.indexOf(name + '=');
-        if (start < 0) {
-          return undefined;
+        name += '=';
+        var pair = goog.array.find(params, function(el, i, a) {
+          return el.indexOf(name) === 0;});
+
+        if (goog.isDefAndNotNull(pair)) {
+          var value = pair.substr(name.length);
+          if (value.length > 0)
+            return value;
         }
-        start += name.length + 1;
-        var end = hash.indexOf(';', start);
-        return hash.substring(start, end > 0 ? end : hash.length);
+        return undefined;
       }
 
       var zoom = getValue('zoom') || getValue('z');
@@ -226,6 +231,14 @@ weapp.App = function(canvas) {
       var altitude = getValue('alt');
       if (!isNaN(altitude))
         this.context.scene.camera.setAltitude(altitude);
+
+      var tilt = getValue('t');
+      if (!isNaN(tilt))
+        this.context.scene.camera.tilt = parseFloat(tilt);
+
+      var heading = getValue('h');
+      if (!isNaN(heading))
+        this.context.scene.camera.heading = parseFloat(heading);
 
       var ll = getValue('ll');
       if (goog.isDefAndNotNull(ll)) {
