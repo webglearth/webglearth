@@ -34,8 +34,9 @@ goog.require('WebGLDebugUtils');
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
-goog.require('goog.math');
 goog.require('goog.math.Matrix');
+
+goog.require('we.math.TransformationMatrix');
 
 
 /**
@@ -184,9 +185,9 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
 
   /**
    * 4x4 model-view matrix
-   * @type {!goog.math.Matrix}
+   * @type {!we.math.TransformationMatrix}
    */
-  this.modelViewMatrix = this.projectionMatrix;
+  this.modelViewMatrix = new we.math.TransformationMatrix();
 
   /**
    * ModelView-Projection Matrix - cached result
@@ -304,138 +305,6 @@ we.gl.Context.prototype.resize = function() {
 
 
 /**
- * Loads 4x4 identity matrix as current model-view matrix
- */
-we.gl.Context.prototype.loadIdentity = function() {
-  this.modelViewMatrix = goog.math.Matrix.createIdentityMatrix(4);
-};
-
-
-/**
- * Multiplies current model-view matrix to represent translation by (x,y,z)
- * @param {number} x X translation.
- * @param {number} y Y translation.
- * @param {number} z Z translation.
- */
-we.gl.Context.prototype.translate = function(x, y, z) {
-  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
-    [1, 0, 0, x],
-    [0, 1, 0, y],
-    [0, 0, 1, z],
-    [0, 0, 0, 1]
-  ]));
-};
-
-
-/**
- * Computes a matrix that performs a counterclockwise rotation of given angle
- * about the vector from the origin through the point (x, y, z).
- * @param {number} angle Angle to rotate in radians.
- * @param {number} x X translation.
- * @param {number} y Y translation.
- * @param {number} z Z translation.
- */
-we.gl.Context.prototype.rotate = function(angle, x, y, z) {
-  /** @type {number} */
-  var c = Math.cos(angle);
-
-  /** @type {number} */
-  var s = Math.sin(angle);
-
-  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
-    [x * x * (1 - c) + c, x * y * (1 - c) - z * s, x * z * (1 - c) + y * s, 0],
-    [y * x * (1 - c) + z * s, y * y * (1 - c) + c, y * z * (1 - c) - x * s, 0],
-    [z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, z * z * (1 - c) + c, 0],
-    [0, 0, 0, 1]
-  ]));
-};
-
-
-/**
- * Optimized function for rotating around (0, 1, 0).
- * @param {number} angle Angle to rotate in radians.
- */
-we.gl.Context.prototype.rotate010 = function(angle) {
-  /** @type {number} */
-  var c = Math.cos(angle);
-
-  /** @type {number} */
-  var s = Math.sin(angle);
-
-  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
-    [c, 0, s, 0],
-    [0, 1, 0, 0],
-    [-s, 0, c, 0],
-    [0, 0, 0, 1]
-  ]));
-};
-
-
-/**
- * Optimized function for rotating around (1, 0, 0).
- * @param {number} angle Angle to rotate in radians.
- */
-we.gl.Context.prototype.rotate100 = function(angle) {
-  /** @type {number} */
-  var c = Math.cos(angle);
-
-  /** @type {number} */
-  var s = Math.sin(angle);
-
-  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
-    [1, 0, 0, 0],
-    [0, c, -s, 0],
-    [0, s, c, 0],
-    [0, 0, 0, 1]
-  ]));
-};
-
-
-/**
- * Optimized function for rotating around (0, 0, 1).
- * @param {number} angle Angle to rotate in radians.
- */
-we.gl.Context.prototype.rotate001 = function(angle) {
-  /** @type {number} */
-  var c = Math.cos(angle);
-
-  /** @type {number} */
-  var s = Math.sin(angle);
-
-  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
-    [c, -s, 0, 0],
-    [s, c, 0, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 1]
-  ]));
-};
-
-
-/**
- * Optimized function for rotating around (1, 0, 0).
- * @param {!goog.math.Vec3} eye Position of eye.
- * @param {!goog.math.Vec3} center Position to look to.
- * @param {!goog.math.Vec3} up "up" vector.
- */
-we.gl.Context.prototype.lookAt = function(eye, center, up) {
-
-  var fw = center.subtract(eye).normalize();
-
-  var side = goog.math.Vec3.cross(fw, up).normalize();
-  up = goog.math.Vec3.cross(side, fw);
-
-  this.modelViewMatrix = this.modelViewMatrix.multiply(new goog.math.Matrix([
-    [side.x, side.y, side.z, 0],//-eye.x * (side.x + side.y + side.z)],
-    [up.x, up.y, up.z, 0],//-eye.y * (up.x + up.y + up.z)],
-    [-fw.x, -fw.y, -fw.z, 0],//eye.z * (fw.x + fw.y + fw.z)],
-    [0, 0, 0, 1]
-  ]));
-
-  this.translate(-eye.x, -eye.y, -eye.z);
-};
-
-
-/**
  * Scene to be rendered
  * @type {we.scene.Scene}
  */
@@ -448,7 +317,8 @@ we.gl.Context.prototype.scene = null;
  * @return {!goog.math.Matrix} MatrixViewProjection matrix.
  */
 we.gl.Context.prototype.flushMVPM = function() {
-  this.mvpm = this.projectionMatrix.multiply(this.modelViewMatrix);
+  this.mvpm = this.projectionMatrix.multiply(
+      this.modelViewMatrix.getStandardMatrix());
   this.mvpmInverse = this.mvpm.getInverse();
 
   return this.mvpm;
@@ -484,7 +354,7 @@ we.gl.Context.prototype.renderFrame = function() {
   }
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  this.loadIdentity();
+  this.modelViewMatrix.loadIdentity();
 
   if (goog.DEBUG && goog.isNull(this.scene)) {
     we.gl.Context.logger.shout('Scene is not set');
