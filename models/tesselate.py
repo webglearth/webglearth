@@ -28,6 +28,7 @@
 
 
 from ctypes import CFUNCTYPE, POINTER, byref, cast
+from itertools import izip
 import logging
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -95,7 +96,7 @@ class Tesselator(object):
                     p1 = p2
                     p2 = p3
             elif self.tess_style == GL_TRIANGLES:
-                tlist.extend(self.curr_shape)
+                tlist.extend(izip(*[iter(self.curr_shape)] * 3))
             else:
                 logging.warn("Unrecognised tesselation style: %d" % (self.tess_style,))
             self.tess_style = None
