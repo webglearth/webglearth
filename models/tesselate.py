@@ -60,7 +60,6 @@ class Tesselator(object):
 
     def __init__(self):
         self.tess = gluNewTess()
-        gluTessNormal(self.tess, 0, 0, 1)
         gluTessProperty(self.tess, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_NONZERO)
 
     def __call__(self, looplist):
@@ -72,7 +71,7 @@ class Tesselator(object):
         @set_tess_callback(self.tess, GLU_TESS_VERTEX)
         def vertexCallback(vertex):
             vertex = cast(vertex, POINTER(GLdouble))
-            self.curr_shape.append(tuple(vertex[0:2]))
+            self.curr_shape.append(tuple(vertex[:3]))
 
         @set_tess_callback(self.tess, GLU_TESS_BEGIN)
         def beginCallback(which):
@@ -122,8 +121,8 @@ class Tesselator(object):
         data_lists = []
         for vlist in looplist:
             d_list = []
-            for x, y in vlist:
-                v_data = (GLdouble * 3)(x, y, 0)
+            for x, y, z in vlist:
+                v_data = (GLdouble * 3)(x, y, z)
                 d_list.append(v_data)
             data_lists.append(d_list)
         gluTessBeginPolygon(self.tess, None)
