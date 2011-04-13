@@ -1,0 +1,73 @@
+#!/usr/bin/python
+
+
+from itertools import imap, izip
+import json
+from optparse import OptionParser
+import re
+import sys
+try:
+    import xml.etree.cElementTree as ElementTree
+except ImportError:
+    import xml.etree.ElementTree as ElementTree
+
+
+from tesselate import Tesselator
+
+
+class VertexCache(object):
+
+    def __init__(self):
+        self.cache = {}
+        self.elements = []
+
+    def insert(self, vertex):
+        assert len(vertex) == 3
+        if vertex not in self.cache:
+            self.cache[vertex] = len(self.cache) + 1
+            self.elements.append(vertex)
+        return self.cache[vertex]
+
+
+def main(argv):
+    parser = OptionParser()
+    parser.add_option('-z', '--zero-altitude', action='store_true')
+    parser.add_option('-o', '--center-on-origin', action='store_true')
+    parser.add_option('-f', '--format', choices=['json', 'obj'], default='json')
+    options, args = parser.parse_args(sys.argv[1:])
+    files = imap(open, args) if args else (sys.stdin,)
+    vertex_cache, faces = VertexCache(), []
+    tesselate = Tesselator()
+    for f in files:
+        gml = ElementTree.parse(f)
+        for building in gml.findall('//{http://www.opengis.net/citygml/building/1.0}Building'):
+            polygons = []
+            for posList in building.findall('.//{http://www.opengis.net/gml}posList'):
+                polygons.append(list(izip(*[imap(float, re.split(r'\s+', posList.text))] * 3))[:-1])
+            if options.zero_altitude:
+                minimum_z = min(v[2] for p in polygons for v in p)
+                polygons = list(tuple((v[0], v[1], v[2] - minimum_z) for v in p) for p in polygons)
+            for polygon in polygons:
+                if len(polygon) == 3:
+                    faces.append(tuple(vertex_cache.insert(v) for v in reversed(polygon)))
+                else:
+                    assert all(v[2] == polygon[0][2] for v in polygon)
+                    for triangle in tesselate((polygon,)):
+                        faces.append(tuple(vertex_cache.insert(v) for v in triangle))
+    vertices = vertex_cache.elements
+    if options.center_on_origin:
+        minimum = tuple(min(v[i] for v in vertex_cache.elements) for i in xrange(3))
+        maximum = tuple(max(v[i] for v in vertex_cache.elements) for i in xrange(3))
+        offset = tuple(-(minimum[i] + maximum[i]) / 2 for i in xrange(3))
+        vertices = list(tuple(v[i] + offset[i] for i in xrange(3)) for v in vertices)
+    if options.format == 'json':
+        print json.dumps(dict(vertexPositions=list(x for v in vertices for x in v), indices=list(i for f in faces for i in f)))
+    elif options.format == 'obj':
+        for vertex in vertices:
+            print 'v %f %f %f' % vertex
+        for face in faces:
+            print 'f %s' % ' '.join(str(i) for i in face)
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
