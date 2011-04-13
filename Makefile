@@ -4,7 +4,10 @@ COMPILER_JAR=compiler.jar
 TARGETS=api/api.js api/deps.js we/shaderbank_codes.js weapp/deps.js weapp/index.js
 
 .PHONY: all
-all: $(TARGETS)
+all: api we weapp
+
+.PHONY: api
+api: api/api.js api/deps.js
 
 api/api.js: \
 	$(filter-out $(TARGETS),$(shell find api we -name \*.js)) \
@@ -34,9 +37,15 @@ api/deps.js: \
 		--root_with_prefix="api/ ../../../api" \
 		--output_file=$@
 
+.PHONY: we
+we: we/shaderbank_codes.js
+
 we/shaderbank_codes.js: \
 	$(shell find we/shaders -name \*.glsl) we/build_shaderbank.py
 	( cd we && python ./build_shaderbank.py )
+
+.PHONY: weapp
+weapp: weapp/deps.js weapp/index.js
 
 weapp/deps.js: \
 	$(filter-out $(TARGETS),$(shell find we weapp -name \*.js)) \
@@ -73,4 +82,5 @@ clean:
 lint:
 	gjslint \
 		$(foreach target,$(TARGETS),--exclude_files=$(target)) \
+		--strict \
 		$(filter-out $(TARGETS), $(shell find api we weapp -name \*.js))
