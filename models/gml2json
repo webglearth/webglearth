@@ -54,7 +54,7 @@ def main(argv):
                 polygons = list(tuple((v[0], v[1], v[2] - minimum_z) for v in p) for p in polygons)
             for polygon in polygons:
                 if len(polygon) == 3:
-                    faces.append(tuple(vertex_cache.insert(v) for v in reversed(polygon)))
+                    faces.append(tuple(vertex_cache.insert(v) for v in polygon))
                 else:
                     assert all(v[2] == polygon[0][2] for v in polygon)
                     for triangle in tesselate((polygon,)):
@@ -88,7 +88,7 @@ def main(argv):
         for vertex in vertices:
             print 'v %f %f %f' % vertex
         for face in faces:
-            print 'f %s' % ' '.join(str(i + 1) for i in face)
+            print 'f %s' % ' '.join(str(i + 1) for i in reversed(face))
 
 
 if __name__ == '__main__':
