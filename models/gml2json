@@ -78,7 +78,7 @@ def main(argv):
         offset = tuple(-(minimum[i] + maximum[i]) / 2 for i in xrange(3))
         vertices = list(tuple(v[i] + offset[i] for i in xrange(3)) for v in vertices)
     if options.format == 'json':
-        print json.dumps(dict(vertexPositions=list(x for v in vertices for x in v), indices=list(i for f in faces for i in f)))
+        json.dump(dict(vertexPositions=list(x for v in vertices for x in v), indices=list(i for f in faces for i in f)), sys.stdout, separators=(',', ':'))
     elif options.format == 'obj':
         for vertex in vertices:
             print 'v %f %f %f' % vertex
