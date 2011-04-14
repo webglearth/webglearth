@@ -17,3 +17,8 @@ swissbuildings3dlv03.zip:
 clean:
 	rm -f swissBUILDINGS3d_10.json
 	rm -f swissBUILDINGS3d_10.obj
+
+.PHONY: reallyclean
+reallyclean: clean
+	rm -f swissBUILDINGS3d_10.gml
+	rm -f swissbuildings3dlv03.zip
