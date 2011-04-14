@@ -1,7 +1,7 @@
 .PHONY: all
-all: swissBUILDINGS3d_10.json swissBUILDINGS3d_10.obj
+all: ../weapp/swissBUILDINGS3d_10.json swissBUILDINGS3d_10.obj
 
-swissBUILDINGS3d_10.json: swissBUILDINGS3d_10.gml
+../weapp/swissBUILDINGS3d_10.json: swissBUILDINGS3d_10.gml
 	./gml2json -p -z swissBUILDINGS3d_10.gml > $@
 
 swissBUILDINGS3d_10.obj: swissBUILDINGS3d_10.gml
