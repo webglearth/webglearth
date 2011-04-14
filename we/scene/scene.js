@@ -40,6 +40,7 @@ goog.require('goog.math.Vec3');
 goog.require('we.gl.utils');
 goog.require('we.scene.Camera');
 goog.require('we.scene.Earth');
+goog.require('we.scene.ModelManager');
 
 
 /**
@@ -118,6 +119,10 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    */
   this.camera = new we.scene.Camera(this);
 
+  /**
+   * @type {!we.scene.ModelManager}
+   */
+  this.modelManager = new we.scene.ModelManager(this.context);
 
   this.recalcTilesVertically();
   this.updateCopyrights();
@@ -189,6 +194,7 @@ we.scene.Scene.prototype.draw = function() {
   }
 
   this.earth.draw();
+  this.modelManager.draw();
 };
 
 
@@ -315,6 +321,15 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
   }
 
   return [x, y, visibility];
+};
+
+
+/**
+ * Adds a model from a URL.
+ * @param {string} url The URl.
+ */
+we.scene.Scene.prototype.addModelFromUrl = function(url) {
+  this.modelManager.addModelFromUrl(url);
 };
 
 

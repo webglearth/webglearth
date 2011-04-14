@@ -323,6 +323,15 @@ weapp.App.prototype.addTileProvider = function(tileprovider) {
 
 
 /**
+ * Adds a model from a URL.
+ * @param {string} url The URL.
+ */
+weapp.App.prototype.addModelFromUrl = function(url) {
+  this.context.scene.addModelFromUrl(url);
+};
+
+
+/**
  * Starts the inner loop
  */
 weapp.App.prototype.start = function() {
