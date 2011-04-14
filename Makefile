@@ -1,7 +1,7 @@
 BING_KEY=AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu
 CLOSURE_LIBRARY=closure-library
 COMPILER_JAR=compiler.jar
-TARGETS=api/api.js api/deps.js we/shaderbank_codes.js weapp/deps.js weapp/index.js
+TARGETS=api/api.js api/deps.js we/shaderbank_codes.js weapp/deps.js weapp/index.js weapp/swissBUILDINGS3d_10.json
 
 .PHONY: all
 all: api we weapp
@@ -45,7 +45,7 @@ we/shaderbank_codes.js: \
 	( cd we && python ./build_shaderbank.py )
 
 .PHONY: weapp
-weapp: weapp/deps.js weapp/index.js
+weapp: weapp/deps.js weapp/index.js weapp/swissBUILDINGS3d_10.json
 
 weapp/deps.js: \
 	$(filter-out $(TARGETS),$(shell find we weapp -name \*.js)) \
@@ -74,9 +74,23 @@ weapp/index.js: \
 		--output_file=$@ \
 		--output_mode=compiled
 
+weapp/swissBUILDINGS3d_10.json: models/swissBUILDINGS3d_10.gml
+	models/gml2json -p -z $< > $@
+
+models/swissBUILDINGS3d_10.gml: models/swissbuildings3dlv03.zip
+	unzip -p $< '*.gml' > $@
+
+models/swissbuildings3dlv03.zip:
+	curl -o $@ http://www.swisstopo.admin.ch/internet/swisstopo/fr/home/products/landscape/swissBUILDINGS3D/swissBUILDINGS3D.parsys.44245.downloadList.20311.DownloadFile.tmp/swissbuildings3dlv03.zip
+
 .PHONY: clean
 clean:
 	rm -f $(TARGETS)
+
+.PHONY: reallyclean
+reallyclean: clean
+	rm -f swissBUILDINGS3d_10.gml
+	rm -f swissbuildings3dlv03.zip
 
 .PHONY: lint
 lint:
