@@ -97,7 +97,7 @@ weapp.App = function(canvas) {
      */
     this.context = new we.gl.Context(/** @type {!Element} */(canvas),
         goog.dom.getElement('weapp-fpsbox'), upgradeRedirector);
-    this.context.setPerspective(50, 0.000001, 5);
+    this.context.setPerspective(50, 0.0001, 2);
 
     /**
      * @type {!goog.Timer}
