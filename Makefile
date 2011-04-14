@@ -76,7 +76,7 @@ weapp/index.js: \
 
 .PHONY: clean
 clean:
-	rm $(TARGETS)
+	rm -f $(TARGETS)
 
 .PHONY: lint
 lint:
