@@ -376,6 +376,8 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
+  app.addModelFromUrl('swissBUILDINGS3d_10.json');
+
   app.start();
 };
 
