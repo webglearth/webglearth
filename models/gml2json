@@ -33,11 +33,11 @@ class VertexCache(object):
 
 def main(argv):
     parser = OptionParser()
-    parser.add_option('-z', '--zero-altitude', action='store_true')
+    parser.add_option('-f', '--format', choices=['json', 'obj'], default='json')
     parser.add_option('-o', '--center-on-origin', action='store_true')
     parser.add_option('-p', '--project', action='store_true')
     parser.add_option('-r', '--radius', default=6378137, metavar='RADIUS', type=float)
-    parser.add_option('-f', '--format', choices=['json', 'obj'], default='json')
+    parser.add_option('-z', '--zero-altitude', action='store_true')
     options, args = parser.parse_args(sys.argv[1:])
     files = imap(open, args) if args else (sys.stdin,)
     vertex_cache, faces = VertexCache(), []
