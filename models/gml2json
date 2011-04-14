@@ -74,8 +74,7 @@ def main(argv):
             x = r * math.cos(lat) * math.cos(lon)
             y = r * math.cos(lat) * math.sin(lon)
             z = r * math.sin(lat)
-            projected_vertices.append((x, y, z))
-            #projected_vertices.append((180 * lat / math.pi, 180 * lon / math.pi, r))
+            projected_vertices.append((y, z, x))
         vertices = projected_vertices
     if options.center_on_origin:
         minimum = tuple(min(v[i] for v in vertex_cache.elements) for i in xrange(3))
