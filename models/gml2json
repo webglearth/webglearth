@@ -26,7 +26,7 @@ class VertexCache(object):
     def insert(self, vertex):
         assert len(vertex) == 3
         if vertex not in self.cache:
-            self.cache[vertex] = len(self.cache) + 1
+            self.cache[vertex] = len(self.cache)
             self.elements.append(vertex)
         return self.cache[vertex]
 
@@ -88,7 +88,7 @@ def main(argv):
         for vertex in vertices:
             print 'v %f %f %f' % vertex
         for face in faces:
-            print 'f %s' % ' '.join(str(i) for i in face)
+            print 'f %s' % ' '.join(str(i + 1) for i in face)
 
 
 if __name__ == '__main__':
