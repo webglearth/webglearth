@@ -2,10 +2,10 @@
 all: swissBUILDINGS3d_10.json swissBUILDINGS3d_10.obj
 
 swissBUILDINGS3d_10.json: swissBUILDINGS3d_10.gml
-	./gml2json swissBUILDINGS3d_10.gml > $@
+	./gml2json -p -z swissBUILDINGS3d_10.gml > $@
 
 swissBUILDINGS3d_10.obj: swissBUILDINGS3d_10.gml
-	./gml2json -f obj -o -z swissBUILDINGS3d_10.gml > $@
+	./gml2json -f obj -o swissBUILDINGS3d_10.gml > $@
 
 swissBUILDINGS3d_10.gml: swissbuildings3dlv03.zip
 	unzip -p $< '*.gml' > $@

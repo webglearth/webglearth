@@ -3,6 +3,7 @@
 
 from itertools import imap, izip
 import json
+import math
 from optparse import OptionParser
 import re
 import sys
@@ -11,6 +12,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ElementTree
 
+from pyproj import Proj
 
 from tesselate import Tesselator
 
@@ -33,6 +35,8 @@ def main(argv):
     parser = OptionParser()
     parser.add_option('-z', '--zero-altitude', action='store_true')
     parser.add_option('-o', '--center-on-origin', action='store_true')
+    parser.add_option('-p', '--project', action='store_true')
+    parser.add_option('-r', '--radius', default=6378137, metavar='RADIUS', type=float)
     parser.add_option('-f', '--format', choices=['json', 'obj'], default='json')
     options, args = parser.parse_args(sys.argv[1:])
     files = imap(open, args) if args else (sys.stdin,)
@@ -55,6 +59,19 @@ def main(argv):
                     for triangle in tesselate((polygon,)):
                         faces.append(tuple(vertex_cache.insert(v) for v in triangle))
     vertices = vertex_cache.elements
+    # FIXME use numpy
+    if options.project:
+        proj = Proj(init='epsg:21781')
+        projected_vertices = []
+        for vertex in vertices:
+            lon, lat = proj(vertex[0], vertex[1], inverse=True, radians=True)
+            r = 1.0 + vertex[2] / options.radius
+            x = r * math.cos(lat) * math.cos(lon)
+            y = r * math.cos(lat) * math.sin(lon)
+            z = r * math.sin(lat)
+            projected_vertices.append((x, y, z))
+            #projected_vertices.append((180 * lat / math.pi, 180 * lon / math.pi, r))
+        vertices = projected_vertices
     if options.center_on_origin:
         minimum = tuple(min(v[i] for v in vertex_cache.elements) for i in xrange(3))
         maximum = tuple(max(v[i] for v in vertex_cache.elements) for i in xrange(3))
