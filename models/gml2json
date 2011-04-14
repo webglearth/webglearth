@@ -34,6 +34,7 @@ class VertexCache(object):
 def main(argv):
     parser = OptionParser()
     parser.add_option('-f', '--format', choices=['json', 'obj'], default='json')
+    parser.add_option('-l', '--limit', metavar='LIMIT', type=int)
     parser.add_option('-o', '--center-on-origin', action='store_true')
     parser.add_option('-p', '--project', action='store_true')
     parser.add_option('-r', '--radius', default=6378137, metavar='RADIUS', type=float)
@@ -58,6 +59,10 @@ def main(argv):
                     assert all(v[2] == polygon[0][2] for v in polygon)
                     for triangle in tesselate((polygon,)):
                         faces.append(tuple(vertex_cache.insert(v) for v in triangle))
+            if options.limit is not None:
+                options.limit -= 1
+                if options.limit <= 0:
+                    break
     vertices = vertex_cache.elements
     # FIXME use numpy
     if options.project:
