@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
 
-from itertools import imap, izip
+from itertools import imap, islice, izip, repeat
 import json
 import math
+import numpy
+from numpy import array
 from optparse import OptionParser
 import re
 import sys
@@ -17,18 +19,30 @@ from pyproj import Proj
 from tesselate import Tesselator
 
 
-class VertexCache(object):
+tesselate = Tesselator()
 
-    def __init__(self):
-        self.cache = {}
-        self.elements = []
+
+class VertexCache(list):
 
     def insert(self, vertex):
-        assert len(vertex) == 3
-        if vertex not in self.cache:
-            self.cache[vertex] = len(self.cache)
-            self.elements.append(vertex)
-        return self.cache[vertex]
+        self.append(vertex)
+        return len(self) - 1
+
+
+class Polygon(object):
+
+    def __init__(self, vertices):
+        self.vertices = vertices
+        if len(self.vertices) == 3:
+            self.faces = [(0, 1, 2)]
+        else:
+            assert all(self.vertices[:, 2] == self.vertices[0, 2]) # all z == 0 (floor or ceiling)
+            vertex_map = dict((tuple(vertex), i) for i, vertex in enumerate(self.vertices))
+            self.faces = list(tuple(vertex_map[vertex] for vertex in triangle) for triangle in tesselate((self.vertices,)))
+
+    def normal(self):
+        x = numpy.cross(self.vertices[0], self.vertices[1])
+        return x / math.sqrt(numpy.dot(x, x))
 
 
 def main(argv):
@@ -41,53 +55,53 @@ def main(argv):
     parser.add_option('-z', '--zero-altitude', action='store_true')
     options, args = parser.parse_args(sys.argv[1:])
     files = imap(open, args) if args else (sys.stdin,)
-    vertex_cache, faces = VertexCache(), []
-    tesselate = Tesselator()
+    polygons = []
     for f in files:
         gml = ElementTree.parse(f)
-        for building in gml.findall('//{http://www.opengis.net/citygml/building/1.0}Building'):
-            polygons = []
+        buildings = gml.findall('//{http://www.opengis.net/citygml/building/1.0}Building')
+        if options.limit is not None:
+            buildings = islice(buildings, options.limit)
+        for building in buildings:
+            building_polygons = []
             for posList in building.findall('.//{http://www.opengis.net/gml}posList'):
-                polygons.append(list(izip(*[imap(float, re.split(r'\s+', posList.text))] * 3))[:-1])
+                vertices = array(zip(*[imap(float, re.split(r'\s+', posList.text))] * 3))
+                assert all(vertices[0] == vertices[-1]) # first and last vertex must be the same
+                building_polygons.append(Polygon(vertices[:-1]))
             if options.zero_altitude:
-                minimum_z = min(v[2] for p in polygons for v in p)
-                polygons = list(tuple((v[0], v[1], v[2] - minimum_z) for v in p) for p in polygons)
-            for polygon in polygons:
-                if len(polygon) == 3:
-                    faces.append(tuple(vertex_cache.insert(v) for v in polygon))
-                else:
-                    assert all(v[2] == polygon[0][2] for v in polygon)
-                    for triangle in tesselate((polygon,)):
-                        faces.append(tuple(vertex_cache.insert(v) for v in triangle))
-            if options.limit is not None:
-                options.limit -= 1
-                if options.limit <= 0:
-                    break
-    vertices = vertex_cache.elements
-    # FIXME use numpy
+                offset = array([0, 0, -min(polygon.vertices[:, 2].min() for polygon in building_polygons)])
+                for polygon in building_polygons:
+                    polygon.vertices += offset
+            polygons.extend(building_polygons)
     if options.project:
         proj = Proj(init='epsg:21781')
-        projected_vertices = []
-        for vertex in vertices:
-            lon, lat = proj(vertex[0], vertex[1], inverse=True, radians=True)
-            r = 1.0 + vertex[2] / options.radius
-            x = r * math.cos(lat) * math.cos(lon)
-            y = r * math.cos(lat) * math.sin(lon)
-            z = r * math.sin(lat)
-            projected_vertices.append((y, z, x))
-        vertices = projected_vertices
+        for polygon in polygons:
+            lons, lats = proj(polygon.vertices[:, 0], polygon.vertices[:, 1], errcheck=True, inverse=True, radians=True)
+            rs = 1.0 + polygon.vertices[:, 2] / options.radius
+            xs = rs * numpy.cos(lats) * numpy.cos(lons)
+            ys = rs * numpy.cos(lats) * numpy.sin(lons)
+            zs = rs * numpy.sin(lats)
+            polygon.vertices = array([ys, zs, xs]).transpose()
+    vertexPositions, vertexNormals, faces = [], [], []
+    for polygon in polygons:
+        n = len(vertexPositions)
+        vertexPositions.extend(imap(tuple, polygon.vertices))
+        vertexNormals.extend(repeat(tuple(polygon.normal()), len(polygon.vertices)))
+        faces.extend(tuple(i + n for i in face) for face in polygon.faces)
     if options.center_on_origin:
-        minimum = tuple(min(v[i] for v in vertex_cache.elements) for i in xrange(3))
-        maximum = tuple(max(v[i] for v in vertex_cache.elements) for i in xrange(3))
+        # FIXME this should really be done earlier using numpy
+        minimum = tuple(min(v[i] for v in vertexPositions) for i in xrange(3))
+        maximum = tuple(max(v[i] for v in vertexPositions) for i in xrange(3))
         offset = tuple(-(minimum[i] + maximum[i]) / 2 for i in xrange(3))
-        vertices = list(tuple(v[i] + offset[i] for i in xrange(3)) for v in vertices)
+        vertexPositions = list(tuple(v[i] + offset[i] for i in xrange(3)) for v in vertexPositions)
     if options.format == 'json':
-        json.dump(dict(vertexPositions=list(x for v in vertices for x in v), indices=list(i for f in faces for i in f)), sys.stdout, separators=(',', ':'))
+        json.dump(dict(indices=list(i for face in faces for i in face), vertexNormals=list(component for vertexNormal in vertexNormals for component in vertexNormal), vertexPositions=list(component for vertexPosition in vertexPositions for component in vertexPosition)), sys.stdout, separators=(',', ':'))
     elif options.format == 'obj':
-        for vertex in vertices:
-            print 'v %f %f %f' % vertex
+        for v in vertexPositions:
+            print 'v %f %f %f' % v
+        for vn in vertexNormals:
+            print 'vn %f %f %f' % vn
         for face in faces:
-            print 'f %s' % ' '.join(str(i + 1) for i in reversed(face))
+            print 'f %s' % ' '.join(str(i + 1) for i in face)
 
 
 if __name__ == '__main__':
