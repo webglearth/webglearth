@@ -201,3 +201,22 @@ we.math.TransformationMatrix.prototype.lookAt = function(eye, center, up) {
 
   this.translate(-eye.x, -eye.y, -eye.z);
 };
+
+
+/**
+ * Returns the inverse of the top left 3x3 submatrix.
+ * @return {!goog.math.Matrix} The inverse of the top left 3x3 submatrix.
+ */
+we.math.TransformationMatrix.prototype.getInverseMat3 = function() {
+  // FIXME There's probably a more efficient way to do this, copying rows or
+  //       similar
+  var m = new goog.math.Matrix(new goog.math.Size(3, 3));
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; ++j) {
+      /* Assume that i, j are in range so getValue at always returns a number */
+      m.setValueAt(i, j, (/** @type {number} */ this.matrix_.getValueAt(i, j)));
+    }
+  }
+  /* Assume that our matricies are always invertible */
+  return (/** @type {!goog.math.Matrix} */ m.getInverse());
+};
