@@ -46,7 +46,9 @@ goog.require('we.shaderbank');
 
 
 /**
- * @typedef {{vertexPositions: Array.<number>, indices: Array.<number>}}
+ * @typedef {{vertexPositions: Array.<number>,
+ *            vertexNormals: Array.<number>,
+ *            indices: Array.<number>}}
  */
 we.scene.JSONModelData;
 
@@ -56,9 +58,10 @@ we.scene.JSONModelData;
  * @constructor
  * @param {!we.gl.Context} context WebGL context.
  * @param {Array.<number>} vertexPositions Vertex positions.
+ * @param {Array.<number>} vertexNormals Vertex normals.
  * @param {Array.<number>} indices Indices.
  */
-we.scene.Model = function(context, vertexPositions, indices) {
+we.scene.Model = function(context, vertexPositions, vertexNormals, indices) {
 
   /**
    * @type {!we.gl.Context}
@@ -79,6 +82,19 @@ we.scene.Model = function(context, vertexPositions, indices) {
   );
   this.vertexBuffer.itemSize = 3;
   this.vertexBuffer.numItems = vertexPositions.length / 3;
+
+  /**
+   * @type {WebGLBuffer}
+   */
+  this.vertexNormalBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexNormalBuffer);
+  gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array(vertexNormals),
+      gl.STATIC_DRAW
+  );
+  this.vertexNormalBuffer.itemSize = 3;
+  this.vertexNormalBuffer.numItems = vertexNormals.length / 3;
 
   /**
    * @type {WebGLBuffer}
@@ -118,9 +134,18 @@ we.scene.Model.prototype.draw = function(program) {
       this.context.flushMVPM().getTranspose().toArray()));
   gl.uniformMatrix4fv(program.mvpMatrixUniform, false, mvpm);
 
+  var nm = new Float32Array(goog.array.flatten(
+      this.context.modelViewMatrix.getInverseMat3().toArray()));
+  gl.uniformMatrix3fv(program.nMatrixUniform, false, nm);
+
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
   gl.vertexAttribPointer(
       program.vertexPositionAttribute, this.vertexBuffer.itemSize,
+      gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexNormalBuffer);
+  gl.vertexAttribPointer(
+      program.vertexNormalAttribute, this.vertexNormalBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
@@ -179,7 +204,7 @@ we.scene.ModelManager.prototype.addModelFromUrl = function(url) {
       /** @type {!we.scene.JSONModelData} */
       var data = e.target.getResponseJson();
       var model = new we.scene.Model(
-          this.context, data.vertexPositions, data.indices);
+          this.context, data.vertexPositions, data.vertexNormals, data.indices);
       this.models.push(model);
     } else if (goog.DEBUG) {
       we.scene.Model.getLogger().warning('Loading ' + url + ' failed');
@@ -218,7 +243,12 @@ we.scene.ModelManager.prototype.compileProgram_ = function() {
       gl.getAttribLocation(program, 'aVertexPosition');
   gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
+  program.vertexNormalAttribute =
+      gl.getAttribLocation(program, 'aVertexNormal');
+  gl.enableVertexAttribArray(program.vertexNormalAttribute);
+
   program.mvpMatrixUniform = gl.getUniformLocation(program, 'uMVPMatrix');
+  program.nMatrixUniform = gl.getUniformLocation(program, 'uNMatrix');
 
   this.program = program;
 
