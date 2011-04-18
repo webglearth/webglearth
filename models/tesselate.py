@@ -28,7 +28,7 @@
 
 
 from ctypes import CFUNCTYPE, POINTER, byref, cast
-from itertools import izip
+from itertools import izip, tee
 import logging
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -49,6 +49,21 @@ callback_types = {GLU_TESS_VERTEX: c_functype(None, POINTER(GLvoid)),
                   GLU_TESS_COMBINE: c_functype(None, POINTER(GLdouble), POINTER(POINTER(GLvoid)), POINTER(GLfloat), POINTER(POINTER(GLvoid)))}
 
 
+def cyclepairs(iterable):
+    "s -> (s0, s1), (s1, s2), (s2, s3), ..., (sn, s0)"
+    a, b = tee(iterable)
+    first = next(b, None)
+    for x, y in izip(a, b):
+        yield (x, y)
+    yield (y, first)
+
+
+def isclockwise(vertices):
+    # http://paulbourke.net/geometry/clockwise/index.html
+    assert all(v[2] == vertices[0][2] for v in vertices) # all z must be equal
+    return sum(l[0] * r[1] - l[1] * r[0] for l, r in cyclepairs(vertices)) < 0
+
+
 def set_tess_callback(tess, which):
     def set_call(func):
         cb = callback_types[which](func)
@@ -59,7 +74,8 @@ def set_tess_callback(tess, which):
 
 class Tesselator(object):
 
-    def __init__(self):
+    def __init__(self, counterclockwise=False):
+        self.counterclockwise = counterclockwise
         self.tess = gluNewTess()
         gluTessProperty(self.tess, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_NONZERO)
 
@@ -133,4 +149,6 @@ class Tesselator(object):
                 gluTessVertex(self.tess, v_data, v_data)
             gluTessEndContour(self.tess)
         gluTessEndPolygon(self.tess)
+        if self.counterclockwise:
+            tlist = list(tuple(reversed(t)) if isclockwise(t) else t for t in tlist)
         return tlist
