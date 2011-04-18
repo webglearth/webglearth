@@ -19,7 +19,7 @@ from pyproj import Proj
 from tesselate import Tesselator
 
 
-tesselate = Tesselator()
+tesselate = Tesselator(counterclockwise=True)
 
 
 class VertexCache(list):
@@ -36,7 +36,6 @@ class Polygon(object):
         if len(self.vertices) == 3:
             self.faces = [(0, 1, 2)]
         else:
-            assert all(self.vertices[:, 2] == self.vertices[0, 2]) # all z == 0 (floor or ceiling)
             vertex_map = dict((tuple(vertex), i) for i, vertex in enumerate(self.vertices))
             self.faces = list(tuple(vertex_map[vertex] for vertex in triangle) for triangle in tesselate((self.vertices,)))
 
