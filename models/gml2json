@@ -31,9 +31,13 @@ class VertexCache(list):
 
 class Polygon(object):
 
-    def __init__(self, vertices):
+    def __init__(self, vertices, normal=None):
         self.vertices = vertices
-        if len(self.vertices) == 3:
+        if normal is None:
+            normal = numpy.cross(vertices[0], vertices[1])
+            self.normal = normal / math.sqrt(numpy.dot(normal, normal))
+        self.normal = normal
+        if len(vertices) == 3:
             self.faces = [(0, 1, 2)]
         else:
             vertex_map = dict((tuple(vertex), i) for i, vertex in enumerate(self.vertices))
@@ -61,6 +65,7 @@ def main(argv):
         if options.limit is not None:
             buildings = islice(buildings, options.limit)
         for building in buildings:
+            measuredHeight = float(building.find('.//{http://www.opengis.net/citygml/building/1.0}measuredHeight').text)
             building_polygons = []
             for posList in building.findall('.//{http://www.opengis.net/gml}posList'):
                 vertices = array(zip(*[imap(float, re.split(r'\s+', posList.text))] * 3))
@@ -80,11 +85,17 @@ def main(argv):
             ys = rs * numpy.cos(lats) * numpy.sin(lons)
             zs = rs * numpy.sin(lats)
             polygon.vertices = array([ys, zs, xs]).transpose()
+            # if the polygon has multiple faces then it is a complex polygon tesselated into triangles
+            # calculate the normal to the surface of the sphere at the mid-point of the original polygon
+            if len(polygon.faces) > 1:
+                mid_lat = (lats.min() + lats.max()) / 2.0
+                mid_lon = (lons.min() + lons.max()) / 2.0
+                polygon.normal = array([math.cos(mid_lat) * math.cos(mid_lon), math.cos(mid_lat) * math.sin(mid_lon), math.sin(mid_lat)])
     vertexPositions, vertexNormals, faces = [], [], []
     for polygon in polygons:
         n = len(vertexPositions)
         vertexPositions.extend(imap(tuple, polygon.vertices))
-        vertexNormals.extend(repeat(tuple(polygon.normal()), len(polygon.vertices)))
+        vertexNormals.extend(repeat(tuple(polygon.normal), len(polygon.vertices)))
         faces.extend(tuple(i + n for i in face) for face in polygon.faces)
     if options.center_on_origin:
         # FIXME this should really be done earlier using numpy
