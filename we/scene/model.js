@@ -135,7 +135,7 @@ we.scene.Model.prototype.draw = function(program) {
   gl.uniformMatrix4fv(program.mvpMatrixUniform, false, mvpm);
 
   var nm = new Float32Array(goog.array.flatten(
-      this.context.modelViewMatrix.getInverseMat3().toArray()));
+      this.context.modelViewMatrix.getInverseMat3().getTranspose().toArray()));
   gl.uniformMatrix3fv(program.nMatrixUniform, false, nm);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
