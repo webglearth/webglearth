@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-from itertools import imap, islice, izip, repeat
+from itertools import imap, islice, repeat
 import json
 import math
 import numpy
