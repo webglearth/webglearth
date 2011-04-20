@@ -12,7 +12,7 @@ api: api/api.js api/deps.js
 api/api.js: \
 	$(filter-out $(TARGETS),$(shell find api we -name \*.js)) \
 	we/shaderbank_codes.js \
-	Makefile
+	Makefile $(CLOSURE_LIBRARY) $(COMPILER_JAR)
 	$(CLOSURE_LIBRARY)/closure/bin/build/closurebuilder.py \
 		--compiler_flags=--compilation_level=ADVANCED_OPTIMIZATIONS \
 		--compiler_flags=--define=goog.DEBUG=false \
@@ -31,7 +31,7 @@ api/api.js: \
 api/deps.js: \
 	$(filter-out $(TARGETS),$(shell find api we -name \*.js)) \
 	we/shaderbank_codes.js \
-	Makefile
+	Makefile $(CLOSURE_LIBRARY) $(COMPILER_JAR)
 	$(CLOSURE_LIBRARY)/closure/bin/build/depswriter.py \
 		--root_with_prefix="we/ ../../../we" \
 		--root_with_prefix="api/ ../../../api" \
@@ -49,7 +49,7 @@ weapp: weapp/deps.js weapp/index.js weapp/swissBUILDINGS3d_10.json
 
 weapp/deps.js: \
 	$(filter-out $(TARGETS),$(shell find we weapp -name \*.js)) \
-	Makefile
+	Makefile $(CLOSURE_LIBRARY) $(COMPILER_JAR)
 	$(CLOSURE_LIBRARY)/closure/bin/build/depswriter.py \
 		--root_with_prefix="we/ ../../../we" \
 		--root_with_prefix="weapp/ ../../../weapp" \
@@ -57,7 +57,7 @@ weapp/deps.js: \
 
 weapp/index.js: \
 	$(filter-out $(TARGETS),$(shell find we weapp -name \*.js)) \
-	Makefile
+	Makefile $(CLOSURE_LIBRARY) $(COMPILER_JAR)
 	$(CLOSURE_LIBRARY)/closure/bin/build/closurebuilder.py \
 		--compiler_flags=--compilation_level=ADVANCED_OPTIMIZATIONS \
 		--compiler_flags=--define=goog.DEBUG=false \
@@ -98,3 +98,9 @@ lint:
 		$(foreach target,$(TARGETS),--exclude_files=$(target)) \
 		--strict \
 		$(filter-out $(TARGETS), $(shell find api we weapp -name \*.js))
+
+closure-library:
+	svn checkout http://closure-library.googlecode.com/svn/trunk/ closure-library
+
+compiler.jar:
+	curl http://closure-compiler.googlecode.com/files/compiler-latest.tar.gz | tar -xzf - compiler.jar
