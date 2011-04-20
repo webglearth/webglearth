@@ -14,7 +14,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ElementTree
 
-from pyproj import Proj
+from pyproj import Proj, transform
 
 from tesselate import Tesselator
 
@@ -78,8 +78,9 @@ def main(argv):
             polygons.extend(building_polygons)
     if options.project:
         proj = Proj(init='epsg:21781')
+        wgeproj = Proj('+proj=latlong +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs')
         for polygon in polygons:
-            lons, lats = proj(polygon.vertices[:, 0], polygon.vertices[:, 1], errcheck=True, inverse=True, radians=True)
+            lons, lats = transform(proj, wgeproj, polygon.vertices[:, 0], polygon.vertices[:, 1], radians=True)
             rs = 1.0 + polygon.vertices[:, 2] / options.radius
             xs = rs * numpy.cos(lats) * numpy.cos(lons)
             ys = rs * numpy.cos(lats) * numpy.sin(lons)
