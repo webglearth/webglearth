@@ -36,7 +36,8 @@ class Polygon(object):
         if normal is None:
             normal = numpy.cross(vertices[0], vertices[1])
             self.normal = normal / math.sqrt(numpy.dot(normal, normal))
-        self.normal = normal
+        else:
+            self.normal = normal
         if len(vertices) == 3:
             self.faces = [(0, 1, 2)]
         else:
