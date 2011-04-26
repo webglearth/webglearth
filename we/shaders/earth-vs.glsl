@@ -81,7 +81,8 @@ void main(){
   vec2 phi=PI2*vec2(aVertexPosition.x+uOffset.x,aVertexPosition.y+uOffset.y)/uTileCount;
   
   if (abs(phi.y)>PI) {
-    vFallbackA = -2.0;
+    gl_Position.z = 1.0; // = vec4(0.0,0.0,1.0,1.0);
+    vFallbackA = -1.0e3;
     return;
   }
   
