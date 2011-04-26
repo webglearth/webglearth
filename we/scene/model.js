@@ -130,6 +130,10 @@ we.scene.Model.prototype.draw = function(program) {
 
   var gl = this.context.gl;
 
+  var mvm = new Float32Array(goog.array.flatten(
+      this.context.modelViewMatrix.getStandardMatrix().toArray()));
+  gl.uniformMatrix4fv(program.mvMatrixUniform, false, mvm);
+
   var mvpm = new Float32Array(goog.array.flatten(
       this.context.flushMVPM().getTranspose().toArray()));
   gl.uniformMatrix4fv(program.mvpMatrixUniform, false, mvpm);
@@ -247,6 +251,7 @@ we.scene.ModelManager.prototype.compileProgram_ = function() {
       gl.getAttribLocation(program, 'aVertexNormal');
   gl.enableVertexAttribArray(program.vertexNormalAttribute);
 
+  program.mvMatrixUniform = gl.getUniformLocation(program, 'uMVMatrix');
   program.mvpMatrixUniform = gl.getUniformLocation(program, 'uMVPMatrix');
   program.nMatrixUniform = gl.getUniformLocation(program, 'uNMatrix');
 
