@@ -48,6 +48,12 @@ goog.require('we.scene.Earth');
 we.scene.MIN_ZOOM = 1;
 
 
+/**
+ * @define {boolean} Whether to use gl.LINEAR_MIPMAP_LINEAR where available.
+ */
+we.scene.TRILINEAR_FILTERING = true;
+
+
 
 /**
  * Object handling scene data
@@ -167,7 +173,7 @@ we.scene.Scene.prototype.getMaxZoom = function() {
  * after changing canvas size or tile provider.
  */
 we.scene.Scene.prototype.recalcTilesVertically = function() {
-  this.tilesVertically = 0.9 * this.context.canvas.height /
+  this.tilesVertically = 0.7 * this.context.canvas.height /
       this.earth.getCurrentTileProvider().getTileSize();
 };
 
