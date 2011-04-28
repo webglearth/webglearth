@@ -80,12 +80,6 @@ void main(){
   // real world coordinates
   vec2 phi=PI2*vec2(aVertexPosition.x+uOffset.x,aVertexPosition.y+uOffset.y)/uTileCount;
   
-  if (abs(phi.y)>PI) {
-    gl_Position.z = 1.0; // = vec4(0.0,0.0,1.0,1.0);
-    vFallbackA = -1.0e3;
-    return;
-  }
-  
   //tile coordinates
   vec2 tileCoords=vec2(mod(aVertexPosition.x-aTextureCoord.x+uOffset.x+uTileCount*0.5,uTileCount),
                        -aTextureCoord.y-aVertexPosition.y-uOffset.y+uTileCount*0.5);
@@ -131,7 +125,12 @@ void main(){
   float cosy=sqrt(1.0-tanh*tanh);
   vec3 pos=vec3(sin(phi.x)*cosy,tanh,cos(phi.x)*cosy);
   gl_Position=uMVPMatrix*vec4(pos*(1.0+elev),1.0);
-
+  
+  if (abs(phi.y)>PI) {
+    vFallbackA = -1.0e3;
+    return;
+  }
+  
   //texture A
   vFallbackA = -1.0;
   vec2 off = modFirst(tileCoords - uOffL[0],uTileCount);
