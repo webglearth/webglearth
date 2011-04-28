@@ -14,6 +14,11 @@ REM --define=goog.DEBUG=true
 
 @ECHO on
 
+set HERE="%CD%"
+cd "%PROJECT_ROOT%/we/"
+build_shaderbank.py
+cd %HERE%
+
 %LIB_ROOT%/bin/build/depswriter.py --root_with_prefix="%PROJECT_ROOT%/we/ ../../../we" --root_with_prefix="%PROJECT_ROOT%/api/ ../../../api" --output_file="%PROJECT_ROOT%/api/deps.js"
 
 %LIB_ROOT%/bin/build/closurebuilder.py --root="%LIB_ROOT%/goog/" --root="%PROJECT_ROOT%/we/" --root="%PROJECT_ROOT%/api/" --root="%PROJECT_ROOT%/closure-library/third_party/closure/" --namespace="weapi.exports" --output_mode=compiled --compiler_jar="%PROJECT_ROOT%/compiler.jar" --compiler_flags="--compilation_level=%LEVEL%" --compiler_flags="%DEFINE_FLAGS1%" --compiler_flags="%DEFINE_FLAGS2%" %WARNING_FLAGS% --output_file="%PROJECT_ROOT%/api/api.js"
