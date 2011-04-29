@@ -106,16 +106,18 @@ we.scene.Earth = function(scene, opt_tileProvider) {
      * @type {!we.texturing.TileProvider}
      * @private
      */
-    this.terrainProvider_ = new we.texturing.GenericTileProvider('CleanTOPO2',
-        'http://webglearth.googlecode.com/svn/resources/terrain/CleanTOPO2/' +
-        '{z}/{x}/{y}.png', 3, 5, 256);
+    this.terrainProvider_ = new we.texturing.GenericTileProvider('Terrain',
+        'http://dev.klokantech.com/swiss-elevation/' +
+        '{z}/{x}/{y}.png', 4, 11, 256);
 
     /**
      * @type {!we.scene.ClipStack}
      * @private
      */
     this.clipStackT_ = new we.scene.ClipStack(this.terrainProvider_,
-                                              this.context, 2, 3, 2, 5);
+                                              this.context, 2, 3,
+                                              this.terrainProvider_.getMinZoomLevel(),
+                                              this.terrainProvider_.getMaxZoomLevel());
   } else if (goog.DEBUG) {
     we.scene.Earth.logger.warning('VTF not supported..');
   }
