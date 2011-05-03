@@ -114,10 +114,11 @@ we.scene.Earth = function(scene, opt_tileProvider) {
      * @type {!we.scene.ClipStack}
      * @private
      */
-    this.clipStackT_ = new we.scene.ClipStack(this.terrainProvider_,
-                                              this.context, 2, 3,
-                                              this.terrainProvider_.getMinZoomLevel(),
-                                              this.terrainProvider_.getMaxZoomLevel());
+    this.clipStackT_ = new we.scene.ClipStack(
+                         this.terrainProvider_, this.context, 2, 3,
+                         this.terrainProvider_.getMinZoomLevel(),
+                         this.terrainProvider_.getMaxZoomLevel());
+
   } else if (goog.DEBUG) {
     we.scene.Earth.logger.warning('VTF not supported..');
   }
