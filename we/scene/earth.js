@@ -58,7 +58,7 @@ we.scene.TERRAIN = true;
  * @define {number} Defines how many zoom levels the terrain is "delayed" -
  *                  for texture level 8 we don't need level 8 terrain.
  */
-we.scene.TERRAIN_ZOOM_DIFFERENCE = 3;
+we.scene.TERRAIN_ZOOM_DIFFERENCE = 5;
 
 
 
