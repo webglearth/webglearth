@@ -84,25 +84,19 @@ we.ui.SceneDragger = function(scene) {
    * @type {number}
    * @private
    */
-  this.dragEndX_ = 0;
+  this.olderX_ = 0;
 
   /**
    * @type {number}
    * @private
    */
-  this.dragEndY_ = 0;
+  this.olderY_ = 0;
 
   /**
    * @type {?number}
    * @private
    */
   this.listenKey_ = null;
-
-  /**
-   * @type {goog.Timer}
-   * @private
-   */
-  this.dragEndTimer_ = new goog.Timer(20);
 
   /**
    * @type {goog.fx.Animation}
@@ -117,10 +111,6 @@ we.ui.SceneDragger = function(scene) {
   goog.events.listen(goog.dom.getOwnerDocument(this.scene_.context.canvas),
                      goog.events.EventType.MOUSEUP,
                      goog.bind(this.onMouseUp_, this));
-
-  goog.events.listen(this.dragEndTimer_,
-      goog.Timer.TICK,
-      this.onDragEndTick_, false, this);
 };
 
 
@@ -140,8 +130,8 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
     }
 
     this.dragging_ = true;
-    this.oldX_ = e.screenX;
-    this.oldY_ = e.screenY;
+    this.olderX_ = this.oldX_ = e.screenX;
+    this.olderY_ = this.oldY_ = e.screenY;
 
 
     if (e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE) ||
@@ -177,22 +167,41 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
  * @private
  */
 we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
-  if (this.dragging_ && (e.type != goog.events.EventType.MOUSEDOWN)) {
-
-    this.dragEndX_ = e.screenX;
-    this.dragEndY_ = e.screenY;
+  if (this.dragging_) {
 
     e.preventDefault();
 
     this.headingTarget_ = null;
 
+    this.dragging_ = false;
+
+    //Unregister onMouseMove_
+    if (!goog.isNull(this.listenKey_)) {
+      goog.events.unlistenByKey(this.listenKey_);
+      this.listenKey_ = null;
+    }
+
     if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT)) {
-      this.dragEndTimer_.start();
-    } else {
-      //Unregister onMouseMove_
-      if (!goog.isNull(this.listenKey_)) {
-        goog.events.unlistenByKey(this.listenKey_);
-        this.listenKey_ = null;
+      var xDiff = e.screenX - this.olderX_;
+      var yDiff = e.screenY - this.olderY_;
+
+      var diffLength = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+
+      //Normalization
+      var xFactor = xDiff / diffLength;
+      var yFactor = yDiff / diffLength;
+
+      if (this.oldX_ == this.olderX_ && this.oldY_ == this.olderY_) {
+        // the mousemove event was already fired (probably Firefox) ->
+        // double the diffLength to simulate the same behavior
+        diffLength *= 2;
+      }
+
+      if (diffLength > 6) {
+
+        var moveFactor = Math.max(15, diffLength) * 6;
+
+        this.inertialStart_(moveFactor * xFactor, moveFactor * yFactor);
       }
     }
   }
@@ -235,46 +244,13 @@ we.ui.SceneDragger.prototype.onMouseMove_ = function(e) {
 
   this.scenePixelMove_(xDiff, yDiff);
 
+  this.olderX_ = this.oldX_;
+  this.olderY_ = this.oldY_;
+
   this.oldX_ = e.screenX;
   this.oldY_ = e.screenY;
 
   e.preventDefault();
-};
-
-
-/**
- * Method fired 20ms after MOUSEUP event. It calculates the move direction
- * and lenght and starts the inertial animation.
- * @private
- */
-we.ui.SceneDragger.prototype.onDragEndTick_ = function() {
-  this.dragEndTimer_.stop();
-
-  this.dragging_ = false;
-
-  //Unregister onMouseMove_
-  if (!goog.isNull(this.listenKey_)) {
-    goog.events.unlistenByKey(this.listenKey_);
-    this.listenKey_ = null;
-  }
-
-  //Position change since dragEnd
-  var xDiff = this.oldX_ - this.dragEndX_;
-  var yDiff = this.oldY_ - this.dragEndY_;
-
-  var diffLength = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
-
-  if (diffLength > 6) {
-
-    //Normalization
-    var xFactor = xDiff / diffLength;
-    var yFactor = yDiff / diffLength;
-
-    var moveFactor = Math.max(15, diffLength) * 8;
-
-    this.inertialStart_(moveFactor * xFactor, moveFactor * yFactor);
-  }
-
 };
 
 
