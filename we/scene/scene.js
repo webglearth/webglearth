@@ -194,6 +194,18 @@ we.scene.Scene.prototype.draw = function() {
         this.earth.getInfoText();
   }
 
+  // distance of the camera from surface
+  var cameraDistance = this.camera.getAltitude() / we.scene.EARTH_RADIUS;
+
+  // experimental values
+  // 1/4 of the camera's distance, should be enough for buildings
+  var zNear = 0.25 * cameraDistance;
+
+  // when we have lower zoom levels or tilted camera, we need higher value here.
+  var zFar = 1 + cameraDistance; //from the camera to center of the Earth
+
+  this.context.redimensionZBuffer(zNear, zFar);
+
   this.earth.draw();
 };
 
