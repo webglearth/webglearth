@@ -51,7 +51,7 @@ we.scene.MIN_ZOOM = 1;
 /**
  * @define {boolean} Whether to use gl.LINEAR_MIPMAP_LINEAR where available.
  */
-we.scene.TRILINEAR_FILTERING = true;
+we.scene.TRILINEAR_FILTERING = false;
 
 
 
