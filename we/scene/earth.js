@@ -145,7 +145,8 @@ we.scene.Earth = function(scene, opt_tileProvider) {
                      new we.gl.SegmentedPlane(this.context, 6, 6, 8, true),  //2
                      new we.gl.SegmentedPlane(this.context, 8, 8, 8, true),  //3
                      new we.gl.SegmentedPlane(this.context, 10, 10, 8),      //4
-                     new we.gl.SegmentedPlane(this.context, 32, 32, 8)];
+                     new we.gl.SegmentedPlane(this.context, 32, 32,
+                                              this.terrain ? 8 : 4)];
 
 
   var fragmentShaderCode = we.shaderbank.getShaderCode('earth-fs.glsl');
