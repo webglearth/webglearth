@@ -107,8 +107,8 @@ we.scene.Earth = function(scene, opt_tileProvider) {
      * @private
      */
     this.terrainProvider_ = new we.texturing.GenericTileProvider('Terrain',
-        'http://dev.klokantech.com/swiss-elevation/' +
-        '{z}/{x}/{y}.png', 4, 11, 256);
+        'http://195.113.155.118/srtm/' +
+        '{z}/{x}/{y}.png', 0, 10, 256);
 
     /**
      * @type {!we.scene.ClipStack}
