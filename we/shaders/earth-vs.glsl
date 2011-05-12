@@ -78,7 +78,7 @@ vec2 modFirst(vec2 x, float y) {
 
 void main(){
   // real world coordinates
-  vec2 phi=PI2*vec2(aVertexPosition.x+uOffset.x,aVertexPosition.y+uOffset.y)/uTileCount;
+  vec2 phi=(PI2/uTileCount)*(aVertexPosition+uOffset);
   
   //tile coordinates
   vec2 tileCoords=vec2(mod(aVertexPosition.x-aTextureCoord.x+uOffset.x+uTileCount*0.5,uTileCount),
