@@ -24,11 +24,11 @@
  * @fileoverview WebGL Earth model manager.
  *
  * @author tom.payne@camptocamp.com (Tom Payne)
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 
 goog.provide('we.scene.Model');
-goog.provide('we.scene.ModelManager');
 
 /* FIXME goog.Uri is only needed here because it's missing from
  *       goog.net.XhrIo
@@ -55,6 +55,7 @@ we.scene.JSONModelData;
 
 
 /**
+ * @extends {we.scene.AbstractModel}
  * @constructor
  * @param {!we.gl.Context} context WebGL context.
  * @param {Array.<number>} vertexPositions Vertex positions.
@@ -123,8 +124,7 @@ we.scene.Model = function(context, vertexPositions, vertexNormals, indices) {
 
 
 /**
- * Draw the model.
- * @param {!Object} program The shader program.
+ * @inheritDoc
  */
 we.scene.Model.prototype.draw = function(program) {
 
@@ -155,126 +155,6 @@ we.scene.Model.prototype.draw = function(program) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
   gl.drawElements(
       gl.TRIANGLES, this.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
-};
-
-
-
-/**
- * @constructor
- * @param {!we.gl.Context} context The context.
- */
-we.scene.ModelManager = function(context) {
-
-  /**
-   * @type {!we.gl.Context}
-   */
-  this.context = context;
-
-  /**
-   * @type {Array.<!we.scene.Model>}
-   */
-  this.models = [];
-
-  /**
-   * @type {WebGLProgram}
-   */
-  this.program = null;
-
-  this.compileProgram_();
-
-};
-
-
-/**
- * Adds a model.
- * @param {!we.scene.Model} model The model.
- */
-we.scene.ModelManager.prototype.addModel = function(model) {
-  this.models.push(model);
-};
-
-
-/**
- * Adds a model from a URL.
- * @param {string} url The URL.
- */
-we.scene.ModelManager.prototype.addModelFromUrl = function(url) {
-  if (goog.DEBUG) {
-    we.scene.Model.getLogger().info('Loading ' + url);
-  }
-  goog.net.XhrIo.send(url, goog.bind(function(e) {
-    if (e.target.isSuccess()) {
-      /** @type {!we.scene.JSONModelData} */
-      var data = e.target.getResponseJson();
-      var model = new we.scene.Model(
-          this.context, data.vertexPositions, data.vertexNormals, data.indices);
-      this.models.push(model);
-    } else if (goog.DEBUG) {
-      we.scene.Model.getLogger().warning('Loading ' + url + ' failed');
-    }
-  }, this));
-};
-
-
-/**
- * @private
- */
-we.scene.ModelManager.prototype.compileProgram_ = function() {
-
-  var gl = this.context.gl;
-
-  var fragmentShaderCode = we.shaderbank.getShaderCode('model-fs.glsl');
-  var fsshader =
-      we.gl.Shader.create(this.context, fragmentShaderCode, gl.FRAGMENT_SHADER);
-
-  var vertexShaderCode = we.shaderbank.getShaderCode('model-vs.glsl');
-  var vsshader =
-      we.gl.Shader.create(this.context, vertexShaderCode, gl.VERTEX_SHADER);
-
-  var program = gl.createProgram();
-  if (goog.isNull(program)) {
-    throw Error('Unknown');
-  }
-  gl.attachShader(program, vsshader);
-  gl.attachShader(program, fsshader);
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw Error('Shader program err: ' + gl.getProgramInfoLog(program));
-  }
-
-  program.vertexPositionAttribute =
-      gl.getAttribLocation(program, 'aVertexPosition');
-  gl.enableVertexAttribArray(program.vertexPositionAttribute);
-
-  program.vertexNormalAttribute =
-      gl.getAttribLocation(program, 'aVertexNormal');
-  gl.enableVertexAttribArray(program.vertexNormalAttribute);
-
-  program.mvMatrixUniform = gl.getUniformLocation(program, 'uMVMatrix');
-  program.mvpMatrixUniform = gl.getUniformLocation(program, 'uMVPMatrix');
-  program.nMatrixUniform = gl.getUniformLocation(program, 'uNMatrix');
-
-  this.program = program;
-
-};
-
-
-/**
- */
-we.scene.ModelManager.prototype.draw = function() {
-
-  var gl = this.context.gl;
-
-  if (goog.array.isEmpty(this.models)) {
-    return;
-  }
-
-  gl.useProgram(this.program);
-
-  goog.array.forEach(this.models, goog.bind(function(model) {
-    model.draw(this.program);
-  }, this));
 
 };
 
