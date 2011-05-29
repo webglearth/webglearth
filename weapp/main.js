@@ -377,7 +377,9 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
-  app.addModelFromUrl('http://demo.bimserver.org/download?roid=10014606&resultType=O3D_JSON', true);
+  app.addModelFromUrl(
+      'http://demo.bimserver.org/download?roid=10014606&resultType=O3D_JSON',
+      true);
 
   app.start();
 };

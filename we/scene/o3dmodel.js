@@ -69,14 +69,42 @@ we.scene.O3DModel = function(context, model) {
 
   var gl = this.context.gl;
 
+  var transform = new we.math.TransformationMatrix();
+
+  transform.rotate010(goog.math.toRadians(16.598914));
+  transform.rotate100(-goog.math.toRadians(49.194289));
+
+  transform.translate(0, 0, 1);
+
+  var scale = 1 / we.scene.EARTH_RADIUS;
+  transform.scale(scale, scale, scale);
   this.size = model['objects']['o3d.IndexBuffer'].length;
   this.submodels = new Array();
 
+  var vb = model['objects']['o3d.VertexBuffer'];
+  var projectedData = new Array();
+  for (var i = 0; i < this.size; ++i) {
+    var originalData = vb[i]['custom']['fieldData'][0]['data'];
+    var projectedBuffer = new Array();
+    for (var n = 0; n < originalData.length / 3; ++n) {
+      var result = transform.getStandardMatrix().multiply(new goog.math.Matrix([
+        [originalData[3 * n]],
+        [originalData[3 * n + 1]],
+        [originalData[3 * n + 2]],
+        [1]]));
+      projectedBuffer.push(result.getValueAt(0, 0));
+      projectedBuffer.push(result.getValueAt(1, 0));
+      projectedBuffer.push(result.getValueAt(2, 0));
+    }
+    projectedData.push(projectedBuffer);
+  }
+
   for (var i = 0; i < this.size; ++i) {
     this.submodels.push(new we.scene.Model(context,
-        goog.array.map(model['objects']['o3d.VertexBuffer'][i]['custom']['fieldData'][0]['data'], function(a) {return a / 10;}),
-        model['objects']['o3d.VertexBuffer'][i]['custom']['fieldData'][1]['data'],
-        model['objects']['o3d.IndexBuffer'][i]['custom']['fieldData'][0]['data']));
+        projectedData[i],
+        vb[i]['custom']['fieldData'][1]['data'],
+        model['objects']['o3d.IndexBuffer'][i]['custom']['fieldData'][0]['data']
+        ));
   }
 };
 
