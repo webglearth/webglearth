@@ -43,6 +43,7 @@ goog.require('we.gl.Shader');
 goog.require('we.math.TransformationMatrix');
 goog.require('we.scene.AbstractModel');
 goog.require('we.scene.Model');
+goog.require('we.scene.O3DModel');
 goog.require('we.shaderbank');
 
 
@@ -85,8 +86,9 @@ we.scene.ModelManager.prototype.addModel = function(model) {
 /**
  * Adds a model from a URL.
  * @param {string} url The URL.
+ * @param {boolean=} opt_o3d The model is in O3D JSON format.
  */
-we.scene.ModelManager.prototype.addModelFromUrl = function(url) {
+we.scene.ModelManager.prototype.addModelFromUrl = function(url, opt_o3d) {
   if (goog.DEBUG) {
     we.scene.Model.getLogger().info('Loading ' + url);
   }
@@ -94,8 +96,13 @@ we.scene.ModelManager.prototype.addModelFromUrl = function(url) {
     if (e.target.isSuccess()) {
       /** @type {!we.scene.JSONModelData} */
       var data = e.target.getResponseJson();
-      var model = new we.scene.Model(
-          this.context, data.vertexPositions, data.vertexNormals, data.indices);
+      var model;
+      if (opt_o3d) {
+        model = new we.scene.O3DModel(this.context, data);
+      } else {
+        model = new we.scene.Model(
+            this.context, data.vertexPositions, data.vertexNormals, data.indices);
+      }
       this.models.push(model);
     } else if (goog.DEBUG) {
       we.scene.Model.getLogger().warning('Loading ' + url + ' failed');

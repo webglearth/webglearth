@@ -327,9 +327,10 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
 /**
  * Adds a model from a URL.
  * @param {string} url The URl.
+ * @param {boolean=} opt_o3d The model is in O3D JSON format.
  */
-we.scene.Scene.prototype.addModelFromUrl = function(url) {
-  this.modelManager.addModelFromUrl(url);
+we.scene.Scene.prototype.addModelFromUrl = function(url, opt_o3d) {
+  this.modelManager.addModelFromUrl(url, opt_o3d);
 };
 
 

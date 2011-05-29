@@ -325,9 +325,10 @@ weapp.App.prototype.addTileProvider = function(tileprovider) {
 /**
  * Adds a model from a URL.
  * @param {string} url The URL.
+ * @param {boolean=} opt_o3d The model is in O3D JSON format.
  */
-weapp.App.prototype.addModelFromUrl = function(url) {
-  this.context.scene.addModelFromUrl(url);
+weapp.App.prototype.addModelFromUrl = function(url, opt_o3d) {
+  this.context.scene.addModelFromUrl(url, opt_o3d);
 };
 
 
@@ -376,7 +377,7 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
-  app.addModelFromUrl('swissBUILDINGS3d_10.json');
+  app.addModelFromUrl('http://demo.bimserver.org/download?roid=10014606&resultType=O3D_JSON', true);
 
   app.start();
 };
