@@ -78,7 +78,7 @@ we.scene.Camera = function(scene) {
    * @type {?number}
    * @private
    */
-  this.zoom_ = 3;
+  this.zoom_ = null;
 
   /**
    * Camera heading in radians

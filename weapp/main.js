@@ -117,6 +117,8 @@ weapp.App = function(canvas) {
         goog.dom.getElement('weapp-mapcopyright'),
         goog.dom.getElement('weapp-maplogo'));
 
+    this.context.resize();
+
     /**
      * @type {!we.ui.SceneDragger}
      * @private
@@ -339,7 +341,6 @@ weapp.App.prototype.start = function() {
   if (goog.DEBUG) {
     weapp.logger.info('Starting the loop...');
   }
-  this.context.resize();
   this.loopTimer.start();
 };
 

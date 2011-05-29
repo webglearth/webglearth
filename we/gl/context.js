@@ -282,10 +282,35 @@ we.gl.Context.prototype.setPerspectiveInternal_ = function() {
   this.projectionMatrix = new goog.math.Matrix([
     [f / this.aspectRatio, 0, 0, 0],
     [0, f, 0, 0],
-    [0, 0, (this.zFar_ + this.zNear_) / (this.zNear_ - this.zFar_),
-     2 * this.zFar_ * this.zNear_ / (this.zNear_ - this.zFar_)],
+    [0, 0, 0, 0], // last two numbers are for the z-buffer
     [0, 0, -1, 0]
   ]);
+  this.redimensionZBufferInternal_();
+};
+
+
+/**
+ * Performs necessary changes in the projection matrix
+ * to change Z-Buffer dimensions
+ * @param {number} zNear Z-near plane.
+ * @param {number} zFar Z-far plane.
+ */
+we.gl.Context.prototype.redimensionZBuffer = function(zNear, zFar) {
+  this.zNear_ = zNear;
+  this.zFar_ = zFar;
+  this.redimensionZBufferInternal_();
+};
+
+
+/**
+ * Performs necessary changes in the projection matrix
+ * to change Z-Buffer dimensions
+ * @private
+ */
+we.gl.Context.prototype.redimensionZBufferInternal_ = function() {
+  var diff = this.zNear_ - this.zFar_;
+  this.projectionMatrix.setValueAt(2, 2, (this.zFar_ + this.zNear_) / diff);
+  this.projectionMatrix.setValueAt(2, 3, 2 * this.zFar_ * this.zNear_ / diff);
 };
 
 

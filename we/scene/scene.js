@@ -49,6 +49,12 @@ goog.require('we.scene.ModelManager');
 we.scene.MIN_ZOOM = 1;
 
 
+/**
+ * @define {boolean} Whether to use gl.LINEAR_MIPMAP_LINEAR where available.
+ */
+we.scene.TRILINEAR_FILTERING = false;
+
+
 
 /**
  * Object handling scene data
@@ -172,7 +178,7 @@ we.scene.Scene.prototype.getMaxZoom = function() {
  * after changing canvas size or tile provider.
  */
 we.scene.Scene.prototype.recalcTilesVertically = function() {
-  this.tilesVertically = 0.9 * this.context.canvas.height /
+  this.tilesVertically = 0.7 * this.context.canvas.height /
       this.earth.getCurrentTileProvider().getTileSize();
 };
 
@@ -192,6 +198,18 @@ we.scene.Scene.prototype.draw = function() {
         this.camera.getZoom().toFixed(3) + '; ' +
         this.earth.getInfoText();
   }
+
+  // distance of the camera from surface
+  var cameraDistance = this.camera.getAltitude() / we.scene.EARTH_RADIUS;
+
+  // experimental values
+  // 1/4 of the camera's distance, should be enough for buildings
+  var zNear = 0.25 * cameraDistance;
+
+  // when we have lower zoom levels or tilted camera, we need higher value here.
+  var zFar = 1 + cameraDistance; //from the camera to center of the Earth
+
+  this.context.redimensionZBuffer(zNear, zFar);
 
   this.earth.draw();
   this.modelManager.draw();

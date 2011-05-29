@@ -309,6 +309,11 @@ we.scene.ClipLevel.prototype.processTiles = function(tilesToBuffer,
 
   this.tileCache_.processLoadRequests(tilesToBeLoading);
 
+  if (we.scene.TRILINEAR_FILTERING && buffered > 0) {
+    this.gl_.bindTexture(this.gl_.TEXTURE_2D, this.buffer.texture);
+    this.gl_.generateMipmap(this.gl_.TEXTURE_2D);
+  }
+
   return buffered;
 };
 
