@@ -382,6 +382,12 @@ weapp.run = function() {
       'http://demo.bimserver.org/download?roid=10014606&resultType=O3D_JSON',
       true);
 
+  //#ll=49.19326,16.59753;alt=200;h=-0.736;t=0.696
+  app.context.scene.camera.setPositionDegrees(49.19326, 16.59753);
+  app.context.scene.camera.setAltitude(200);
+  app.context.scene.camera.heading = -0.736;
+  app.context.scene.camera.tilt = 0.696;
+
   app.start();
 };
 
