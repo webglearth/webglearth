@@ -37,6 +37,7 @@ goog.require('goog.Uri');
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.net.XhrIo');
+goog.require('goog.object');
 goog.require('we.gl.Context');
 goog.require('we.gl.Mesh');
 goog.require('we.gl.Shader');
@@ -76,6 +77,8 @@ we.scene.O3DModel = function(context, model) {
 
   transform.translate(0, 0, 1);
 
+  var nonscale = goog.object.clone(transform);
+
   var scale = 1 / we.scene.EARTH_RADIUS;
   transform.scale(scale, scale, scale);
   this.size = model['objects']['o3d.IndexBuffer'].length;
@@ -83,9 +86,12 @@ we.scene.O3DModel = function(context, model) {
 
   var vb = model['objects']['o3d.VertexBuffer'];
   var projectedData = new Array();
+  var projectedDataN = new Array();
   for (var i = 0; i < this.size; ++i) {
     var originalData = vb[i]['custom']['fieldData'][0]['data'];
+    var originalDataN = vb[i]['custom']['fieldData'][1]['data'];
     var projectedBuffer = new Array();
+    var projectedBufferN = new Array();
     for (var n = 0; n < originalData.length / 3; ++n) {
       var result = transform.getStandardMatrix().multiply(new goog.math.Matrix([
         [originalData[3 * n]],
@@ -95,14 +101,25 @@ we.scene.O3DModel = function(context, model) {
       projectedBuffer.push(result.getValueAt(0, 0));
       projectedBuffer.push(result.getValueAt(1, 0));
       projectedBuffer.push(result.getValueAt(2, 0));
+
+      var resultN = nonscale.getStandardMatrix().multiply(new goog.math.Matrix([
+        [originalDataN[3 * n]],
+        [originalDataN[3 * n + 1]],
+        [originalDataN[3 * n + 2]],
+        [1]]));
+      var vec = new goog.math.Vec3(resultN.getValueAt(0, 0),
+                                   resultN.getValueAt(1, 0),
+                                   resultN.getValueAt(2, 0)).normalize();
+      goog.array.extend(projectedBufferN, vec.toArray());
     }
     projectedData.push(projectedBuffer);
+    projectedDataN.push(projectedBufferN);
   }
 
   for (var i = 0; i < this.size; ++i) {
     this.submodels.push(new we.scene.Model(context,
         projectedData[i],
-        vb[i]['custom']['fieldData'][1]['data'],
+        projectedDataN[i], //vb[i]['custom']['fieldData'][1]['data'],
         model['objects']['o3d.IndexBuffer'][i]['custom']['fieldData'][0]['data']
         ));
   }
