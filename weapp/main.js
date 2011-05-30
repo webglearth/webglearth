@@ -378,9 +378,7 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
-  app.addModelFromUrl(
-      'http://demo.bimserver.org/download?roid=10014606&resultType=O3D_JSON',
-      true);
+  app.addModelFromUrl('demo1.o3djson', true);
 
   //#ll=49.19326,16.59753;alt=200;h=-0.736;t=0.696
   app.context.scene.camera.setPositionDegrees(49.19326, 16.59753);
