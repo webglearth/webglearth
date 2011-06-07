@@ -75,9 +75,9 @@ we.scene.O3DModel = function(context, model) {
   transform.rotate010(goog.math.toRadians(16.598914));
   transform.rotate100(-goog.math.toRadians(49.194289));
 
-  transform.translate(0, 0, 1);
+  var rotOnly = goog.object.clone(transform);
 
-  var nonscale = goog.object.clone(transform);
+  transform.translate(0, 0, 1);
 
   var scale = 1 / we.scene.EARTH_RADIUS;
   transform.scale(scale, scale, scale);
@@ -102,15 +102,14 @@ we.scene.O3DModel = function(context, model) {
       projectedBuffer.push(result.getValueAt(1, 0));
       projectedBuffer.push(result.getValueAt(2, 0));
 
-      var resultN = nonscale.getStandardMatrix().multiply(new goog.math.Matrix([
+      var resultN = rotOnly.getStandardMatrix().multiply(new goog.math.Matrix([
         [originalDataN[3 * n]],
         [originalDataN[3 * n + 1]],
         [originalDataN[3 * n + 2]],
         [1]]));
-      var vec = new goog.math.Vec3(resultN.getValueAt(0, 0),
-                                   resultN.getValueAt(1, 0),
-                                   resultN.getValueAt(2, 0)).normalize();
-      goog.array.extend(projectedBufferN, vec.toArray());
+      projectedBufferN.push(resultN.getValueAt(0, 0));
+      projectedBufferN.push(resultN.getValueAt(1, 0));
+      projectedBufferN.push(resultN.getValueAt(2, 0));
     }
     projectedData.push(projectedBuffer);
     projectedDataN.push(projectedBufferN);
