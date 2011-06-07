@@ -33,7 +33,10 @@
  */
 
 /**
- * @fileoverview WMS TileProvider for custom tile sources.
+ * @fileoverview WMS TileProvider for custom tile sources. Supports 
+ * OGS WMS Specifications 1.0 through 1.3.  WMS is required to support CRS EPSG:4326 projection. 
+ * Directly supports all OGC WMS required parameters. Additional parameters can be passed through
+ * extra variable
  *
  * @author jebb.q.stewart@noaa.gov (Jebb Stewart)
  *
@@ -52,24 +55,45 @@ goog.require('we.utils');
  * @extends {we.texturing.TileProvider}
  * @inheritDoc
  * @param {string} name Human-readable name of this tile source.
- * @param {string} url URL of the tiles containing
- *                      replaceable parts ({sub},{z},{x},{y}).
+ * @param {string} service URL of the service.
+ * @param {string} version Version of WMS OGC Specification to use (Supports 1.1 through 1.3)
+ * @param {string} layers Comma deliminated list of layers
+ * @param {string} format image format (image/jpeg, image/png, image/gif)
+ * @param {string} styles WMS style parameter, empty '' is default.
+ * @param {string} extra Any extra parameters to pass along to the WMS, empty '' is default
  * @param {number} minZoom Minimal supported zoom.
  * @param {number} maxZoom Maximal supported zoom.
- * @param {number} tileSize Size of the tiles in pixels.
- * @param {boolean=} opt_flipY Flip Y axis.
- * @param {Array.<string>=} opt_subdomains Array of subdomains
- *                                          to be used for {sub} replacement.
  */
-we.texturing.WMSTileProvider = function(name, url, minZoom, maxZoom,
-                                            tileSize, opt_flipY,
-                                            opt_subdomains) {
+we.texturing.WMSTileProvider = function(name, service, version, layers, 
+                                            format, styles, extra, minZoom, maxZoom) {
+
   goog.base(this, name);
+
+  // Verify the service is correct
+  if ( service.charAt(service.length-1) != '?' ) {
+     service = service + "?";
+  }
 
   /**
    * @type {string}
    */
-  this.url = url;
+  this.url = service;
+  
+
+  /**
+   * @type {string}
+   */
+  this.version = version
+
+  /**
+   * @type {string}
+   */
+  this.layers = layers
+
+  /**
+   * @type {string}
+   */
+  this.format = format
 
   /**
    * @type {number}
@@ -84,17 +108,28 @@ we.texturing.WMSTileProvider = function(name, url, minZoom, maxZoom,
   /**
    * @type {number}
    */
-  this.tileSize = tileSize;
+  this.tileSize = 256;
 
   /**
-   * @type {boolean}
+   * @type {string}
    */
-  this.flipY = opt_flipY === true;
+  this.srs = 'EPSG:4326';
 
   /**
-   * @type {Array.<string>}
+   * @type {string}
    */
-  this.subdomains = opt_subdomains || [];
+  this.styles = styles;
+
+  //Verify the extra parameters will append nicely
+  if ( extra.charAt(0) != '&' ) {
+    extra = "&" + extra;
+  }
+  /**
+   * @type {string}
+   */
+  this.extra = extra;
+
+
 };
 goog.inherits(we.texturing.WMSTileProvider, we.texturing.TileProvider);
 
@@ -113,7 +148,7 @@ we.texturing.WMSTileProvider.prototype.getMaxZoomLevel = function() {
 
 /** @inheritDoc */
 we.texturing.WMSTileProvider.prototype.getTileSize = function() {
-  return this.tileSize;
+  return 256;
 };
 
 
@@ -140,11 +175,30 @@ we.texturing.WMSTileProvider.prototype.getTileURL = function(zoom, x, y) {
   var minlon = Math.min(lon1, lon2);
 
   /** @type {string} */
-  var url = this.url.replace('{maxlat}', /** @type {string} */ (maxlat));
-  url = url.replace('{maxlon}', /** @type {string} */ (maxlon));
-  url = url.replace('{minlat}', /** @type {string} */ (minlat));
-  url = url.replace('{minlon}', /** @type {string} */ (minlon));
+  var url = this.url + "service=WMS&request=GetMap&version=" + /** @type {string} */ (this.version); 
+  url = url + "&Width=" + /** @type {string} */ (this.tileSize) + "&Height=" + /** @type {string} */ (this.tileSize);
+  url = url + "&Layers=" + /** @type {string} */ (this.layers) + "&Format=" + /** @type {string} */ (this.format);
+  if ( this.version.substr(0,3) == "1.0" || this.version.substr(0,3) == "1.1" ) {
+     url = url + "&SRS=" + /** @type {string} */ (this.srs) 
+  } else if ( this.version.substr(0,3) == "1.3" ) {
+     url = url + "&CRS=" + /** @type {string} */ (this.srs);
+  }
+  url = url + "&STYLES=" + /** @type {string} */ (this.styles);
+  url = url + "&BBOX=" + /** @type {string} */ (minlon) + "," + /** @type {string} */ (minlat) + ",";
+  url = url + /** @type {string} */ (maxlon) + "," + /** @type {string} */ (maxlat);
+  url = url + /** @type {string} */ (this.extra) ;
 
   return url;
 };
+
+
+/** @inheritDoc */
+/*we.texturing.OSMTileProvider.prototype.appendCopyrightContent =
+    function(element) {
+  goog.dom.append(element, '© ',
+      goog.dom.createDom('a',
+      {href: 'http://www.openstreetmap.org/'},
+      'OpenStreetMap'),
+      ' contributors, CC-BY-SA');
+};*/
 
