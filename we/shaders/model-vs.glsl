@@ -13,7 +13,7 @@ void main(void) {
   gl_Position = uMVPMatrix * vec4(aVertexPosition, 1.0);
   vec3 transformedNormal = uNMatrix * aVertexNormal;
   vec3 uLightingDirection = vec3(uMVMatrix * vec4(1.0, 1.0, 1.0, 1.0));
-  vec3 uAmbientColor = vec3(0.2, 0.2, 0.2);
+  vec3 uAmbientColor = vec3(0.3, 0.3, 0.3);
   vec3 uDirectionalColor = vec3(0.4, 0.4, 0.4);
   float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
   vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;

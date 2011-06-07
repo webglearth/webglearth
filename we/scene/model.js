@@ -61,8 +61,10 @@ we.scene.JSONModelData;
  * @param {Array.<number>} vertexPositions Vertex positions.
  * @param {Array.<number>} vertexNormals Vertex normals.
  * @param {Array.<number>} indices Indices.
+ * @param {Array.<number>=} opt_color Uniform model color.
  */
-we.scene.Model = function(context, vertexPositions, vertexNormals, indices) {
+we.scene.Model = function(context, vertexPositions, vertexNormals, indices,
+                          opt_color) {
 
   /**
    * @type {!we.gl.Context}
@@ -120,6 +122,13 @@ we.scene.Model = function(context, vertexPositions, vertexNormals, indices) {
    */
   this.numIndices = this.indexBuffer.numItems;
 
+  /**
+   * @type {Array.<number>}
+   * @private
+   */
+  this.color_ = (goog.isArray(opt_color) && opt_color.length >= 3) ?
+                [opt_color[0], opt_color[1], opt_color[2]] : [0.8, 0.8, 0.8];
+
 };
 
 
@@ -141,6 +150,8 @@ we.scene.Model.prototype.draw = function(program) {
   var nm = new Float32Array(goog.array.flatten(
       this.context.modelViewMatrix.getInverseMat3().getTranspose().toArray()));
   gl.uniformMatrix3fv(program.nMatrixUniform, false, nm);
+
+  gl.uniform3fv(program.colorUniform, this.color_);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
   gl.vertexAttribPointer(

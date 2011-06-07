@@ -21,7 +21,7 @@
  */
 
 /**
- * @fileoverview O3D model class.
+ * @fileoverview O3D model class - experimental implementation.
  *
  * @author petr.sloup@klokantech.com (Petr Sloup)
  * @author tom.payne@camptocamp.com (Tom Payne)
@@ -70,24 +70,22 @@ we.scene.O3DModel = function(context, model) {
 
   var gl = this.context.gl;
 
+  //calculate static transformation matrices
   var transform = new we.math.TransformationMatrix();
-
   transform.rotate010(goog.math.toRadians(16.598914));
   transform.rotate100(-goog.math.toRadians(49.194289));
-
   var rotOnly = goog.object.clone(transform);
-
   transform.translate(0, 0, 1);
-
   var scale = 1 / we.scene.EARTH_RADIUS;
   transform.scale(scale, scale, scale);
-  this.size = model['objects']['o3d.IndexBuffer'].length;
+
+  this.size = model['objects']['o3d.Primitive'].length;
   this.submodels = new Array();
 
+  //transform all vertex data
   var vb = model['objects']['o3d.VertexBuffer'];
-  var projectedData = new Array();
-  var projectedDataN = new Array();
-  for (var i = 0; i < this.size; ++i) {
+  var projectedData = {};
+  for (var i = 0; i < vb.length; ++i) {
     var originalData = vb[i]['custom']['fieldData'][0]['data'];
     var originalDataN = vb[i]['custom']['fieldData'][1]['data'];
     var projectedBuffer = new Array();
@@ -111,15 +109,41 @@ we.scene.O3DModel = function(context, model) {
       projectedBufferN.push(resultN.getValueAt(1, 0));
       projectedBufferN.push(resultN.getValueAt(2, 0));
     }
-    projectedData.push(projectedBuffer);
-    projectedDataN.push(projectedBufferN);
+    projectedData[vb[i]['custom']['fieldData'][0].id] = (projectedBuffer);
+    projectedData[vb[i]['custom']['fieldData'][1].id] = (projectedBufferN);
   }
 
+  //transform all index data
+  var ib = model['objects']['o3d.IndexBuffer'];
+  var indices = {};
+  for (var i = 0; i < ib.length; ++i) {
+    indices[ib[i].id] = ib[i]['custom']['fieldData'][0]['data'];
+  }
+
+  //transform all streambanks
+  var sb = model['objects']['o3d.StreamBank'];
+  var banks = {};
+  for (var i = 0; i < sb.length; ++i) {
+    banks[sb[i].id] = sb[i]['custom']['vertexStreams'];
+  }
+
+  //transform all materials
+  var mats = model['objects']['o3d.Material'];
+  var materials = {};
+  for (var i = 0; i < mats.length; ++i) {
+    materials[mats[i].id] = mats[i]['params']['diffuse']['value'];
+  }
+
+  //construct submodels
   for (var i = 0; i < this.size; ++i) {
+    var primitive = model['objects']['o3d.Primitive'][i];
+    var bank = banks[primitive['params']['o3d.streamBank']['value']['ref']];
+
     this.submodels.push(new we.scene.Model(context,
-        projectedData[i],
-        projectedDataN[i], //vb[i]['custom']['fieldData'][1]['data'],
-        model['objects']['o3d.IndexBuffer'][i]['custom']['fieldData'][0]['data']
+        projectedData[bank[0]['stream']['field']],
+        projectedData[bank[1]['stream']['field']],
+        indices[primitive['properties']['indexBuffer']['ref']],
+        materials[primitive['params']['o3d.material']['value']['ref']]
         ));
   }
 };

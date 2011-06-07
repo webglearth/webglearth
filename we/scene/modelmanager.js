@@ -149,6 +149,7 @@ we.scene.ModelManager.prototype.compileProgram_ = function() {
   program.mvMatrixUniform = gl.getUniformLocation(program, 'uMVMatrix');
   program.mvpMatrixUniform = gl.getUniformLocation(program, 'uMVPMatrix');
   program.nMatrixUniform = gl.getUniformLocation(program, 'uNMatrix');
+  program.colorUniform = gl.getUniformLocation(program, 'uColor');
 
   this.program = program;
 
