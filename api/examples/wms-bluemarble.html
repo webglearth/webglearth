@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script> 
+<script>
+  function initialize() {
+    var options = { zoom: 3.0, center: [40.0,-104.0] };
+    var earth = new WebGLEarth('earth_div', options);
+    earth.initMap(WebGLEarth.Maps.WMS, ['BlueMarble','http://neowms.sci.gsfc.nasa.gov/wms/wms?', '1.1.1','BlueMarbleNG','image/jpeg', '', '',1,10]); 
+    // name, service url, wms version, layers , format, styles, extra parameters , minZoom, maxZoom 
+
+    earth.setMap(WebGLEarth.Maps.WMS, 'BlueMarble');
+
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Hello World</h1>
+  <div id="earth_div" style="width:800px;height:600px;border:1px solid gray; padding:2px;"></div>
+</body>
+</html>
