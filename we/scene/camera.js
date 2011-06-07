@@ -234,7 +234,7 @@ we.scene.Camera.prototype.getLongitude = function() {
  * @param {number} altitude Altitude in meters.
  */
 we.scene.Camera.prototype.setAltitude = function(altitude) {
-  this.altitude_ = goog.math.clamp(altitude, 200, 10000000);
+  this.altitude_ = goog.math.clamp(altitude, 50, 10000000);
 
   if (!this.fixedAltitude) {
     this.calcZoom_(); //recount
