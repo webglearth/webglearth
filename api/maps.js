@@ -36,6 +36,7 @@ goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.WMSTileProvider');
 
 
 /**
@@ -46,6 +47,7 @@ weapi.maps.MapType = {
   'MAPQUEST': 'mapquest',
   'OSM': 'osm',
   'BING': 'bing',
+  'WMS': 'wms',
   'CUSTOM': 'custom'
 };
 
@@ -78,6 +80,9 @@ weapi.maps.initMap = function(type, var_args) {
       break;
     case weapi.maps.MapType.BING:
       tileProviderCtor = we.texturing.BingTileProvider;
+      break;
+    case weapi.maps.MapType.WMS:
+      tileProviderCtor = we.texturing.WMSTileProvider;
       break;
     case weapi.maps.MapType.CUSTOM:
       tileProviderCtor = we.texturing.GenericTileProvider;
