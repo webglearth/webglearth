@@ -6,11 +6,16 @@
   function initialize() {
     var options = { zoom: 3.0, center: [40.0,-104.0] };
     var earth = new WebGLEarth('earth_div', options);
-    earth.initMap(WebGLEarth.Maps.WMS, ['BlueMarble','http://neowms.sci.gsfc.nasa.gov/wms/wms?', '1.1.1','BlueMarbleNG','image/jpeg', '', '',1,10]); 
-    // name, service url, wms version, layers , format, styles, extra parameters , minZoom, maxZoom 
+     earth.initMap(WebGLEarth.Maps.WMS, ['BlueMarble', 'http://demo.mapserver.org/cgi-bin/mapserv?', 
+                                    '1.3.0', 'world_merc', 'EPSG:3857', 'image/jpeg', '', 
+                                    'map=/osgeo/mapserver/msautotest/world/world.map', 1, 15]);
+    /* name, service url, wms version, layers, CRS , format, styles, extra parameters , minZoom, maxZoom 
+     *
+     * WebGLEarth WMS Tiling requires server supports mercator Coordinate Reference System.  Requires either
+     * EPSG:3857 or EPSG:900913.  All other CRS's will be rejected.
+     */
 
-    earth.setMap(WebGLEarth.Maps.WMS, 'BlueMarble');
-
+     earth.setMap(WebGLEarth.Maps.WMS, 'BlueMarble');
   }
 </script>
 </head>
