@@ -11,8 +11,8 @@
                                     'map=/osgeo/mapserver/msautotest/world/world.map', 1, 15]);
     /* name, service url, wms version, layers, CRS , format, styles, extra parameters , minZoom, maxZoom 
      *
-     * WebGLEarth WMS Tiling requires server supports mercator Coordinate Reference System.  Either
-     * EPSG:3857 or EPSG:900913.  Any other CRS will result in distorted data. 
+     * WebGLEarth WMS Tiling requires server supports mercator Coordinate Reference System.  Requires either
+     * EPSG:3857 or EPSG:900913.  All other CRS's will be rejected.
      */
 
      earth.setMap(WebGLEarth.Maps.WMS, 'BlueMarble');

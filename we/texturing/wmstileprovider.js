@@ -46,6 +46,7 @@
 goog.provide('we.texturing.WMSTileProvider');
 
 goog.require('goog.debug.Logger');
+goog.require('goog.events');
 goog.require('we.texturing.TileProvider');
 goog.require('we.utils');
 
@@ -126,11 +127,18 @@ we.texturing.WMSTileProvider = function(name, service, version, layers,
    */
   this.tileSize = 256;
 
-  /**
-   * @type {string}
-   */
-  this.srs = crs;
-  //'EPSG:900913' or 'EPSG:3857' will not distort data
+  if (crs == 'EPSG:900913' || crs == 'EPSG:3857') {
+     /**
+      * @type {string}
+      */
+     this.srs = crs;
+     //'EPSG:900913' or 'EPSG:3857' will not distort data
+     //all others will be rejected.
+  } else {
+     this.activeServer = 0;
+     throw Error(crs + ' is an unsupported CRS, please use either EPSG:900913' +
+               ' or EPSG:3857.  WMS Server must support one of these.');
+  }
 
   /**
    * @type {string}
