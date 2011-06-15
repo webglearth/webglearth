@@ -119,7 +119,7 @@ void main(){
     rawElev=texture2D(uBufferLnT,TCT).rg;
   }
 
-  elev = ((TERRAIN_MAX-TERRAIN_MIN)*(rawElev.r + rawElev.g/256.0) + TERRAIN_MIN) / EARTH_RADIUS;
+  elev = ((TERRAIN_MAX-TERRAIN_MIN)*(rawElev.r + rawElev.g/256.0) - TERRAIN_MAX) / EARTH_RADIUS;
 #endif
 
   //bend the segplane
