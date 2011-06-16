@@ -34,6 +34,9 @@ const float PI=3.1415927;
 const float PI2=6.2831855;
 const float EARTH_RADIUS=6378137.0; //in meters
 
+const float TERRAIN_MIN=-10000.0; //in meters
+const float TERRAIN_MAX=12000.0; //in meters
+
 attribute vec2 aVertexPosition;
 attribute vec2 aTextureCoord;
 
@@ -93,7 +96,7 @@ void main(){
   float fallbackT = -1.0;
   float degradationModifier = exp2(uDegradationT);
   vec2 offT = modFirst(tileCoords/degradationModifier - uOffLT[0],uTileCount/degradationModifier);
-  float rawElev = 0.0;
+  vec2 rawElev;
   if (validateOffsetT(offT) && uMetaL0T[int(floor(offT.y)*BUFF_SIDE_T+offT.x)] == 1.0) {
     fallbackT = 0.0;
   } else {
@@ -109,14 +112,14 @@ void main(){
   }
   TCT.y = 1.0-TCT.y; //flip Y axis
   if (fallbackT == 0.0) {
-    rawElev=texture2D(uBufferL0T,TCT).r;
+    rawElev=texture2D(uBufferL0T,TCT).rg;
   } else if (fallbackT == 1.0) {
-    rawElev=texture2D(uBufferL1T,TCT).r;
+    rawElev=texture2D(uBufferL1T,TCT).rg;
   } else {
-    rawElev=texture2D(uBufferLnT,TCT).r;
+    rawElev=texture2D(uBufferLnT,TCT).rg;
   }
 
-  elev = rawElev * 8248.0 / EARTH_RADIUS; //raw elevation (0-1) * earth radius
+  elev = ((TERRAIN_MAX-TERRAIN_MIN)*(rawElev.r + rawElev.g/256.0) - TERRAIN_MAX) / EARTH_RADIUS;
 #endif
 
   //bend the segplane
