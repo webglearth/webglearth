@@ -58,7 +58,7 @@ we.scene.TERRAIN = true;
  * @define {number} Defines how many zoom levels the terrain is "delayed" -
  *                  for texture level 8 we don't need level 8 terrain.
  */
-we.scene.TERRAIN_ZOOM_DIFFERENCE = 3;
+we.scene.TERRAIN_ZOOM_DIFFERENCE = 5;
 
 
 
@@ -106,16 +106,19 @@ we.scene.Earth = function(scene, opt_tileProvider) {
      * @type {!we.texturing.TileProvider}
      * @private
      */
-    this.terrainProvider_ = new we.texturing.GenericTileProvider('CleanTOPO2',
-        'http://webglearth.googlecode.com/svn/resources/terrain/CleanTOPO2/' +
-        '{z}/{x}/{y}.png', 3, 5, 256);
+    this.terrainProvider_ = new we.texturing.GenericTileProvider('Terrain',
+        'http://srtm.webglearth.com/srtm/' +
+        '{z}/{x}/{y}.png', 0, 10, 256);
 
     /**
      * @type {!we.scene.ClipStack}
      * @private
      */
-    this.clipStackT_ = new we.scene.ClipStack(this.terrainProvider_,
-                                              this.context, 2, 3, 2, 5);
+    this.clipStackT_ = new we.scene.ClipStack(
+                         this.terrainProvider_, this.context, 2, 3,
+                         this.terrainProvider_.getMinZoomLevel(),
+                         this.terrainProvider_.getMaxZoomLevel());
+
   } else if (goog.DEBUG) {
     we.scene.Earth.logger.warning('VTF not supported..');
   }
@@ -142,7 +145,8 @@ we.scene.Earth = function(scene, opt_tileProvider) {
                      new we.gl.SegmentedPlane(this.context, 6, 6, 8, true),  //2
                      new we.gl.SegmentedPlane(this.context, 8, 8, 8, true),  //3
                      new we.gl.SegmentedPlane(this.context, 10, 10, 8),      //4
-                     new we.gl.SegmentedPlane(this.context, 32, 32, 8)];
+                     new we.gl.SegmentedPlane(this.context, 32, 32,
+                                              this.terrain ? 8 : 4)];
 
 
   var fragmentShaderCode = we.shaderbank.getShaderCode('earth-fs.glsl');
