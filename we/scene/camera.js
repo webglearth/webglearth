@@ -68,13 +68,14 @@ we.scene.Camera = function(scene) {
   this.longitude_ = 0;
 
   /**
-   * @type {?number}
    * Altitude of this camera in meters
+   * @type {?number}
    * @private
    */
   this.altitude_ = 10000000;
 
   /**
+   * Cached zoom
    * @type {?number}
    * @private
    */
@@ -100,14 +101,6 @@ we.scene.Camera = function(scene) {
    * @type {number}
    */
   this.roll = 0;
-
-  /**
-   * Describes how this camera behaves, because either altitude or zoomLevel
-   * has to change when moving north or south.
-   * @type {boolean}
-   */
-  this.fixedAltitude = true;
-
 };
 goog.inherits(we.scene.Camera, goog.events.EventTarget);
 
@@ -134,15 +127,9 @@ we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
   this.latitude_ = goog.math.clamp(latitude, -1.57, 1.57);
   this.longitude_ = we.utils.standardLongitudeRadians(longitude);
 
-  if (this.fixedAltitude) {
-    this.zoom_ = null;
-    this.dispatchEvent(new we.scene.CameraEvent(
-        we.scene.Camera.EventType.ZOOMCHANGED));
-  } else {
-    this.altitude_ = null;
-    this.dispatchEvent(new we.scene.CameraEvent(
-        we.scene.Camera.EventType.ALTITUDECHANGED));
-  }
+  this.zoom_ = null;
+  this.dispatchEvent(new we.scene.CameraEvent(
+      we.scene.Camera.EventType.ZOOMCHANGED));
 };
 
 
@@ -236,11 +223,7 @@ we.scene.Camera.prototype.getLongitude = function() {
 we.scene.Camera.prototype.setAltitude = function(altitude) {
   this.altitude_ = goog.math.clamp(altitude, 250, 10000000);
 
-  if (!this.fixedAltitude) {
-    this.calcZoom_(); //recount
-  } else {
-    this.zoom_ = null; //invalidate
-  }
+  this.zoom_ = null; //invalidate cached zoom
 
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.ALTITUDECHANGED));
@@ -268,11 +251,7 @@ we.scene.Camera.prototype.setZoom = function(zoom) {
   this.zoom_ = goog.math.clamp(zoom, this.scene_.getMinZoom(),
                                this.scene_.getMaxZoom());
 
-  if (this.fixedAltitude) {
-    this.calcAltitude_(); //recount
-  } else {
-    this.altitude_ = null; //invalidate
-  }
+  this.calcAltitude_(); //recalc altitude
 
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.ZOOMCHANGED));

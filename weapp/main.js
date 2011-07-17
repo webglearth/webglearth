@@ -203,9 +203,7 @@ weapp.App = function(canvas) {
     var updateHash = function() {
       var pos = this.context.scene.camera.getPositionDegrees();
       var newhash = '#ll=' + pos[0].toFixed(5) + ',' + pos[1].toFixed(5) +
-          (this.context.scene.camera.fixedAltitude ?
-          ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) :
-          ';z=' + this.context.scene.camera.getZoom().toFixed(2)) +
+          ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) +
           ';h=' + this.context.scene.camera.heading.toFixed(3) +
           ';t=' + this.context.scene.camera.tilt.toFixed(3);
       window.location.hash = newhash;
@@ -284,19 +282,6 @@ weapp.App = function(canvas) {
     goog.events.listen(this.context.canvas,
         goog.events.EventType.CLICK,
         goog.bind(addMarker, this));
-
-
-
-    goog.events.listen(window.document,
-        goog.events.EventType.KEYDOWN,
-        function(e) {
-          if (e.keyCode == 70 /* 'f' */ && e.ctrlKey) {
-            this.fixedAltitude = !this.fixedAltitude;
-            e.preventDefault();
-          }
-        },
-        false, this.context.scene.camera);
-
 
     if (goog.DEBUG) {
       weapp.logger.info('Done');

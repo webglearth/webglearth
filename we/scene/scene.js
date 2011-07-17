@@ -188,8 +188,7 @@ we.scene.Scene.prototype.draw = function() {
     this.infobox_.innerHTML =
         goog.math.toDegrees(this.camera.getLatitude()).toFixed(4) + '; ' +
         goog.math.toDegrees(this.camera.getLongitude()).toFixed(4) + ' @ ' +
-        this.camera.getAltitude().toFixed(0) + 'm ' +
-        (this.camera.fixedAltitude ? '->' : '<-') + ' z=' +
+        this.camera.getAltitude().toFixed(0) + 'm -> z=' +
         this.camera.getZoom().toFixed(3) + '; ' +
         this.earth.getInfoText();
   }
