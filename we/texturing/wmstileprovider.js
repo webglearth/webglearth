@@ -128,16 +128,16 @@ we.texturing.WMSTileProvider = function(name, service, version, layers,
   this.tileSize = 256;
 
   if (crs == 'EPSG:900913' || crs == 'EPSG:3857') {
-     /**
+    /**
       * @type {string}
       */
-     this.srs = crs;
-     //'EPSG:900913' or 'EPSG:3857' will not distort data
-     //all others will be rejected.
+    this.srs = crs;
+  //'EPSG:900913' or 'EPSG:3857' will not distort data
+  //all others will be rejected.
   } else {
-     this.activeServer = 0;
-     throw Error(crs + ' is an unsupported CRS, please use either EPSG:900913' +
-               ' or EPSG:3857.  WMS Server must support one of these.');
+    this.activeServer = 0;
+    throw Error(crs + ' is an unsupported CRS, please use either EPSG:900913' +
+        ' or EPSG:3857.  WMS Server must support one of these.');
   }
 
   /**
@@ -201,9 +201,9 @@ we.texturing.WMSTileProvider.prototype.getTileURL = function(zoom, x, y) {
 
   function merc_y(lat) {
     if (lat > 89.5)
-        lat = 89.5;
+      lat = 89.5;
     if (lat < -89.5)
-        lat = -89.5;
+      lat = -89.5;
     var r_major = 6378137.000;
     var r_minor = 6356752.3142;
     var temp = r_minor / r_major;
