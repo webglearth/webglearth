@@ -37,16 +37,7 @@ goog.require('weapi.maps.MapType');
 //Constructor
 goog.exportSymbol('WebGLEarth', weapi.App);
 
-
-//Simple mappings
-goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
-  this.context.scene.camera.setZoom(zoom);
-});
-
-goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
-  return this.context.scene.camera.getZoom();
-});
-
+//Backwards compatibility
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
   this.context.scene.camera.setPositionDegrees(coords[0], coords[1]);
   this.context.scene.camera.tilt = 0;
@@ -55,6 +46,59 @@ goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
 goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
   return this.context.scene.camera.getPositionDegrees();
 });
+
+/* Elemental functions - Simple mappings */
+//Position
+goog.exportSymbol('WebGLEarth.prototype.setPosition', function(lat, lon, zoom) {
+  this.context.scene.camera.setPositionDegrees(lat, lon);
+  if (goog.isDefAndNotNull(zoom)) this.context.scene.camera.setZoom(zoom);
+});
+goog.exportSymbol('WebGLEarth.prototype.getPosition', function() {
+  return this.context.scene.camera.getPositionDegrees();
+});
+
+//Altitude
+goog.exportSymbol('WebGLEarth.prototype.setAltitude', function(altitude) {
+  this.context.scene.camera.setAltitude(altitude);
+});
+goog.exportSymbol('WebGLEarth.prototype.getAltitude', function() {
+  return this.context.scene.camera.getAltitude();
+});
+
+//Heading
+goog.exportSymbol('WebGLEarth.prototype.setHeading', function(heading) {
+  this.context.scene.camera.heading = heading;
+});
+goog.exportSymbol('WebGLEarth.prototype.getHeading', function() {
+  return this.context.scene.camera.heading;
+});
+
+//Tilt
+goog.exportSymbol('WebGLEarth.prototype.setTilt', function(tilt) {
+  this.context.scene.camera.tilt = tilt;
+});
+goog.exportSymbol('WebGLEarth.prototype.getTilt', function() {
+  return this.context.scene.camera.tilt;
+});
+
+//Roll
+goog.exportSymbol('WebGLEarth.prototype.setRoll', function(roll) {
+  this.context.scene.camera.roll = roll;
+});
+goog.exportSymbol('WebGLEarth.prototype.getRoll', function() {
+  return this.context.scene.camera.roll;
+});
+
+/* Extended functions */
+//Zoom
+goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
+  this.context.scene.camera.setZoom(zoom);
+});
+
+goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
+  return this.context.scene.camera.getZoom();
+});
+
 
 // Handle canvas resizing - this is necessary to prevent weird deformations
 goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
