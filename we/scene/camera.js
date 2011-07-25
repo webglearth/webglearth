@@ -236,10 +236,7 @@ we.scene.Camera.prototype.setAltitude = function(altitude) {
  * @return {number} Altitude in meters.
  */
 we.scene.Camera.prototype.getAltitude = function() {
-  if (goog.isNull(this.altitude_)) {
-    this.calcAltitude_();
-  }
-  return /** @type {number} */(this.altitude_);
+  return this.altitude_;
 };
 
 
@@ -251,7 +248,12 @@ we.scene.Camera.prototype.setZoom = function(zoom) {
   this.zoom_ = goog.math.clamp(zoom, this.scene_.getMinZoom(),
                                this.scene_.getMaxZoom());
 
-  this.calcAltitude_(); //recalc altitude
+  //recalc altitude
+  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, this.zoom_);
+  var sizeIWannaSee = thisPosDeformation * this.scene_.tilesVertically;
+  this.altitude_ = (1 / Math.tan(this.scene_.context.fov / 2)) *
+      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
 
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.ZOOMCHANGED));
@@ -296,19 +298,6 @@ we.scene.Camera.prototype.calcZoom_ = function() {
   this.zoom_ = goog.math.clamp(Math.log(o / sizeOfOneTile) / Math.LN2,
                                this.scene_.getMinZoom(),
                                this.scene_.getMaxZoom());
-};
-
-
-/**
- * Calculates altitude from zoom
- * @private
- */
-we.scene.Camera.prototype.calcAltitude_ = function() {
-  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.zoom_);
-  var sizeIWannaSee = thisPosDeformation * this.scene_.tilesVertically;
-  this.altitude_ = (1 / Math.tan(this.scene_.context.fov / 2)) *
-      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
 };
 
 
