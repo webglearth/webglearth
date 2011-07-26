@@ -176,6 +176,12 @@ weapp.App = function(canvas) {
     nominMarker.enable(false);
     this.markerManager_.addMarker('nominatimMarker', nominMarker);
 
+    if (goog.DEBUG) {
+      window.debugMarker = new we.ui.markers.BasicMarker(0, 0);
+      window.debugMarker.enable(false);
+      this.markerManager_.addMarker('debugMarker', window.debugMarker);
+    }
+
     var runNominatimAction = goog.bind(function(item) {
       this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
       this.context.scene.camera.tilt = 0;

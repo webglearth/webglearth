@@ -66,7 +66,13 @@ we.ui.SceneDragger = function(scene) {
    * @type {?Array.<number>}
    * @private
    */
-  this.headingTarget_ = null;
+  this.rotationTarget_ = null;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.rotationDistance_ = 0;
 
   /**
    * @type {number}
@@ -137,9 +143,30 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
     if (e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE) ||
         (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
         e.shiftKey)) {
-      this.headingTarget_ = /*this.scene_.camera.getTarget() ||*/
-                            this.scene_.getLatLongForXY(e.offsetX, e.offsetY,
-                                                        true);
+      this.rotationTarget_ = this.scene_.camera.getTarget();// ||*/
+      //this.scene_.getLatLongForXY(e.offsetX, e.offsetY,
+      //                            true);
+      if (goog.isDefAndNotNull(this.rotationTarget_)) {
+        if (window.debugMarker) {
+          window.debugMarker.lat = goog.math.toDegrees(this.rotationTarget_[0]);
+          window.debugMarker.lon = goog.math.toDegrees(this.rotationTarget_[1]);
+          window.debugMarker.enable(true);
+        }
+        //TODO: Optimize !!
+        if (this.scene_.camera.tilt == 0) {
+          this.rotationDistance_ = this.scene_.camera.getAltitude();
+        } else {
+          var singamma =
+              (1 + this.scene_.camera.getAltitude() / we.scene.EARTH_RADIUS) *
+              Math.sin(this.scene_.camera.tilt);
+          var gamma = Math.PI - Math.asin(singamma);
+
+          var beta = Math.PI - this.scene_.camera.tilt - gamma;
+          this.rotationDistance_ =
+              (Math.sin(beta) / Math.sin(this.scene_.camera.tilt)) *
+              we.scene.EARTH_RADIUS;
+        }
+      }
     }
 
 
@@ -171,7 +198,9 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
 
     e.preventDefault();
 
-    this.headingTarget_ = null;
+    this.rotationTarget_ = null;
+    if (window.debugMarker)
+      window.debugMarker.enable(false);
 
     this.dragging_ = false;
 
@@ -215,13 +244,12 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
  * @private
  */
 we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
-  if (goog.isDefAndNotNull(this.headingTarget_)) {
-    this.scene_.camera.tilt += (yDiff / this.scene_.context.canvas.height) *
-                               Math.PI / 2;
-    this.scene_.camera.rotateAround(this.headingTarget_[0],
-                                    this.headingTarget_[1],
-                                    (xDiff / this.scene_.context.canvas.width) *
-                                    Math.PI * -2);
+  if (goog.isDefAndNotNull(this.rotationTarget_)) {
+    this.scene_.camera.rotateAround(
+        this.rotationTarget_[0], this.rotationTarget_[1],
+        this.rotationDistance_,
+        (xDiff / this.scene_.context.canvas.width) * Math.PI * -2,
+        (yDiff / this.scene_.context.canvas.height) * Math.PI / 2);
   } else {
     //PI * (How much is 1px on the screen?) * (How much is visible?)
     var factor = Math.PI * (1 / this.scene_.context.canvas.height) *

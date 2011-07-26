@@ -157,27 +157,32 @@ we.scene.Camera.prototype.moveRelative = function(vertical, horizontal) {
  * Rotates the camera around fixed point
  * @param {number} latitude Latitude of fixed point in radians.
  * @param {number} longitude Longitude of fixed point in radians.
+ * @param {number} distance Distance of camera from the rotation point.
  * @param {number} horizontalAngle Angle in radians.
+ * @param {number} verticalAngle Angle in radians.
  */
-we.scene.Camera.prototype.rotateAround = function(latitude, longitude,
-                                                  horizontalAngle) {
+we.scene.Camera.prototype.rotateAround = function(latitude, longitude, distance,
+                                                  horizontalAngle,
+                                                  verticalAngle) {
 
   this.heading += horizontalAngle;
 
-  var direction = new goog.math.Vec2(this.longitude_ - longitude,
-                                     this.latitude_ - latitude);
-  var distance = direction.magnitude();
+  this.tilt += verticalAngle;
 
-  direction.normalize();
+  //angle between camera position and the target from the center of the Earth
+  var beta = Math.asin((distance / we.scene.EARTH_RADIUS) *
+                       Math.sin(this.tilt));
+  //angle between the center of the Earth and camera position from the target
+  var gamma = Math.PI - this.tilt - beta;
 
-  var x = direction.x;
-  direction.x = x * Math.cos(horizontalAngle) -
-                direction.y * Math.sin(horizontalAngle);
-  direction.y = x * Math.sin(horizontalAngle) +
-                direction.y * Math.cos(horizontalAngle);
+  this.setAltitude((Math.sin(gamma) / Math.sin(this.tilt) - 1) *
+                   we.scene.EARTH_RADIUS);
 
-  this.setPosition(latitude + direction.y * distance,
-                   longitude + direction.x * distance);
+  //move away from the target
+  var nlat = latitude - Math.cos(this.heading) * beta;
+  this.setPosition(nlat,
+                   longitude + Math.sin(this.heading) * beta / Math.cos(nlat));
+
 };
 
 
