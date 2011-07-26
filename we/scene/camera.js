@@ -222,11 +222,21 @@ we.scene.Camera.prototype.getLongitude = function() {
 
 
 /**
+ * Validates given altitude
+ * @param {number} altitude Altitude in meters.
+ * @return {number} Closest allowed altitude.
+ */
+we.scene.Camera.prototype.validateAltitude = function(altitude) {
+  return goog.math.clamp(altitude, 250, 10000000);
+};
+
+
+/**
  * Sets this camera to fixed altitude
  * @param {number} altitude Altitude in meters.
  */
 we.scene.Camera.prototype.setAltitude = function(altitude) {
-  this.altitude_ = goog.math.clamp(altitude, 250, 10000000);
+  this.altitude_ = this.validateAltitude(altitude);
 
   this.zoom_ = null; //invalidate cached zoom
 
