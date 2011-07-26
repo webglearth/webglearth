@@ -167,7 +167,8 @@ we.scene.Camera.prototype.rotateAround = function(latitude, longitude, distance,
 
   this.heading += horizontalAngle;
 
-  this.tilt -= verticalAngle;
+  this.tilt = goog.math.clamp(this.tilt - verticalAngle,
+                              -Math.PI / 2, Math.PI / 2);
 
   //angle between camera position and the target from the center of the Earth
   var beta = Math.asin((distance / we.scene.EARTH_RADIUS) *

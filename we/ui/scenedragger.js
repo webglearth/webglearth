@@ -63,7 +63,7 @@ we.ui.SceneDragger = function(scene) {
   this.dragging_ = false;
 
   /**
-   * @type {?Array.<number>}
+   * @type {undefined|null|Array.<number>}
    * @private
    */
   this.rotationTarget_ = null;
@@ -198,7 +198,7 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
 
     e.preventDefault();
 
-    this.rotationTarget_ = null;
+    this.rotationTarget_ = undefined;
     if (window.debugMarker)
       window.debugMarker.enable(false);
 
@@ -244,13 +244,19 @@ we.ui.SceneDragger.prototype.onMouseUp_ = function(e) {
  * @private
  */
 we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
-  if (goog.isDefAndNotNull(this.rotationTarget_)) {
-    this.scene_.camera.rotateAround(
-        this.rotationTarget_[0], this.rotationTarget_[1],
-        this.rotationDistance_,
-        (xDiff / this.scene_.context.canvas.width) * Math.PI * -2,
-        (yDiff / this.scene_.context.canvas.height) * Math.PI / 2);
-  } else {
+  if (goog.isDef(this.rotationTarget_)) { //Rotation mode
+    var deltaX = (xDiff / this.scene_.context.canvas.width) * Math.PI * -2;
+    var deltaY = (yDiff / this.scene_.context.canvas.height) * Math.PI / 2;
+
+    if (!goog.isNull(this.rotationTarget_)) { //Rotation around fixed target
+      this.scene_.camera.rotateAround(
+          this.rotationTarget_[0], this.rotationTarget_[1],
+          this.rotationDistance_, deltaX, deltaY);
+    } else { //Free rotation
+      this.scene_.camera.heading += deltaX;
+      this.scene_.camera.tilt += deltaY;
+    }
+  } else { //Pan mode
     //PI * (How much is 1px on the screen?) * (How much is visible?)
     var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
         (this.scene_.tilesVertically /
