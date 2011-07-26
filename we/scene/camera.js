@@ -69,7 +69,7 @@ we.scene.Camera = function(scene) {
 
   /**
    * Altitude of this camera in meters
-   * @type {?number}
+   * @type {number}
    * @private
    */
   this.altitude_ = 10000000;
