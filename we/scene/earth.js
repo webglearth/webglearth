@@ -51,7 +51,7 @@ we.scene.EARTH_RADIUS = 6378137;
 /**
  * @define {boolean} Enable terrain rendering.
  */
-we.scene.TERRAIN = true;
+we.scene.TERRAIN = false;
 
 
 /**
