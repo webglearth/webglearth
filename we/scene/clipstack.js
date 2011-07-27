@@ -169,8 +169,6 @@ we.scene.ClipStack.prototype.moveCenter = function(lat, lon, zoomLevel) {
   //move centers
   var tileCount = 1 << zoomLevel;
 
-  var buffQuota = 1;
-
   var posX = (lon / (2 * Math.PI) + 0.5) * tileCount;
   var posY = (0.5 - Math.log(Math.tan(lat / 2.0 +
       Math.PI / 4.0)) / (Math.PI * 2)) * tileCount;
@@ -178,6 +176,12 @@ we.scene.ClipStack.prototype.moveCenter = function(lat, lon, zoomLevel) {
     this.levels_[i].moveCenter(posX, posY);
     posX /= 2;
     posY /= 2;
+  }
+
+  var buffQuota = 1;
+  for (var i = this.buffersOffset_;
+       buffQuota > 0 && i <= zoomLevel - this.minLevel_;
+       i++) {
     buffQuota -= this.levels_[i].processTiles((buffQuota >= 0) ? 1 : 0, 5);
   }
 };
