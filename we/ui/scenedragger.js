@@ -63,10 +63,13 @@ we.ui.SceneDragger = function(scene) {
   this.dragging_ = false;
 
   /**
+   * undefined - no rotation,
+   * null - free rotation,
+   * Array.<number> - fixed rotation around this coordinates
    * @type {undefined|null|Array.<number>}
    * @private
    */
-  this.rotationTarget_ = null;
+  this.rotationTarget_ = undefined;
 
   /**
    * @type {number}
