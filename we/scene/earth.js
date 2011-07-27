@@ -145,7 +145,7 @@ we.scene.Earth = function(scene, opt_tileProvider) {
                      new we.gl.SegmentedPlane(this.context, 6, 6, 8, true),  //2
                      new we.gl.SegmentedPlane(this.context, 8, 8, 8, true),  //3
                      new we.gl.SegmentedPlane(this.context, 10, 10, 8),      //4
-                     new we.gl.SegmentedPlane(this.context, 32, 32,
+                     new we.gl.SegmentedPlane(this.context, 64, 64,
                                               this.terrain ? 8 : 4)];
 
 
@@ -246,20 +246,16 @@ we.scene.Earth.prototype.getCurrentTileProvider = function() {
 we.scene.Earth.prototype.updateTiles_ = function() {
   this.tileCount = 1 << this.scene.camera.getZoom();
 
-  var cameraTarget = this.scene.camera.getTarget();
-  if (goog.isNull(cameraTarget)) {
-    //If camera is not pointed at Earth, just fallback to latlon now
-    cameraTarget = this.scene.camera.getPosition();
-  }
-  this.offset[0] = Math.floor(cameraTarget[1] / (2 * Math.PI) * this.tileCount);
+  var mostDetails = this.scene.camera.getPosition();
+  this.offset[0] = Math.floor(mostDetails[1] / (2 * Math.PI) * this.tileCount);
   this.offset[1] = goog.math.clamp(Math.floor(
-      we.scene.Scene.projectLatitude(cameraTarget[0]) / (Math.PI * 2) *
+      we.scene.Scene.projectLatitude(mostDetails[0]) / (Math.PI * 2) *
       this.tileCount), -this.tileCount / 2, this.tileCount / 2);
 
-  this.clipStackA_.moveCenter(cameraTarget[0], cameraTarget[1],
+  this.clipStackA_.moveCenter(mostDetails[0], mostDetails[1],
                               Math.floor(this.scene.camera.getZoom()));
   if (this.terrain) {
-    this.clipStackT_.moveCenter(cameraTarget[0], cameraTarget[1],
+    this.clipStackT_.moveCenter(mostDetails[0], mostDetails[1],
                                 Math.floor(this.scene.camera.getZoom()) -
                                 we.scene.TERRAIN_ZOOM_DIFFERENCE);
   }
