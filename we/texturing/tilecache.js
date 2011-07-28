@@ -85,6 +85,7 @@ we.texturing.TileCache = function(tileprovider) {
 we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
   this.tileProviderResetTime_ = goog.now();
   this.tileProvider_ = tileprovider;
+  goog.structs.forEach(this.tileMap_, function(val, key, col) {val.dispose();});
   this.tileMap_.clear();
   this.loadRequests_ = [];
 };
