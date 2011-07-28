@@ -68,12 +68,6 @@ we.texturing.TileProvider.prototype.getTileSize = goog.abstractMethod;
 
 
 /**
- * @type {!function(we.texturing.Tile)}
- */
-we.texturing.TileProvider.prototype.tileLoadedHandler = goog.nullFunction;
-
-
-/**
  * Number of currently loading tiles.
  * @type {number}
  */
@@ -83,6 +77,8 @@ we.texturing.TileProvider.prototype.loadingTileCounter = 0;
 /**
  * Determines URL for given tile and starts loading it.
  * @param {!we.texturing.Tile} tile Tile to be loaded.
+ * @param {!function(!we.texturing.Tile)} onload onload.
+ * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
  * @return {boolean} Returns whether the TileProvider is ready to load the tile.
  */
 we.texturing.TileProvider.prototype.loadTile = goog.abstractMethod;

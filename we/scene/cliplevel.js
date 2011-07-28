@@ -362,7 +362,7 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
       goog.math.modulo(y + this.offY, this.side_) - 1) * tileSize;
 
   gl.texSubImage2D(gl.TEXTURE_2D, 0, xPos, yPos,
-                   gl.RGBA, gl.UNSIGNED_BYTE, tile.image);
+                   gl.RGBA, gl.UNSIGNED_BYTE, tile.getImage());
 
   this.metaBuffer[y][x] = 1;
 };

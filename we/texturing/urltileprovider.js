@@ -58,33 +58,33 @@ goog.inherits(we.texturing.URLTileProvider, we.texturing.TileProvider);
 we.texturing.URLTileProvider.prototype.getTileURL = goog.abstractMethod;
 
 
-/**
- * Determines URL for given tile and starts loading it.
- * @param {!we.texturing.Tile} tile Tile to be loaded.
- * @return {boolean} Returns whether the TileProvider is ready to load the tile.
- */
-we.texturing.URLTileProvider.prototype.loadTile = function(tile) {
-  tile.image = new Image();
-  var onload = function(tileprovider) {return (function() {
+/** @inheritDoc */
+we.texturing.URLTileProvider.prototype.loadTile = function(tile, onload,
+                                                           opt_onerror) {
+  var image = new Image();
+  var onload_ = function() {
     //if (goog.DEBUG)
     //  we.texturing.TileProvider.logger.info('Loaded tile ' + tile.getKey());
     tile.state = we.texturing.Tile.State.LOADED;
-    tileprovider.loadingTileCounter--;
-    tileprovider.tileLoadedHandler(tile);
-  })};
-  var onerror = function(tileprovider) {return (function() {
+    this.loadingTileCounter--;
+    onload(tile);
+  };
+  var onerror_ = function() {
     if (goog.DEBUG) {
       we.texturing.TileProvider.logger.severe('Error loading tile: ' +
                                               tile.getKey() + ' (' +
-                                              tileprovider.name + ')');
+                                              this.name + ')');
     }
+    tile.failed++;
     tile.state = we.texturing.Tile.State.ERROR;
-    tileprovider.loadingTileCounter--;
-  })};
-  tile.image.onload = onload(this);
-  tile.image.onerror = onerror(this);
+    this.loadingTileCounter--;
+    if (opt_onerror) opt_onerror(tile);
+  };
+  image.onload = goog.bind(onload_, this);
+  image.onerror = goog.bind(onerror_, this);
   tile.state = we.texturing.Tile.State.LOADING;
-  tile.image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
+  tile.setImage(image);
+  image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 
