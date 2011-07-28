@@ -47,7 +47,7 @@ goog.provide('we.texturing.WMSTileProvider');
 
 goog.require('goog.debug.Logger');
 goog.require('goog.events');
-goog.require('we.texturing.TileProvider');
+goog.require('we.texturing.URLTileProvider');
 goog.require('we.utils');
 
 
@@ -56,7 +56,7 @@ goog.require('we.utils');
  * WMS TileProvider for custom tile sources.
  * WMS must support EPSG:3857 to work correctly
  * @constructor
- * @extends {we.texturing.TileProvider}
+ * @extends {we.texturing.URLTileProvider}
  * @inheritDoc
  * @param {string} name Human-readable name of this tile source.
  * @param {string} service URL of the service.
@@ -156,7 +156,7 @@ we.texturing.WMSTileProvider = function(name, service, version, layers,
 
 
 };
-goog.inherits(we.texturing.WMSTileProvider, we.texturing.TileProvider);
+goog.inherits(we.texturing.WMSTileProvider, we.texturing.URLTileProvider);
 
 
 /** @inheritDoc */

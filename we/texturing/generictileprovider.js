@@ -29,7 +29,7 @@
 
 goog.provide('we.texturing.GenericTileProvider');
 
-goog.require('we.texturing.TileProvider');
+goog.require('we.texturing.URLTileProvider');
 goog.require('we.utils');
 
 
@@ -37,7 +37,7 @@ goog.require('we.utils');
 /**
  * Generic TileProvider for custom tile sources.
  * @constructor
- * @extends {we.texturing.TileProvider}
+ * @extends {we.texturing.URLTileProvider}
  * @inheritDoc
  * @param {string} name Human-readable name of this tile source.
  * @param {string} url URL of the tiles containing
@@ -84,7 +84,7 @@ we.texturing.GenericTileProvider = function(name, url, minZoom, maxZoom,
    */
   this.subdomains = opt_subdomains || [];
 };
-goog.inherits(we.texturing.GenericTileProvider, we.texturing.TileProvider);
+goog.inherits(we.texturing.GenericTileProvider, we.texturing.URLTileProvider);
 
 
 /** @inheritDoc */

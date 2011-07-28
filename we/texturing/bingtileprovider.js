@@ -31,7 +31,7 @@ goog.provide('we.texturing.BingTileProvider');
 
 goog.require('goog.functions');
 
-goog.require('we.texturing.TileProvider');
+goog.require('we.texturing.URLTileProvider');
 goog.require('we.utils');
 
 
@@ -41,7 +41,7 @@ goog.require('we.utils');
  * @constructor
  * @param {string} imagerySet The type of imagery.
  * @param {string} key Bing maps key.
- * @extends {we.texturing.TileProvider}
+ * @extends {we.texturing.URLTileProvider}
  * @inheritDoc
  */
 we.texturing.BingTileProvider = function(imagerySet, key) {
@@ -63,7 +63,7 @@ we.texturing.BingTileProvider = function(imagerySet, key) {
   goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
 
 };
-goog.inherits(we.texturing.BingTileProvider, we.texturing.TileProvider);
+goog.inherits(we.texturing.BingTileProvider, we.texturing.URLTileProvider);
 
 
 /**
