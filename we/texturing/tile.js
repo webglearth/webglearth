@@ -122,7 +122,7 @@ we.texturing.Tile.prototype.getKey = function() {
 
 
 /**
- * @param {!Object} data Custom data.
+ * @param {Object} data Custom data.
  */
 we.texturing.Tile.prototype.setData = function(data) {
   this.data_ = data;

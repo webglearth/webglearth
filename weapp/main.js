@@ -41,6 +41,7 @@ goog.require('we.gl.Context');
 goog.require('we.scene.Scene');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
+goog.require('we.texturing.GoogleTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileProvider');
@@ -53,6 +54,8 @@ goog.require('weapp.ui.Nominatim');
 goog.require('weapp.ui.PanControl');
 goog.require('weapp.ui.TileProviderSelector');
 goog.require('weapp.ui.ZoomSlider');
+
+
 
 //Dummy dependencies
 goog.addDependency('',
@@ -352,6 +355,9 @@ weapp.run = function() {
       new we.texturing.BingTileProvider('AerialWithLabels', weapp.BING_KEY));
   app.addTileProvider(
       new we.texturing.BingTileProvider('Road', weapp.BING_KEY));
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.SATELLITE));
 
   if (goog.DEBUG) {
     app.addTileProvider(new we.texturing.GenericTileProvider('CleanTOPO2',
