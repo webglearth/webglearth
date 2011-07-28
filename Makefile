@@ -17,6 +17,7 @@ api/api.js: \
 		--compiler_flags=--compilation_level=ADVANCED_OPTIMIZATIONS \
 		--compiler_flags=--define=goog.DEBUG=false \
 		--compiler_flags=--define=we.CALC_FPS=false \
+		--compiler_flags=--externs=externs/google_maps_api_v3_5.js \
 		--compiler_flags=--warning_level=VERBOSE \
 		--compiler_flags=--summary_detail_level=3 \
 		--compiler_jar=$(COMPILER_JAR) \
@@ -64,6 +65,7 @@ weapp/index.js: \
 		--compiler_flags=--define=we.CALC_FPS=true \
 		--compiler_flags=--define=weapp.BING_KEY=\"$(BING_KEY)\" \
 		--compiler_flags=--warning_level=VERBOSE \
+		--compiler_flags=--externs=externs/google_maps_api_v3_5.js \
 		--compiler_flags=--summary_detail_level=3 \
 		--compiler_jar=$(COMPILER_JAR) \
 		--root=$(CLOSURE_LIBRARY)/closure/goog/ \
