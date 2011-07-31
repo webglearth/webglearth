@@ -34,6 +34,7 @@ goog.require('goog.debug.Logger');
 
 goog.require('we.texturing.Tile');
 goog.require('we.texturing.TileCache');
+goog.require('we.texturing.TileProvider.AreaDescriptor');
 
 
 
@@ -155,9 +156,10 @@ we.scene.ClipLevel.prototype.disable = function() {
 /**
  * @param {number} centerOffX X offset of the center in tiles.
  * @param {number} centerOffY Y offset of the center in tiles.
+ * @return {boolean} True if the covered area has changed.
  */
 we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
-
+  var changed = false;
   if (!this.degenerated_) {
     var offX = goog.math.modulo(Math.round(centerOffX - this.side_ / 2),
                                 this.tileCount_);
@@ -177,7 +179,9 @@ we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
 
     if (Math.abs(diffX) >= this.side_ || Math.abs(diffY) >= this.side_) {
       this.resetMeta_(); //too different - reset everything
+      changed = true;
     } else {
+      changed = diffX != 0 || diffY != 0;
       if (diffX > 0) {
         for (var i = 0; i < this.side_; ++i) {
           this.metaBuffer[i].splice(0, diffX);
@@ -206,6 +210,7 @@ we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
     }
   }
   this.needTiles_();
+  return changed;
 };
 
 
@@ -365,4 +370,33 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
                    gl.RGBA, gl.UNSIGNED_BYTE, tile.getImage());
 
   this.metaBuffer[y][x] = 1;
+};
+
+
+/**
+ *
+ * @return {!we.texturing.TileProvider.AreaDescriptor} Area info.
+ */
+we.scene.ClipLevel.prototype.getAreaDescriptor = function() {
+  //Longitude span is simple
+  var spanLon = this.degenerated_ ? Math.PI :
+                this.side_ / this.tileCount_ * 2 * Math.PI;
+
+  //Latitude span depends on latitude itself
+  var topLat = we.scene.Scene.unprojectLatitude(
+      (0.5 - (this.offY) / this.tileCount_) * 2 * Math.PI);
+  var botLat = we.scene.Scene.unprojectLatitude(
+      (0.5 - (this.offY + this.side_) / this.tileCount_) * 2 * Math.PI);
+
+  var spanLat = this.degenerated_ ? Math.PI / 2 : Math.abs(topLat - botLat);
+
+  var centerLat = this.degenerated_ ? 0 : we.scene.Scene.unprojectLatitude(
+      (0.5 - (this.offY + this.side_ / 2) / this.tileCount_) * 2 * Math.PI);
+  var centerLon = this.degenerated_ ? 0 :
+                  ((this.offX + this.side_ / 2) / this.tileCount_ - 0.5) *
+                  2 * Math.PI;
+
+  return new we.texturing.TileProvider.AreaDescriptor(centerLat, centerLon,
+                                                      spanLat, spanLon,
+                                                      this.zoom_);
 };

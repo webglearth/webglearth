@@ -76,6 +76,12 @@ we.scene.ClipStack = function(tileprovider, context, side, buffers,
    */
   this.maxLevel_ = maxLevel;
 
+  /**
+   * @type {we.texturing.TileProvider}
+   * @private
+   */
+  this.tileProvider_ = tileprovider;
+
   var tileSize = tileprovider.getTileSize();
   /**
    * @type {Array.<!we.scene.ClipBuffer>}
@@ -127,6 +133,7 @@ we.scene.ClipStack.prototype.changeTileProvider = function(tileprovider) {
   this.leveln.dispose();
   this.leveln = new we.scene.ClipLevelN(tileprovider, this.context_, 2);
 
+  this.tileProvider_ = tileprovider;
   var tileSize = tileprovider.getTileSize();
   var size = this.side_ * tileSize;
   goog.array.forEach(this.buffers_, function(b) {b.resize(size, size);});
@@ -134,6 +141,7 @@ we.scene.ClipStack.prototype.changeTileProvider = function(tileprovider) {
     l.changeTileProvider(tileprovider);
   });
 
+  this.requestNewCopyrightInfo_();
 };
 
 
@@ -168,14 +176,19 @@ we.scene.ClipStack.prototype.moveCenter = function(lat, lon, zoomLevel) {
 
   //move centers
   var tileCount = 1 << zoomLevel;
+  var needCopyrightUpdate = false;
 
   var posX = (lon / (2 * Math.PI) + 0.5) * tileCount;
-  var posY = (0.5 - Math.log(Math.tan(lat / 2.0 +
-      Math.PI / 4.0)) / (Math.PI * 2)) * tileCount;
+  var posY = (0.5 - we.scene.Scene.projectLatitude(lat) / (Math.PI * 2)) *
+             tileCount;
   for (var i = zoomLevel - this.minLevel_; i >= this.buffersOffset_; i--) {
-    this.levels_[i].moveCenter(posX, posY);
+    needCopyrightUpdate |= this.levels_[i].moveCenter(posX, posY);
     posX /= 2;
     posY /= 2;
+  }
+
+  if (needCopyrightUpdate) {
+    this.requestNewCopyrightInfo_();
   }
 
   var buffQuota = 1;
@@ -254,4 +267,18 @@ we.scene.ClipStack.prototype.getQueueSizesText = function() {
  */
 we.scene.ClipStack.prototype.getSideLength = function() {
   return this.side_;
+};
+
+
+/**
+ * Gets all active area descriptors and requests new copyright
+ * information from active TileProvider.
+ * @private
+ */
+we.scene.ClipStack.prototype.requestNewCopyrightInfo_ = function() {
+  var areas = new Array(this.buffers_.length);
+  for (var i = 0; i < this.buffers_.length; i++) {
+    areas[i] = this.levels_[this.buffersOffset_ + i].getAreaDescriptor();
+  }
+  this.tileProvider_.requestNewCopyrightInfo(areas);
 };

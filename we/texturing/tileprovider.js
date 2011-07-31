@@ -28,6 +28,7 @@
  */
 
 goog.provide('we.texturing.TileProvider');
+goog.provide('we.texturing.TileProvider.AreaDescriptor');
 
 goog.require('goog.debug.Logger');
 
@@ -101,6 +102,13 @@ we.texturing.TileProvider.prototype.getLogoUrl = function() {return null;};
 
 
 /**
+ * Request new copyright info for the given area.
+ * @param {!Array.<we.texturing.TileProvider.AreaDescriptor>} areas Area infos.
+ */
+we.texturing.TileProvider.prototype.requestNewCopyrightInfo = goog.nullFunction;
+
+
+/**
  * @type {!function()}
  */
 we.texturing.TileProvider.prototype.copyrightInfoChangedHandler =
@@ -114,3 +122,65 @@ if (goog.DEBUG) {
   we.texturing.TileProvider.logger =
       goog.debug.Logger.getLogger('we.texturing.TileProvider');
 }
+
+
+
+/**
+ * Describes a rectangular area on the surface of the planet.
+ * Useful for copyright requests.
+ * @param {number} centerLat Latitude of the area center in radians.
+ * @param {number} centerLon Longitude of the area center in radians.
+ * @param {number} spanLat Latitude span in radians.
+ * @param {number} spanLon Longitude span in radians.
+ * @param {number} zoomLevel zoom level.
+ * @constructor
+ */
+we.texturing.TileProvider.AreaDescriptor = function(centerLat, centerLon,
+                                                    spanLat, spanLon,
+                                                    zoomLevel) {
+  /**
+   * @type {number}
+   */
+  this.centerLat = centerLat;
+
+  /**
+   * @type {number}
+   */
+  this.centerLon = centerLon;
+
+  /**
+   * @type {number}
+   */
+  this.spanLat = spanLat;
+
+  /**
+   * @type {number}
+   */
+  this.spanLon = spanLon;
+
+  /**
+   * @type {number}
+   */
+  this.zoomLevel = zoomLevel;
+
+};
+
+
+/**
+ * @return {string} Represantation of the area center in degrees as "lat,lon".
+ */
+we.texturing.TileProvider.AreaDescriptor.prototype.getCenterInDegreesToString =
+    function() {
+  return goog.math.toDegrees(this.centerLat) + ',' +
+         goog.math.toDegrees(this.centerLon);
+};
+
+
+/**
+ * @return {string} Represantation of the area span in degrees as "lat,lon".
+ */
+we.texturing.TileProvider.AreaDescriptor.prototype.getSpanInDegreesToString =
+    function() {
+  return goog.math.toDegrees(this.spanLat) + ',' +
+         goog.math.toDegrees(this.spanLon);
+};

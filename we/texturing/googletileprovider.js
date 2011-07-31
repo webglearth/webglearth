@@ -32,21 +32,22 @@ goog.provide('we.texturing.GoogleTileProvider');
 
 goog.require('goog.functions');
 goog.require('goog.string');
+goog.require('goog.structs.Set');
 
 goog.require('we.texturing.TileProvider');
-goog.require('we.utils');
+goog.require('we.texturing.TileProvider.AreaDescriptor');
 
 
 
 /**
  * Tile provider for Google maps
  * @constructor
- * @param {!we.texturing.GoogleTileProvider.MapTypes} mapType Type of the map.
+ * @param {!we.texturing.GoogleTileProvider.MapTypes} mapTypeId Type of the map.
  * @extends {we.texturing.TileProvider}
  * @inheritDoc
  */
-we.texturing.GoogleTileProvider = function(mapType) {
-  goog.base(this, 'Google Maps - ' + mapType);
+we.texturing.GoogleTileProvider = function(mapTypeId) {
+  goog.base(this, 'Google Maps - ' + mapTypeId);
 
   var scriptPath = 'http://maps.google.com/maps/api/' +
                    'js?v=3.5&sensor=false&callback=';
@@ -63,27 +64,56 @@ we.texturing.GoogleTileProvider = function(mapType) {
    */
   this.mapType_ = null;
 
+  /**
+   * @type {!we.texturing.GoogleTileProvider.MapTypes}
+   * @private
+   */
+  this.mapTypeId_ = mapTypeId;
+
+  /**
+   * @type {!goog.structs.Set}
+   * @private
+   */
+  this.copyrights_ = new goog.structs.Set();
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.loadingCopyrightsNum_ = 0;
+
+  /**
+   * @type {!Array.<!Element>}
+   * @private
+   */
+  this.loadingCopyrights_ = [];
+
   var onscriptload = function() {
     this.map_ = new google.maps.Map(goog.dom.createElement('div'));
 
     var pickType = function() {
       this.mapType_ = this.map_.mapTypes[
-          we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapType)];
+          we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
     };
 
     google.maps.event.addListenerOnce(this.map_, 'idle',
                                       goog.bind(pickType, this));
   }
 
-  var callbackName = 'googleMapsCallback' + goog.string.getRandomString();
+  if (goog.isDefAndNotNull(goog.global.google) &&
+      google.maps &&
+      google.maps.Map) {
+    onscriptload();
+  } else {
+    var callbackName = 'googleMapsCallback' + goog.string.getRandomString();
 
-  goog.global[callbackName] = goog.bind(onscriptload, this);
+    goog.global[callbackName] = goog.bind(onscriptload, this);
 
-  var scriptEl = goog.dom.createElement('script');
-  goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
-  scriptEl.type = 'text/javascript';
-  scriptEl.src = scriptPath + callbackName;
-
+    var scriptEl = goog.dom.createElement('script');
+    goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
+    scriptEl.type = 'text/javascript';
+    scriptEl.src = scriptPath + callbackName;
+  }
 
 };
 goog.inherits(we.texturing.GoogleTileProvider, we.texturing.TileProvider);
@@ -175,35 +205,76 @@ we.texturing.GoogleTileProvider.prototype.loadTile = function(tile, onload,
 /** @inheritDoc */
 we.texturing.GoogleTileProvider.prototype.appendCopyrightContent =
     function(element) {
-  if (!goog.isNull(this.mapType_)) {
-    goog.dom.append(element, 'TODO');
+  if (this.copyrights_.getCount() > 0) {
+    goog.dom.append(element, 'Map Data © ' + new Date().getFullYear() +
+                    ' ' + this.copyrights_.getValues().join(', ') + ' – ');
   }
+  goog.dom.append(element, goog.dom.createDom('a',
+      {href: 'http://www.google.com/intl/en-US_US/help/terms_maps.html',
+        target: '_blank'},
+      'Terms of Use'));
 };
 
 
 /** @inheritDoc */
 we.texturing.GoogleTileProvider.prototype.getLogoUrl = function() {
-  if (!goog.isNull(this.mapType_)) {
-    return 'http://maps.gstatic.com/mapfiles/google_white.png';
-  }
-  return null;
+  return 'http://maps.gstatic.com/mapfiles/google_white.png';
 };
 
 
-/**
- * Downloaded metadata
- * @type {Object}
- * @private
- */
-we.texturing.GoogleTileProvider.prototype.metaData_ = null;
+/** @inheritDoc */
+we.texturing.GoogleTileProvider.prototype.requestNewCopyrightInfo =
+    function(areas) {
+  var scriptPath = 'http://maps.google.com/maps?';
 
+  this.copyrights_ = new goog.structs.Set();
 
-/**
- * Extracted resource from metadata
- * @type {Object}
- * @private
- */
-we.texturing.GoogleTileProvider.prototype.resource_ = null;
+  var origGAddCopyright = goog.global['GAddCopyright'];
+  var origGVerify = goog.global['GVerify'];
+  var origGAppFeatures = goog.global['GAppFeatures'];
+
+  var GAddCopyright = function() {
+    if (arguments.length > 7 && arguments[7].length > 0)
+      this.copyrights_.add(arguments[7]);
+  }
+
+  var GAppFeatures = function() {
+    this.loadingCopyrightsNum_--;
+
+    if (this.loadingCopyrightsNum_ <= 0) {
+      //finish
+      goog.global['GAddCopyright'] = origGAddCopyright;
+      goog.global['GVerify'] = origGVerify;
+      goog.global['GAppFeatures'] = origGAppFeatures;
+
+      goog.array.forEach(this.loadingCopyrights_, function(el, index, arr) {
+        el.parentNode.removeChild(el);
+      });
+
+      this.loadingCopyrights_ = [];
+
+      this.copyrightInfoChangedHandler();
+    }
+  }
+
+  goog.global['GAddCopyright'] = goog.bind(GAddCopyright, this);
+  goog.global['GVerify'] = goog.functions.TRUE;
+  goog.global['GAppFeatures'] = goog.bind(GAppFeatures, this);
+
+  goog.array.forEach(areas, function(el, index, arr) {
+    var scriptEl = goog.dom.createElement('script');
+    goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
+    scriptEl.type = 'text/javascript';
+
+    this.loadingCopyrights_.push(scriptEl);
+
+    scriptEl.src = scriptPath + 'vp=' + el.getCenterInDegreesToString() +
+        '&z=' + el.zoomLevel + '&spn=' + el.getSpanInDegreesToString() + '&t=' +
+        we.texturing.GoogleTileProvider.MapTypes.toLetterId(this.mapTypeId_);
+
+    this.loadingCopyrightsNum_++;
+  }, this);
+};
 
 
 /**
@@ -226,13 +297,31 @@ we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType = function(mapType) {
   switch (mapType) {
     case we.texturing.GoogleTileProvider.MapTypes.TERRAIN:
       return google.maps.MapTypeId.TERRAIN;
-    case we.texturing.GoogleTileProvider.MapTypes.SATELLITE:
-      return google.maps.MapTypeId.SATELLITE;
     case we.texturing.GoogleTileProvider.MapTypes.HYBRID:
       return google.maps.MapTypeId.HYBRID;
     case we.texturing.GoogleTileProvider.MapTypes.ROADMAP:
       return google.maps.MapTypeId.ROADMAP;
     default:
+    case we.texturing.GoogleTileProvider.MapTypes.SATELLITE:
       return google.maps.MapTypeId.SATELLITE;
+  }
+};
+
+
+/**
+ * @param {!we.texturing.GoogleTileProvider.MapTypes} mapType Type of the map.
+ * @return {!string} One letter identifier.
+ */
+we.texturing.GoogleTileProvider.MapTypes.toLetterId = function(mapType) {
+  switch (mapType) {
+    case we.texturing.GoogleTileProvider.MapTypes.TERRAIN:
+      return 'p';
+    case we.texturing.GoogleTileProvider.MapTypes.HYBRID:
+      return 'h';
+    case we.texturing.GoogleTileProvider.MapTypes.ROADMAP:
+      return 'm';
+    default:
+    case we.texturing.GoogleTileProvider.MapTypes.SATELLITE:
+      return 'k';
   }
 };
