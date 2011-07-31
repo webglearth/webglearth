@@ -180,11 +180,16 @@ we.scene.Camera.prototype.rotateAround = function(latitude, longitude, distance,
   //angle between camera position and the target from the center of the Earth
   var beta = Math.asin((distance / we.scene.EARTH_RADIUS) *
                        Math.sin(this.tilt));
-  //angle between the center of the Earth and camera position from the target
-  var gamma = Math.PI - this.tilt - beta;
 
-  this.setAltitude((Math.sin(gamma) / Math.sin(this.tilt) - 1) *
-                   we.scene.EARTH_RADIUS);
+  if (Math.abs(this.tilt) < 0.0001) {
+    this.setAltitude(distance);
+  } else {
+    //angle between the center of the Earth and camera position from the target
+    var gamma = Math.PI - this.tilt - beta;
+
+    this.setAltitude((Math.sin(gamma) / Math.sin(this.tilt) - 1) *
+                     we.scene.EARTH_RADIUS);
+  }
 
   //move away from the target
   var nlat = latitude - Math.cos(this.heading) * beta;
