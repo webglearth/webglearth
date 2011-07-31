@@ -167,17 +167,29 @@ we.scene.Camera.prototype.rotateAround = function(latitude, longitude, distance,
 
   this.heading += horizontalAngle;
 
-  this.tilt = goog.math.clamp(this.tilt - verticalAngle,
-                              -Math.PI / 2, Math.PI / 2);
+  //distance from the center of the Earth
+  var distanceFromCOE = Math.sqrt(distance * distance +
+      we.scene.EARTH_RADIUS * we.scene.EARTH_RADIUS);
+
+  //maximum tilt that can be used so that the rotation target is still visible
+  var maxTilt = Math.asin(we.scene.EARTH_RADIUS / distanceFromCOE);
+
+  this.tilt = goog.math.clamp(this.tilt + verticalAngle,
+                              -maxTilt, maxTilt);
 
   //angle between camera position and the target from the center of the Earth
   var beta = Math.asin((distance / we.scene.EARTH_RADIUS) *
                        Math.sin(this.tilt));
-  //angle between the center of the Earth and camera position from the target
-  var gamma = Math.PI - this.tilt - beta;
 
-  this.setAltitude((Math.sin(gamma) / Math.sin(this.tilt) - 1) *
-                   we.scene.EARTH_RADIUS);
+  if (Math.abs(this.tilt) < 0.0001) {
+    this.setAltitude(distance);
+  } else {
+    //angle between the center of the Earth and camera position from the target
+    var gamma = Math.PI - this.tilt - beta;
+
+    this.setAltitude((Math.sin(gamma) / Math.sin(this.tilt) - 1) *
+                     we.scene.EARTH_RADIUS);
+  }
 
   //move away from the target
   var nlat = latitude - Math.cos(this.heading) * beta;
