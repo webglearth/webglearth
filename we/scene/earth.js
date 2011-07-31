@@ -219,7 +219,7 @@ we.scene.Earth.prototype.changeTileProvider = function(tileprovider,
   this.currentTileProvider_ = tileprovider;
   this.clipStackA_.changeTileProvider(this.currentTileProvider_);
   this.currentTileProvider_.copyrightInfoChangedHandler =
-      goog.bind(this.scene.updateCopyrights, this);
+      goog.bind(this.scene.updateCopyrights, this.scene);
 
   if (opt_firstRun !== true) {
     this.scene.recalcTilesVertically();
