@@ -31,6 +31,7 @@ goog.provide('we.texturing.TileProvider');
 goog.provide('we.texturing.TileProvider.AreaDescriptor');
 
 goog.require('goog.debug.Logger');
+goog.require('goog.math.Box');
 
 goog.require('we.texturing.Tile');
 goog.require('we.texturing.Tile.State');
@@ -47,6 +48,65 @@ we.texturing.TileProvider = function(name) {
    * @type {string}
    */
   this.name = name;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.minLat_ = -Math.PI / 2;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.maxLat_ = Math.PI / 2;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.minLon_ = -Math.PI;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.maxLon_ = Math.PI;
+};
+
+
+/**
+ * @param {number} minLat Minimal latitude in degrees.
+ * @param {number} maxLat Maximal latitude in degrees.
+ * @param {number} minLon Minimal longitude in degrees.
+ * @param {number} maxLon Maximal longitude in degrees.
+ */
+we.texturing.TileProvider.prototype.setBoundingBox = function(minLat, maxLat,
+                                                              minLon, maxLon) {
+  this.minLat_ = goog.math.toRadians(minLat);
+  this.maxLat_ = goog.math.toRadians(maxLat);
+  this.minLon_ = goog.math.toRadians(minLon);
+  this.maxLon_ = goog.math.toRadians(maxLon);
+};
+
+
+/**
+ * Calculates Bounding Box in tile coordinates for given zoomLevel.
+ * @param {number} zoomLevel Zoom level.
+ * @return {!goog.math.Box} Bounding box in tile coordinates.
+ */
+we.texturing.TileProvider.prototype.getBoundingBox = function(zoomLevel) {
+  var tileCount = 1 << zoomLevel;
+
+  var minX = (this.minLon_ / (2 * Math.PI) + 0.5) * tileCount;
+  var maxX = (this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount;
+  // Latitude vs Tile coordinates is inverted - switch max with min
+  var minY = (0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
+             (Math.PI * 2)) * tileCount;
+  var maxY = (0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
+             (Math.PI * 2)) * tileCount;
+
+  return new goog.math.Box(minY, maxX, maxY, minX);
 };
 
 

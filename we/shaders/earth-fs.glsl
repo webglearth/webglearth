@@ -31,18 +31,41 @@ uniform sampler2D uBufferLnA;
 varying float vFallbackA;
 varying vec2 vTCA;
 
+
+uniform sampler2D uBufferL0B;
+uniform sampler2D uBufferL1B;
+uniform sampler2D uBufferL2B;
+
+varying float vFallbackB;
+varying vec2 vTCB;
+
+uniform float uMixFactor;
+
 void main(){
-  float fallback = floor(vFallbackA + 0.5);
-  if (fallback  == 0.0) {
-    gl_FragColor=texture2D(uBufferL0A,vTCA);
-  } else if (fallback  == 1.0) {
-    gl_FragColor=texture2D(uBufferL1A,vTCA);
-  } else if (fallback  == 2.0) {
-    gl_FragColor=texture2D(uBufferL2A,vTCA);
-  } else if (fallback == -1.0) {
-    gl_FragColor=texture2D(uBufferLnA,vTCA);
+  float fallbackA = floor(vFallbackA + 0.5);
+  vec4 colorA;
+  if (fallbackA  == 0.0) {
+    colorA=texture2D(uBufferL0A,vTCA);
+  } else if (fallbackA  == 1.0) {
+    colorA=texture2D(uBufferL1A,vTCA);
+  } else if (fallbackA  == 2.0) {
+    colorA=texture2D(uBufferL2A,vTCA);
+  } else if (fallbackA == -1.0) {
+    colorA=texture2D(uBufferLnA,vTCA);
   } else {
     discard;
   }
+  
+  float fallbackB = floor(vFallbackB + 0.5);
+  vec4 colorB;
+  if (fallbackB  == 0.0) {
+    colorB=texture2D(uBufferL0B,vTCB);
+  } else if (fallbackB  == 1.0) {
+    colorB=texture2D(uBufferL1B,vTCB);
+  } else if (fallbackB  == 2.0) {
+    colorB=texture2D(uBufferL2B,vTCB);
+  }
+  
+  gl_FragColor = mix(colorA, colorB, uMixFactor);
   //gl_FragColor = mix(gl_FragColor, vec4(1.0,0.0,0.0,1.0), float(vFallbackA)/4.0); //useful for clipstack debugging - fallback levels are red and LevelN is slightly cyan
 }
