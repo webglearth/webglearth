@@ -70,49 +70,49 @@ we.scene.LocatedProgram = function(program, context, terrain) {
    * @type {WebGLUniformLocation}
    */
   this.metaL0Uniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL0');
+      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL0A');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.metaL1Uniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL1');
+      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL1A');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.metaL2Uniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL2');
+      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL2A');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.levelOffsetsUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uOffL');
+      this.getValidatedUniformLocation_(gl, this.program, 'uOffLA');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.bufferL0Uniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL0');
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL0A');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.bufferL1Uniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL1');
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL1A');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.bufferL2Uniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL2');
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL2A');
 
   /**
    * @type {WebGLUniformLocation}
    */
   this.bufferLnUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferLn');
+      this.getValidatedUniformLocation_(gl, this.program, 'uBufferLnA');
 
   if (terrain) {
     /**

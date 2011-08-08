@@ -23,10 +23,10 @@
 
 precision mediump float;
 
-uniform sampler2D uBufferL0;
-uniform sampler2D uBufferL1;
-uniform sampler2D uBufferL2;
-uniform sampler2D uBufferLn;
+uniform sampler2D uBufferL0A;
+uniform sampler2D uBufferL1A;
+uniform sampler2D uBufferL2A;
+uniform sampler2D uBufferLnA;
 
 varying float vFallbackA;
 varying vec2 vTCA;
@@ -34,13 +34,13 @@ varying vec2 vTCA;
 void main(){
   float fallback = floor(vFallbackA + 0.5);
   if (fallback  == 0.0) {
-    gl_FragColor=texture2D(uBufferL0,vTCA);
+    gl_FragColor=texture2D(uBufferL0A,vTCA);
   } else if (fallback  == 1.0) {
-    gl_FragColor=texture2D(uBufferL1,vTCA);
+    gl_FragColor=texture2D(uBufferL1A,vTCA);
   } else if (fallback  == 2.0) {
-    gl_FragColor=texture2D(uBufferL2,vTCA);
+    gl_FragColor=texture2D(uBufferL2A,vTCA);
   } else if (fallback == -1.0) {
-    gl_FragColor=texture2D(uBufferLn,vTCA);
+    gl_FragColor=texture2D(uBufferLnA,vTCA);
   } else {
     discard;
   }
