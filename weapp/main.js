@@ -301,7 +301,7 @@ weapp.App = function(canvas) {
     try {
       innerInit.call(this);
     } catch (e) {
-      goog.debug.Logger.getLogger('we.ex').shout(goog.debug.deepExpose(e));
+      goog.debug.Logger.getLogger('we.ex').shout('Exception', e);
     }
   } else {
     innerInit.call(this);
