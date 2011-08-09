@@ -95,13 +95,19 @@ we.scene.Earth = function(scene, opt_tileProvider) {
   this.clipStackA_ = new we.scene.ClipStack(this.currentTileProvider_,
                                             this.context, 4, 3, 1, 19);
 
+
+  var overlayTP = new we.texturing.GenericTileProvider('Grand Canyon',
+      'http://www.maptiler.org/example-usgs-drg-grand-canyon-gtiff/' +
+      '{z}/{x}/{y}.png', 8, 15, 256);
+
+  overlayTP.setBoundingBox(-112.26055836038145, -112.11411831155569,
+                           35.98263093762349, 36.13311975190522);
   /**
    * @type {!we.scene.ClipStack}
    * @private
    */
-  this.clipStackB_ = new we.scene.ClipStack(
-      new we.texturing.BingTileProvider('Road', weapp.BING_KEY),
-                                            this.context, 4, 3, 1, 19);
+  this.clipStackB_ = new we.scene.ClipStack(overlayTP,
+                                            this.context, 4, 3, 8, 15);
 
   /**
    * @type {boolean}
