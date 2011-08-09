@@ -98,16 +98,16 @@ we.scene.Earth = function(scene, opt_tileProvider) {
 
   var overlayTP = new we.texturing.GenericTileProvider('Grand Canyon',
       'http://www.maptiler.org/example-usgs-drg-grand-canyon-gtiff/' +
-      '{z}/{x}/{y}.png', 8, 15, 256);
+      '{z}/{x}/{y}.png', 8, 15, 256, true);
 
-  overlayTP.setBoundingBox(-112.26055836038145, -112.11411831155569,
-                           35.98263093762349, 36.13311975190522);
+  overlayTP.setBoundingBox(35.98263093762349, 36.13311975190522,
+                           -112.26055836038145, -112.11411831155569);
   /**
    * @type {!we.scene.ClipStack}
    * @private
    */
   this.clipStackB_ = new we.scene.ClipStack(overlayTP,
-                                            this.context, 4, 3, 8, 15);
+                                            this.context, 4, 3, 8, 15, true);
 
   /**
    * @type {boolean}
@@ -272,6 +272,7 @@ we.scene.Earth.prototype.updateTiles_ = function() {
                               Math.floor(this.scene.camera.getZoom()));
 
   this.clipStackB_.moveCenter(mostDetails[0], mostDetails[1],
+                              needsCover[0], needsCover[1],
                               Math.floor(this.scene.camera.getZoom()));
   if (this.terrain) {
     this.clipStackT_.moveCenter(mostDetails[0], mostDetails[1],

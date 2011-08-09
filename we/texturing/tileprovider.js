@@ -53,13 +53,13 @@ we.texturing.TileProvider = function(name) {
    * @type {number}
    * @private
    */
-  this.minLat_ = -Math.PI / 2;
+  this.minLat_ = -we.scene.LATITUDE_EXTREMA;
 
   /**
    * @type {number}
    * @private
    */
-  this.maxLat_ = Math.PI / 2;
+  this.maxLat_ = we.scene.LATITUDE_EXTREMA;
 
   /**
    * @type {number}
@@ -98,14 +98,15 @@ we.texturing.TileProvider.prototype.setBoundingBox = function(minLat, maxLat,
 we.texturing.TileProvider.prototype.getBoundingBox = function(zoomLevel) {
   var tileCount = 1 << zoomLevel;
 
-  var minX = (this.minLon_ / (2 * Math.PI) + 0.5) * tileCount;
-  var maxX = (this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount;
+  var minX = Math.floor((this.minLon_ / (2 * Math.PI) + 0.5) * tileCount);
+  var maxX = Math.ceil((this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount);
   // Latitude vs Tile coordinates is inverted - switch max with min
-  var minY = (0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
-             (Math.PI * 2)) * tileCount;
-  var maxY = (0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
-             (Math.PI * 2)) * tileCount;
+  var minY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
+             (Math.PI * 2)) * tileCount);
+  var maxY = Math.ceil((0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
+             (Math.PI * 2)) * tileCount);
 
+  //TODO: caching?
   return new goog.math.Box(minY, maxX, maxY, minX);
 };
 

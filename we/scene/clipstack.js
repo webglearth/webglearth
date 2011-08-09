@@ -47,10 +47,11 @@ goog.require('we.scene.ClipLevelN');
  * @param {number} buffers Number of stack buffers.
  * @param {number} minLevel Zoom of the first ClipLevel.
  * @param {number} maxLevel Zoom of the last ClipLevel.
+ * @param {boolean=} opt_noleveln If set to true, no ClipLevelN is maintained.
  * @constructor
  */
 we.scene.ClipStack = function(tileprovider, context, side, buffers,
-                              minLevel, maxLevel) {
+                              minLevel, maxLevel, opt_noleveln) {
   /**
    * @type {!we.gl.Context}
    * @private
@@ -118,9 +119,10 @@ we.scene.ClipStack = function(tileprovider, context, side, buffers,
    * "Level-n" fallback - this is the texture to
    * fall back to if there's no other data.
    * It's better to have really blurry image than solid color.
-   * @type {!we.scene.ClipLevelN}
+   * @type {we.scene.ClipLevelN}
    */
-  this.leveln = new we.scene.ClipLevelN(tileprovider, context, 2);
+  this.leveln = opt_noleveln ? null :
+                new we.scene.ClipLevelN(tileprovider, context, 2);
 
 };
 
@@ -130,9 +132,10 @@ we.scene.ClipStack = function(tileprovider, context, side, buffers,
  * @param {!we.texturing.TileProvider} tileprovider TileProvider to be set.
  */
 we.scene.ClipStack.prototype.changeTileProvider = function(tileprovider) {
-  this.leveln.dispose();
-  this.leveln = new we.scene.ClipLevelN(tileprovider, this.context_, 2);
-
+  if (!goog.isNull(this.leveln)) {
+    this.leveln.dispose();
+    this.leveln = new we.scene.ClipLevelN(tileprovider, this.context_, 2);
+  }
   this.tileProvider_ = tileprovider;
   var tileSize = tileprovider.getTileSize();
   var size = this.side_ * tileSize;
@@ -190,14 +193,18 @@ we.scene.ClipStack.prototype.moveCenter = function(mostDetailsLat,
   var coverY = (0.5 - we.scene.Scene.projectLatitude(coverLat) /
                (Math.PI * 2)) * tileCount;
 
-
   for (var i = zoomLevel - this.minLevel_; i >= this.buffersOffset_; i--) {
+    var bounds = this.tileProvider_.getBoundingBox(this.minLevel_ + i);
     var posX = goog.math.clamp(mostDetailsX,
-                               coverX - this.side_ / 2,
-                               coverX + this.side_ / 2);
+                               Math.max(coverX - this.side_ / 2,
+                                        bounds.left + this.side_ / 2),
+                               Math.min(coverX + this.side_ / 2,
+                                        bounds.right - this.side_ / 2));
     var posY = goog.math.clamp(mostDetailsY,
-                               coverY - this.side_ / 2,
-                               coverY + this.side_ / 2);
+                               Math.max(coverY - this.side_ / 2,
+                                        bounds.top + this.side_ / 2),
+                               Math.min(coverY + this.side_ / 2,
+                                        bounds.bottom - this.side_ / 2));
     needCopyrightUpdate |= this.levels_[i].moveCenter(posX, posY);
     mostDetailsX /= 2;
     mostDetailsY /= 2;
