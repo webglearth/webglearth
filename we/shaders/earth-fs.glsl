@@ -57,7 +57,7 @@ void main(){
   }
   
   float fallbackB = floor(vFallbackB + 0.5);
-  vec4 colorB;
+  vec4 colorB = vec4(0.0);
   if (fallbackB  == 0.0) {
     colorB=texture2D(uBufferL0B,vTCB);
   } else if (fallbackB  == 1.0) {
@@ -66,6 +66,6 @@ void main(){
     colorB=texture2D(uBufferL2B,vTCB);
   }
   
-  gl_FragColor = mix(colorA, colorB, uMixFactor);
+  gl_FragColor = mix(colorA, colorB, uMixFactor * colorB.a);
   //gl_FragColor = mix(gl_FragColor, vec4(1.0,0.0,0.0,1.0), float(vFallbackA)/4.0); //useful for clipstack debugging - fallback levels are red and LevelN is slightly cyan
 }
