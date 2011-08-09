@@ -260,19 +260,22 @@ we.scene.Earth.prototype.getCurrentTileProvider = function() {
 we.scene.Earth.prototype.updateTiles_ = function() {
   this.tileCount = 1 << this.scene.camera.getZoom();
 
-  var mostDetails = this.scene.camera.getPosition();
-  this.offset[0] = Math.floor(mostDetails[1] / (2 * Math.PI) * this.tileCount);
+  var mostDetails = this.scene.camera.getTarget();
+  var needsCover = this.scene.camera.getPosition();
+  this.offset[0] = Math.floor(needsCover[1] / (2 * Math.PI) * this.tileCount);
   this.offset[1] = goog.math.clamp(Math.floor(
-      we.scene.Scene.projectLatitude(mostDetails[0]) / (Math.PI * 2) *
+      we.scene.Scene.projectLatitude(needsCover[0]) / (Math.PI * 2) *
       this.tileCount), -this.tileCount / 2, this.tileCount / 2);
 
   this.clipStackA_.moveCenter(mostDetails[0], mostDetails[1],
+                              needsCover[0], needsCover[1],
                               Math.floor(this.scene.camera.getZoom()));
 
   this.clipStackB_.moveCenter(mostDetails[0], mostDetails[1],
                               Math.floor(this.scene.camera.getZoom()));
   if (this.terrain) {
     this.clipStackT_.moveCenter(mostDetails[0], mostDetails[1],
+                                needsCover[0], needsCover[1],
                                 Math.floor(this.scene.camera.getZoom()) -
                                 we.scene.TERRAIN_ZOOM_DIFFERENCE);
   }

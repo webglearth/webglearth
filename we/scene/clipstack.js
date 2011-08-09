@@ -148,12 +148,17 @@ we.scene.ClipStack.prototype.changeTileProvider = function(tileprovider) {
 /**
  * This method can be used to move center of this clipstack it also shifts
  * the buffers when needed and buffers some tiles.
- * @param {number} lat Latitude.
- * @param {number} lon Longitude.
+ * @param {number} mostDetailsLat Latitude of the point with most details.
+ * @param {number} mostDetailsLon Longitude of the point with most details.
+ * @param {number} coverLat Latitude of the point that HAS to be covered.
+ * @param {number} coverLon Longitude of the point that HAS to be covered.
  * @param {number} zoomLevel Zoom level. If not in range of this clipstack,
  *                           it gets clamped to the neareset one.
  */
-we.scene.ClipStack.prototype.moveCenter = function(lat, lon, zoomLevel) {
+we.scene.ClipStack.prototype.moveCenter = function(mostDetailsLat,
+                                                   mostDetailsLon,
+                                                   coverLat, coverLon,
+                                                   zoomLevel) {
   zoomLevel = goog.math.clamp(zoomLevel, this.minLevel_, this.maxLevel_);
 
   //shift buffers
@@ -178,13 +183,26 @@ we.scene.ClipStack.prototype.moveCenter = function(lat, lon, zoomLevel) {
   var tileCount = 1 << zoomLevel;
   var needCopyrightUpdate = false;
 
-  var posX = (lon / (2 * Math.PI) + 0.5) * tileCount;
-  var posY = (0.5 - we.scene.Scene.projectLatitude(lat) / (Math.PI * 2)) *
-             tileCount;
+  var mostDetailsX = (mostDetailsLon / (2 * Math.PI) + 0.5) * tileCount;
+  var mostDetailsY = (0.5 - we.scene.Scene.projectLatitude(mostDetailsLat) /
+                     (Math.PI * 2)) * tileCount;
+  var coverX = (coverLon / (2 * Math.PI) + 0.5) * tileCount;
+  var coverY = (0.5 - we.scene.Scene.projectLatitude(coverLat) /
+               (Math.PI * 2)) * tileCount;
+
+
   for (var i = zoomLevel - this.minLevel_; i >= this.buffersOffset_; i--) {
+    var posX = goog.math.clamp(mostDetailsX,
+                               coverX - this.side_ / 2,
+                               coverX + this.side_ / 2);
+    var posY = goog.math.clamp(mostDetailsY,
+                               coverY - this.side_ / 2,
+                               coverY + this.side_ / 2);
     needCopyrightUpdate |= this.levels_[i].moveCenter(posX, posY);
-    posX /= 2;
-    posY /= 2;
+    mostDetailsX /= 2;
+    mostDetailsY /= 2;
+    coverX /= 2;
+    coverY /= 2;
   }
 
   if (needCopyrightUpdate) {
