@@ -154,18 +154,13 @@ we.scene.ClipLevel.prototype.disable = function() {
 
 
 /**
- * @param {number} centerOffX X offset of the center in tiles.
- * @param {number} centerOffY Y offset of the center in tiles.
+ * @param {number} offX X offset of the ClipLevel in tiles.
+ * @param {number} offY Y offset of the ClipLevel in tiles.
  * @return {boolean} True if the covered area has changed.
  */
-we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
+we.scene.ClipLevel.prototype.setOffset = function(offX, offY) {
   var changed = false;
   if (!this.degenerated_) {
-    var offX = goog.math.modulo(Math.round(centerOffX - this.side_ / 2),
-                                this.tileCount_);
-    var offY = Math.round(centerOffY - this.side_ / 2);
-
-
     var diffX = offX - this.offX;
     var diffY = offY - this.offY;
 
@@ -279,7 +274,7 @@ we.scene.ClipLevel.prototype.needTile_ = function(x, y, requestTime) {
   y = goog.math.modulo(y, this.tileCount_);
 
   var tile = this.tileCache_.retrieveTile(this.zoom_, x, y, requestTime);
-  if (tile.state == we.texturing.Tile.State.LOADED) {
+  if (!goog.isNull(tile) && tile.state == we.texturing.Tile.State.LOADED) {
     //Tile is in the cache -> put it into buffering queue
     this.bufferRequests_.push(tile);
   }

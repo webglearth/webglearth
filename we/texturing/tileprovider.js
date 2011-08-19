@@ -99,15 +99,28 @@ we.texturing.TileProvider.prototype.getBoundingBox = function(zoomLevel) {
   var tileCount = 1 << zoomLevel;
 
   var minX = Math.floor((this.minLon_ / (2 * Math.PI) + 0.5) * tileCount);
-  var maxX = Math.ceil((this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount);
+  var maxX = Math.floor((this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount);
   // Latitude vs Tile coordinates is inverted - switch max with min
   var minY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
              (Math.PI * 2)) * tileCount);
-  var maxY = Math.ceil((0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
+  var maxY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
              (Math.PI * 2)) * tileCount);
 
   //TODO: caching?
   return new goog.math.Box(minY, maxX, maxY, minX);
+};
+
+
+/**
+ * Validates whether the tile is within the bounding box of this tile provider.
+ * @param {!we.texturing.Tile} tile The tile.
+ * @return {boolean} True or false.
+ */
+we.texturing.TileProvider.prototype.isTileInBounds = function(tile) {
+  var bb = this.getBoundingBox(tile.zoom);
+
+  return tile.x >= bb.left && tile.x <= bb.right &&
+         tile.y >= bb.top && tile.y <= bb.bottom;
 };
 
 

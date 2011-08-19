@@ -159,7 +159,7 @@ we.texturing.TileCache.prototype.cleanCache = function() {
  * @param {number} x X.
  * @param {number} y Y.
  * @param {number} requestTime Time of the request, used as priority.
- * @return {!we.texturing.Tile} Requested tile.
+ * @return {we.texturing.Tile} Requested tile.
  */
 we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
                                                          requestTime) {
@@ -167,6 +167,7 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
   var tile = this.getTileFromCache(key);
   if (!goog.isDefAndNotNull(tile)) {
     tile = new we.texturing.Tile(zoom, x, y, requestTime);
+    if (!this.tileProvider_.isTileInBounds(tile)) return null;
     this.tileMap_.set(key, tile);
     this.loadRequests_.push(tile);
   } else if (tile.state == we.texturing.Tile.State.ERROR) {

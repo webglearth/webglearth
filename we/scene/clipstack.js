@@ -194,18 +194,24 @@ we.scene.ClipStack.prototype.moveCenter = function(mostDetailsLat,
                (Math.PI * 2)) * tileCount;
 
   for (var i = zoomLevel - this.minLevel_; i >= this.buffersOffset_; i--) {
+
+    //Ensure that [coverX, coverY] is covered
+    var posX = goog.math.clamp(mostDetailsX - this.side_ / 2,
+                               coverX - this.side_, coverX);
+    var posY = goog.math.clamp(mostDetailsY - this.side_ / 2,
+                               coverY - this.side_, coverY);
+
+    //Ensure that the covered area is fully within specified bounding box
+    // - it doesn't make any sense to cover area without valid data
     var bounds = this.tileProvider_.getBoundingBox(this.minLevel_ + i);
-    var posX = goog.math.clamp(mostDetailsX,
-                               Math.max(coverX - this.side_ / 2,
-                                        bounds.left + this.side_ / 2),
-                               Math.min(coverX + this.side_ / 2,
-                                        bounds.right - this.side_ / 2));
-    var posY = goog.math.clamp(mostDetailsY,
-                               Math.max(coverY - this.side_ / 2,
-                                        bounds.top + this.side_ / 2),
-                               Math.min(coverY + this.side_ / 2,
-                                        bounds.bottom - this.side_ / 2));
-    needCopyrightUpdate |= this.levels_[i].moveCenter(posX, posY);
+    posX = goog.math.clamp(posX, bounds.left, bounds.right + 1 - this.side_);
+    posY = goog.math.clamp(posY, bounds.top, bounds.bottom + 1 - this.side_);
+
+    //Round and modulo
+    posX = goog.math.modulo(Math.round(posX), tileCount);
+    posY = Math.round(posY);
+
+    needCopyrightUpdate |= this.levels_[i].setOffset(posX, posY);
     mostDetailsX /= 2;
     mostDetailsY /= 2;
     coverX /= 2;
