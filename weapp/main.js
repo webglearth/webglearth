@@ -51,6 +51,7 @@ goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
 
 goog.require('weapp.ui.Nominatim');
+goog.require('weapp.ui.OpacitySlider');
 goog.require('weapp.ui.PanControl');
 goog.require('weapp.ui.TileProviderSelector');
 goog.require('weapp.ui.ZoomSlider');
@@ -154,6 +155,13 @@ weapp.App = function(canvas) {
      */
     this.pcontrol_ = new weapp.ui.PanControl(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('weapp-pancontrol')));
+
+    /**
+     * @type {!weapp.ui.OpacitySlider}
+     * @private
+     */
+    this.oslider_ = new weapp.ui.OpacitySlider(this.context.scene.earth,
+        /** @type {!Element} */(goog.dom.getElement('weapp-opacityslider')));
 
 
     /**

@@ -110,6 +110,12 @@ we.scene.Earth = function(scene, opt_tileProvider) {
                                             this.context, 4, 3, 8, 15, true);
 
   /**
+   * 0 - overlay fully transparent, 1 - overlay fully visible
+   * @type {number}
+   */
+  this.overlayOpacity = 0.5;
+
+  /**
    * @type {boolean}
    */
   this.terrain = we.scene.TERRAIN && this.context.isVTFSupported();
@@ -355,8 +361,7 @@ we.scene.Earth.prototype.draw = function() {
   gl.uniform2fv(this.locatedProgram.levelOffsetsBUniform,
                 new Float32Array(this.clipStackB_.getOffsets(zoom, 3)));
 
-  gl.uniform1f(this.locatedProgram.mixFactorUniform,
-               0.2 + Math.abs(Math.sin(goog.now() / 1000) * 0.6));
+  gl.uniform1f(this.locatedProgram.mixFactorUniform, this.overlayOpacity);
 
   if (this.terrain) {
 
