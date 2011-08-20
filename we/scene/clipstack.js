@@ -237,9 +237,7 @@ we.scene.ClipStack.prototype.moveCenter = function(mostDetailsLat,
  * @return {Array.<number>} meta data.
  */
 we.scene.ClipStack.prototype.getMeta = function(zoomLevel, fallback) {
-  if (goog.DEBUG && zoomLevel > this.maxLevel_)
-    we.scene.Scene.logger.warning('zoomLevel too high');
-  if (zoomLevel - fallback < this.minLevel_) {
+  if (zoomLevel > this.maxLevel_ || zoomLevel - fallback < this.minLevel_) {
     return new Array(this.side_ * this.side_);
   }
   return goog.array.flatten(
@@ -253,9 +251,7 @@ we.scene.ClipStack.prototype.getMeta = function(zoomLevel, fallback) {
  * @return {WebGLTexture} texture.
  */
 we.scene.ClipStack.prototype.getBuffer = function(zoomLevel, fallback) {
-  if (goog.DEBUG && zoomLevel > this.maxLevel_)
-    we.scene.Scene.logger.warning('zoomLevel too high');
-  if (zoomLevel - fallback < this.minLevel_) {
+  if (zoomLevel > this.maxLevel_ || zoomLevel - fallback < this.minLevel_) {
     return null;
   }
   return this.levels_[zoomLevel - this.minLevel_ - fallback].buffer.texture;
@@ -268,8 +264,10 @@ we.scene.ClipStack.prototype.getBuffer = function(zoomLevel, fallback) {
  * @return {Array.<number>} offset data.
  */
 we.scene.ClipStack.prototype.getOffsets = function(zoomLevel, count) {
-  if (goog.DEBUG && zoomLevel > this.maxLevel_)
-    we.scene.Scene.logger.warning('zoomLevel too high');
+  if (zoomLevel > this.maxLevel_) {
+    return new Array(2 * count);
+  }
+
   var result = [];
   for (var i = zoomLevel - this.minLevel_;
        i > zoomLevel - this.minLevel_ - count; --i) {
