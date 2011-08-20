@@ -24,6 +24,7 @@
  * @fileoverview Zoom Slider.
  *
  * @author leosamu@ai2.upv.es (Leonardo Salom)
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  */
 
 goog.provide('weapp.ui.ZoomSlider');
@@ -40,6 +41,7 @@ goog.require('we.scene.Scene');
 
 /**
  * Creates new slider for changing the zoom level.
+ * TODO: Refactor to work with altitude rather than zoomLevels
  * @param {!we.scene.Scene} scene Scene.
  * @param {!Element} element Element to append this selector to.
  * @constructor
@@ -58,7 +60,8 @@ weapp.ui.ZoomSlider = function(scene, element) {
    */
   this.slider_ = new goog.ui.Slider();
   this.slider_.setOrientation(goog.ui.SliderBase.Orientation.VERTICAL);
-  this.slider_.setMaximum(400);
+  this.slider_.setMaximum(1);
+  this.slider_.setStep(0.01);
 
   /**
    * @type {boolean}
@@ -67,8 +70,7 @@ weapp.ui.ZoomSlider = function(scene, element) {
   weapp.ui.ZoomSlider.updateMutex_ = false;
 
   this.slider_.setValue((this.scene_.camera.getZoom() -
-                        this.scene_.getMinZoom()) *
-                        400 / this.scene_.getMaxZoom());
+                        this.scene_.getMinZoom()) / this.scene_.getMaxZoom());
 
   /**
    * @type {?number}
@@ -79,8 +81,7 @@ weapp.ui.ZoomSlider = function(scene, element) {
       function(e) {
         if (weapp.ui.ZoomSlider.updateMutex_ == false) {
           scene.camera.setZoom((e.target.getValue() *
-              (scene.getMaxZoom() - scene.getMinZoom()) /
-              400) + scene.getMinZoom());
+              (scene.getMaxZoom() - scene.getMinZoom())) + scene.getMinZoom());
         }
         weapp.ui.ZoomSlider.updateMutex_ = false;
       });
@@ -98,14 +99,14 @@ weapp.ui.ZoomSlider = function(scene, element) {
    * @private
    */
   this.addZoom_ = new goog.ui.CustomButton('');
-  this.addZoom_.addClassName('addzoom');
+  this.addZoom_.addClassName('weapp-zoomslider-add');
 
   /**
    * @type {goog.ui.CustomButton}
    * @private
    */
   this.substractZoom_ = new goog.ui.CustomButton('');
-  this.substractZoom_.addClassName('substractzoom');
+  this.substractZoom_.addClassName('weapp-zoomslider-substract');
 
   /**
    * @type {?number}
@@ -128,9 +129,9 @@ weapp.ui.ZoomSlider = function(scene, element) {
       });
 
 
-  this.addZoom_.render(goog.dom.getElement('addzoom'));
-  this.substractZoom_.render(goog.dom.getElement('substractzoom'));
+  this.addZoom_.render(element);
   this.slider_.render(element);
+  this.substractZoom_.render(element);
 };
 goog.inherits(weapp.ui.ZoomSlider, goog.Disposable);
 
@@ -143,8 +144,7 @@ weapp.ui.ZoomSlider.prototype.zoomChanged_ = function() {
   weapp.ui.ZoomSlider.updateMutex_ = true;
 
   this.slider_.setValue((this.scene_.camera.getZoom() -
-                        this.scene_.getMinZoom()) *
-                        400 / this.scene_.getMaxZoom());
+                        this.scene_.getMinZoom()) / this.scene_.getMaxZoom());
 };
 
 
