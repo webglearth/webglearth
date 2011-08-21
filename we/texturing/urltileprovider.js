@@ -84,6 +84,7 @@ we.texturing.URLTileProvider.prototype.loadTile = function(tile, onload,
   image.onerror = goog.bind(onerror_, this);
   tile.state = we.texturing.Tile.State.LOADING;
   tile.setImage(image);
+  image.crossOrigin = '';
   image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
