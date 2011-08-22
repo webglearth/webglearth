@@ -325,3 +325,24 @@ we.texturing.GoogleTileProvider.MapTypes.toLetterId = function(mapType) {
       return 'k';
   }
 };
+
+
+/**
+ * Ugly hack for Google Maps - make all img tags CORS-enabled
+ * TODO: remove when (if) solved
+ * @type {function(string): !Element}
+ */
+we.texturing.GoogleTileProvider.createElementOrig =
+    goog.bind(document.createElement, document);
+
+
+/**
+ * @param {string} arg ...
+ * @return {!Element} ...
+ */
+document.createElement = function(arg) {
+  var el = we.texturing.GoogleTileProvider.createElementOrig(arg);
+  if (arg == 'img')
+    el.crossOrigin = '';
+  return el;
+};
