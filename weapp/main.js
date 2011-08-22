@@ -346,6 +346,18 @@ weapp.run = function() {
             0, 5, 256, true));
   }
 
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.SATELLITE));
+
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.ROADMAP));
+
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.TERRAIN));
+
   app.addTileProvider(new we.texturing.MapQuestTileProvider());
   app.addTileProvider(new we.texturing.OSMTileProvider());
 
@@ -355,9 +367,6 @@ weapp.run = function() {
       new we.texturing.BingTileProvider('AerialWithLabels', weapp.BING_KEY));
   app.addTileProvider(
       new we.texturing.BingTileProvider('Road', weapp.BING_KEY));
-  app.addTileProvider(
-      new we.texturing.GoogleTileProvider(
-          we.texturing.GoogleTileProvider.MapTypes.SATELLITE));
 
   if (goog.DEBUG) {
     app.addTileProvider(new we.texturing.GenericTileProvider('CleanTOPO2',
