@@ -53,12 +53,6 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
                    'js?v=3.5&sensor=false&callback=';
 
   /**
-   * @type {google.maps.Map}
-   * @private
-   */
-  this.map_ = null;
-
-  /**
    * @type {google.maps.MapType}
    * @private
    */
@@ -88,35 +82,81 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
    */
   this.loadingCopyrights_ = [];
 
+  var pickType = goog.bind(function() {
+    this.mapType_ =
+        we.texturing.GoogleTileProvider.sharedMapInstance.mapTypes[
+        we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
+  }, this);
+
   var onscriptload = function() {
-    this.map_ = new google.maps.Map(goog.dom.createElement('div'));
+    if (goog.isNull(we.texturing.GoogleTileProvider.sharedMapInstance)) {
+      //Create Map instance
+      we.texturing.GoogleTileProvider.sharedMapInstance =
+          new google.maps.Map(goog.dom.createElement('div'));
+    }
 
-    var pickType = function() {
-      this.mapType_ = this.map_.mapTypes[
-          we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
-    };
-
-    google.maps.event.addListenerOnce(this.map_, 'idle',
-                                      goog.bind(pickType, this));
+    if (we.texturing.GoogleTileProvider.sharedMapInstanceReady) {
+      //Instance ready, pick MapType
+      pickType();
+    } else {
+      //Not ready, join waiting queue
+      google.maps.event.addListenerOnce(
+          we.texturing.GoogleTileProvider.sharedMapInstance, 'idle',
+          function() {
+            we.texturing.GoogleTileProvider.sharedMapInstanceReady = true;
+            pickType();
+          });
+    }
   }
 
   if (goog.isDefAndNotNull(goog.global.google) &&
       google.maps &&
       google.maps.Map) {
+    //Main script loaded
     onscriptload();
-  } else {
-    var callbackName = 'googleMapsCallback' + goog.string.getRandomString();
+  } else if (!goog.isNull(
+      we.texturing.GoogleTileProvider.sharedScriptCallbackName)) {
+    //Already waiting for the script to load, join the callback queue
+    goog.global[we.texturing.GoogleTileProvider.sharedScriptCallbackName] =
+        goog.functions.sequence(
+        goog.global[we.texturing.GoogleTileProvider.sharedScriptCallbackName],
+        goog.bind(onscriptload, this));
 
-    goog.global[callbackName] = goog.bind(onscriptload, this);
+  } else {
+    //Not loaded and not waiting, start loading and wait on callback
+    we.texturing.GoogleTileProvider.sharedScriptCallbackName =
+        'googleMapsCallback' + goog.string.getRandomString();
+
+    goog.global[we.texturing.GoogleTileProvider.sharedScriptCallbackName] =
+        goog.bind(onscriptload, this);
 
     var scriptEl = goog.dom.createElement('script');
     goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
     scriptEl.type = 'text/javascript';
-    scriptEl.src = scriptPath + callbackName;
+    scriptEl.src =
+        scriptPath + we.texturing.GoogleTileProvider.sharedScriptCallbackName;
   }
 
 };
 goog.inherits(we.texturing.GoogleTileProvider, we.texturing.TileProvider);
+
+
+/**
+ * @type {?string}
+ */
+we.texturing.GoogleTileProvider.sharedScriptCallbackName = null;
+
+
+/**
+ * @type {google.maps.Map}
+ */
+we.texturing.GoogleTileProvider.sharedMapInstance = null;
+
+
+/**
+ * @type {boolean}
+ */
+we.texturing.GoogleTileProvider.sharedMapInstanceReady = false;
 
 
 /** @inheritDoc */
