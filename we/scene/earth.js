@@ -277,14 +277,6 @@ we.scene.Earth.prototype.draw = function() {
 
   this.tileCount = 1 << zoom;
 
-  this.context.modelViewMatrix.rotate001(-this.scene.camera.roll);
-  this.context.modelViewMatrix.rotate100(-this.scene.camera.tilt);
-  this.context.modelViewMatrix.rotate001(-this.scene.camera.heading);
-  this.context.modelViewMatrix.translate(0, 0, -1 -
-      this.scene.camera.getAltitude() / we.scene.EARTH_RADIUS);
-  this.context.modelViewMatrix.rotate100(this.scene.camera.getLatitude());
-  this.context.modelViewMatrix.rotate010(-this.scene.camera.getLongitude());
-
   gl.useProgram(this.locatedProgram.program);
 
   gl.activeTexture(gl.TEXTURE0);
