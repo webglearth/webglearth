@@ -85,29 +85,29 @@ we.scene.Earth = function(scene, opt_tileProvider) {
    * @type {!we.texturing.TileProvider}
    * @private
    */
-  this.currentTileProvider_ = opt_tileProvider ||
-                              new we.texturing.MapQuestTileProvider();
+  this.currentTileProviderA_ = opt_tileProvider ||
+      new we.texturing.MapQuestTileProvider();
 
   /**
    * @type {!we.scene.ClipStack}
    * @private
    */
-  this.clipStackA_ = new we.scene.ClipStack(this.currentTileProvider_,
+  this.clipStackA_ = new we.scene.ClipStack(this.currentTileProviderA_,
                                             this.context, 4, 3, 1, 19);
 
 
-  var overlayTP = new we.texturing.GenericTileProvider('Grand Canyon',
-      'http://www.maptiler.org/example-usgs-drg-grand-canyon-gtiff/' +
-      '{z}/{x}/{y}.png', 8, 15, 256, true);
+  /**
+   * @type {!we.texturing.TileProvider}
+   * @private
+   */
+  this.currentTileProviderB_ = new we.texturing.MapQuestTileProvider();
 
-  overlayTP.setBoundingBox(35.98263093762349, 36.13311975190522,
-                           -112.26055836038145, -112.11411831155569);
   /**
    * @type {!we.scene.ClipStack}
    * @private
    */
-  this.clipStackB_ = new we.scene.ClipStack(overlayTP,
-                                            this.context, 4, 3, 8, 15, true);
+  this.clipStackB_ = new we.scene.ClipStack(this.currentTileProviderB_,
+                                            this.context, 4, 3, 0, 15, true);
 
   /**
    * 0 - overlay fully transparent, 1 - overlay fully visible
@@ -143,7 +143,8 @@ we.scene.Earth = function(scene, opt_tileProvider) {
     we.scene.Earth.logger.warning('VTF not supported..');
   }
 
-  this.changeTileProvider(this.currentTileProvider_, true);
+  this.changeTileProvider(this.currentTileProviderA_, true);
+  this.changeTileProvider(this.currentTileProviderB_, true, true);
 
   /**
    * @type {number}
@@ -225,7 +226,8 @@ we.scene.Earth.prototype.getBufferSideSize_ = function(opt_terrain) {
  */
 we.scene.Earth.prototype.getInfoText = function() {
   return 'BufferQueue size: ' + this.clipStackA_.getQueueSizesText() +
-         '; Loading tiles: ' + this.currentTileProvider_.loadingTileCounter;
+         '; Loading tiles: ' + this.currentTileProviderA_.loadingTileCounter +
+         ' + ' + this.currentTileProviderB_.loadingTileCounter;
 };
 
 
@@ -233,14 +235,19 @@ we.scene.Earth.prototype.getInfoText = function() {
  * Changes tile provider.
  * @param {!we.texturing.TileProvider} tileprovider Tile provider to be set.
  * @param {boolean=} opt_firstRun Called from constructor?
+ * @param {boolean=} opt_B Change overlay TileProvider?
  */
 we.scene.Earth.prototype.changeTileProvider = function(tileprovider,
-    opt_firstRun) {
-  this.currentTileProvider_ = tileprovider;
-  this.clipStackA_.changeTileProvider(this.currentTileProvider_);
-  this.currentTileProvider_.copyrightInfoChangedHandler =
+    opt_firstRun, opt_B) {
+  tileprovider.copyrightInfoChangedHandler =
       goog.bind(this.scene.updateCopyrights, this.scene);
-
+  if (opt_B) {
+    this.clipStackB_.changeTileProvider(tileprovider);
+    this.currentTileProviderB_ = tileprovider;
+  } else {
+    this.clipStackA_.changeTileProvider(tileprovider);
+    this.currentTileProviderA_ = tileprovider;
+  }
   if (opt_firstRun !== true) {
     this.scene.recalcTilesVertically();
     this.scene.updateCopyrights();
@@ -252,10 +259,11 @@ we.scene.Earth.prototype.changeTileProvider = function(tileprovider,
 
 /**
   * Returns the current tile provider.
+  * @param {boolean=} opt_B Return overlay TileProvider?
   * @return {!we.texturing.TileProvider} tile provider.
   */
-we.scene.Earth.prototype.getCurrentTileProvider = function() {
-  return this.currentTileProvider_;
+we.scene.Earth.prototype.getCurrentTileProvider = function(opt_B) {
+  return opt_B ? this.currentTileProviderB_ : this.currentTileProviderA_;
 };
 
 
