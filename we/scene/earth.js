@@ -93,7 +93,27 @@ we.scene.Earth = function(scene, opt_tileProvider) {
    * @private
    */
   this.clipStackA_ = new we.scene.ClipStack(this.currentTileProvider_,
-                                            this.context, 8, 3, 1, 19);
+                                            this.context, 4, 3, 1, 19);
+
+
+  var overlayTP = new we.texturing.GenericTileProvider('Grand Canyon',
+      'http://www.maptiler.org/example-usgs-drg-grand-canyon-gtiff/' +
+      '{z}/{x}/{y}.png', 8, 15, 256, true);
+
+  overlayTP.setBoundingBox(35.98263093762349, 36.13311975190522,
+                           -112.26055836038145, -112.11411831155569);
+  /**
+   * @type {!we.scene.ClipStack}
+   * @private
+   */
+  this.clipStackB_ = new we.scene.ClipStack(overlayTP,
+                                            this.context, 4, 3, 8, 15, true);
+
+  /**
+   * 0 - overlay fully transparent, 1 - overlay fully visible
+   * @type {number}
+   */
+  this.overlayOpacity = 0.5;
 
   /**
    * @type {boolean}
@@ -257,6 +277,10 @@ we.scene.Earth.prototype.updateTiles_ = function() {
   this.clipStackA_.moveCenter(mostDetails[0], mostDetails[1],
                               needsCover[0], needsCover[1],
                               Math.floor(this.scene.camera.getZoom()));
+
+  this.clipStackB_.moveCenter(mostDetails[0], mostDetails[1],
+                              needsCover[0], needsCover[1],
+                              Math.floor(this.scene.camera.getZoom()));
   if (this.terrain) {
     this.clipStackT_.moveCenter(mostDetails[0], mostDetails[1],
                                 needsCover[0], needsCover[1],
@@ -280,31 +304,57 @@ we.scene.Earth.prototype.draw = function() {
 
   gl.useProgram(this.locatedProgram.program);
 
+  //Texture A
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.getBuffer(zoom, 0));
-  gl.uniform1i(this.locatedProgram.bufferL0Uniform, 0);
+  gl.uniform1i(this.locatedProgram.bufferL0AUniform, 0);
 
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.getBuffer(zoom, 1));
-  gl.uniform1i(this.locatedProgram.bufferL1Uniform, 1);
+  gl.uniform1i(this.locatedProgram.bufferL1AUniform, 1);
 
   gl.activeTexture(gl.TEXTURE2);
   gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.getBuffer(zoom, 2));
-  gl.uniform1i(this.locatedProgram.bufferL2Uniform, 2);
+  gl.uniform1i(this.locatedProgram.bufferL2AUniform, 2);
 
   gl.activeTexture(gl.TEXTURE3);
   gl.bindTexture(gl.TEXTURE_2D, this.clipStackA_.leveln.texture);
-  gl.uniform1i(this.locatedProgram.bufferLnUniform, 3);
+  gl.uniform1i(this.locatedProgram.bufferLnAUniform, 3);
 
-  gl.uniform1fv(this.locatedProgram.metaL0Uniform,
+  gl.uniform1fv(this.locatedProgram.metaL0AUniform,
                 new Float32Array(this.clipStackA_.getMeta(zoom, 0)));
-  gl.uniform1fv(this.locatedProgram.metaL1Uniform,
+  gl.uniform1fv(this.locatedProgram.metaL1AUniform,
                 new Float32Array(this.clipStackA_.getMeta(zoom, 1)));
-  gl.uniform1fv(this.locatedProgram.metaL2Uniform,
+  gl.uniform1fv(this.locatedProgram.metaL2AUniform,
                 new Float32Array(this.clipStackA_.getMeta(zoom, 2)));
 
-  gl.uniform2fv(this.locatedProgram.levelOffsetsUniform,
+  gl.uniform2fv(this.locatedProgram.levelOffsetsAUniform,
                 new Float32Array(this.clipStackA_.getOffsets(zoom, 3)));
+
+  //Texture B
+  gl.activeTexture(gl.TEXTURE4);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackB_.getBuffer(zoom, 0));
+  gl.uniform1i(this.locatedProgram.bufferL0BUniform, 4);
+
+  gl.activeTexture(gl.TEXTURE5);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackB_.getBuffer(zoom, 1));
+  gl.uniform1i(this.locatedProgram.bufferL1BUniform, 5);
+
+  gl.activeTexture(gl.TEXTURE6);
+  gl.bindTexture(gl.TEXTURE_2D, this.clipStackB_.getBuffer(zoom, 2));
+  gl.uniform1i(this.locatedProgram.bufferL2BUniform, 6);
+
+  gl.uniform1fv(this.locatedProgram.metaL0BUniform,
+                new Float32Array(this.clipStackB_.getMeta(zoom, 0)));
+  gl.uniform1fv(this.locatedProgram.metaL1BUniform,
+                new Float32Array(this.clipStackB_.getMeta(zoom, 1)));
+  gl.uniform1fv(this.locatedProgram.metaL2BUniform,
+                new Float32Array(this.clipStackB_.getMeta(zoom, 2)));
+
+  gl.uniform2fv(this.locatedProgram.levelOffsetsBUniform,
+                new Float32Array(this.clipStackB_.getOffsets(zoom, 3)));
+
+  gl.uniform1f(this.locatedProgram.mixFactorUniform, this.overlayOpacity);
 
   if (this.terrain) {
 
@@ -314,17 +364,17 @@ we.scene.Earth.prototype.draw = function() {
 
     gl.uniform1f(this.locatedProgram.degradationTUniform, zoom - terrainZoom);
 
-    gl.activeTexture(gl.TEXTURE4);
+    gl.activeTexture(gl.TEXTURE7);
     gl.bindTexture(gl.TEXTURE_2D, this.clipStackT_.getBuffer(terrainZoom, 0));
-    gl.uniform1i(this.locatedProgram.bufferL0TUniform, 4);
+    gl.uniform1i(this.locatedProgram.bufferL0TUniform, 7);
 
-    gl.activeTexture(gl.TEXTURE5);
+    gl.activeTexture(gl.TEXTURE8);
     gl.bindTexture(gl.TEXTURE_2D, this.clipStackT_.getBuffer(terrainZoom, 1));
-    gl.uniform1i(this.locatedProgram.bufferL1TUniform, 5);
+    gl.uniform1i(this.locatedProgram.bufferL1TUniform, 8);
 
-    gl.activeTexture(gl.TEXTURE6);
+    gl.activeTexture(gl.TEXTURE9);
     gl.bindTexture(gl.TEXTURE_2D, this.clipStackT_.leveln.texture);
-    gl.uniform1i(this.locatedProgram.bufferLnTUniform, 6);
+    gl.uniform1i(this.locatedProgram.bufferLnTUniform, 9);
 
     gl.uniform1fv(this.locatedProgram.metaL0TUniform,
                   new Float32Array(this.clipStackT_.getMeta(terrainZoom, 0)));

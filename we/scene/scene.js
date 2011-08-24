@@ -54,6 +54,12 @@ we.scene.MIN_ZOOM = 1;
 we.scene.TRILINEAR_FILTERING = false;
 
 
+/**
+ * @define {number} Latitude extrema for mercator projection.
+ */
+we.scene.LATITUDE_EXTREMA = 1.4844222297453323669610967939;
+
+
 
 /**
  * Object handling scene data

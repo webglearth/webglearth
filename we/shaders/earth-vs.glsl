@@ -45,12 +45,19 @@ uniform mat4 uMVPMatrix;
 uniform float uTileCount;
 uniform vec2 uOffset;
 
-uniform float uMetaL0[BUFF_SIZE];
-uniform float uMetaL1[BUFF_SIZE];
-uniform float uMetaL2[BUFF_SIZE];
-uniform vec2 uOffL[3];
+uniform float uMetaL0A[BUFF_SIZE];
+uniform float uMetaL1A[BUFF_SIZE];
+uniform float uMetaL2A[BUFF_SIZE];
+uniform vec2 uOffLA[3];
 varying float vFallbackA;
 varying vec2 vTCA;
+
+uniform float uMetaL0B[BUFF_SIZE];
+uniform float uMetaL1B[BUFF_SIZE];
+uniform float uMetaL2B[BUFF_SIZE];
+uniform vec2 uOffLB[3];
+varying float vFallbackB;
+varying vec2 vTCB;
 
 #if TERRAIN
   uniform float uMetaL0T[BUFF_SIZE_T];
@@ -136,24 +143,47 @@ void main(){
   
   //texture A
   vFallbackA = -1.0;
-  vec2 off = modFirst(tileCoords - uOffL[0],uTileCount);
-  if (validateOffset(off) && uMetaL0[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+  vec2 off = modFirst(tileCoords - uOffLA[0],uTileCount);
+  if (validateOffset(off) && uMetaL0A[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
     vFallbackA = 0.0;
   } else {
-    off = modFirst((tileCoords / 2.0) - uOffL[1],uTileCount/2.0);
-    if (validateOffset(off) && uMetaL1[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+    off = modFirst((tileCoords / 2.0) - uOffLA[1],uTileCount/2.0);
+    if (validateOffset(off) && uMetaL1A[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
       vFallbackA = 1.0;
     } else {
-      off = modFirst((tileCoords / 4.0) - uOffL[2],uTileCount/4.0);
-      if (validateOffset(off) && uMetaL2[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+      off = modFirst((tileCoords / 4.0) - uOffLA[2],uTileCount/4.0);
+      if (validateOffset(off) && uMetaL2A[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
         vFallbackA = 2.0;
       }
     }
   }
   if (vFallbackA >= 0.0) {
-    vTCA = (off+aTextureCoord/exp2(vFallbackA)+mod(uOffL[int(vFallbackA)],BUFF_SIDE))/BUFF_SIDE;
+    vTCA = (off+aTextureCoord/exp2(vFallbackA)+mod(uOffLA[int(vFallbackA)],BUFF_SIDE))/BUFF_SIDE;
   } else {
     vTCA = (tileCoords + aTextureCoord)/uTileCount;
   }
   vTCA.y = 1.0-vTCA.y; //flip Y axis
+  
+  //texture B
+  vFallbackB = -1.0;
+  off = modFirst(tileCoords - uOffLB[0],uTileCount);
+  if (validateOffset(off) && uMetaL0B[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+    vFallbackB = 0.0;
+  } else {
+    off = modFirst((tileCoords / 2.0) - uOffLB[1],uTileCount/2.0);
+    if (validateOffset(off) && uMetaL1B[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+      vFallbackB = 1.0;
+    } else {
+      off = modFirst((tileCoords / 4.0) - uOffLB[2],uTileCount/4.0);
+      if (validateOffset(off) && uMetaL2B[int(floor(off.y)*BUFF_SIDE+off.x)] == 1.0) {
+        vFallbackB = 2.0;
+      }
+    }
+  }
+  if (vFallbackB >= 0.0) {
+    vTCB = (off+aTextureCoord/exp2(vFallbackB)+mod(uOffLB[int(vFallbackB)],BUFF_SIDE))/BUFF_SIDE;
+  } else {
+    vTCB = (tileCoords + aTextureCoord)/uTileCount;
+  }
+  vTCB.y = 1.0-vTCB.y; //flip Y axis
 }
