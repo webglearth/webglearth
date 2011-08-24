@@ -246,8 +246,9 @@ we.scene.Earth.prototype.getCurrentTileProvider = function() {
 we.scene.Earth.prototype.updateTiles_ = function() {
   this.tileCount = 1 << this.scene.camera.getZoom();
 
-  var mostDetails = this.scene.camera.getTarget();
   var needsCover = this.scene.camera.getPosition();
+  var mostDetails = this.scene.camera.getTarget() || needsCover;
+
   this.offset[0] = Math.floor(needsCover[1] / (2 * Math.PI) * this.tileCount);
   this.offset[1] = goog.math.clamp(Math.floor(
       we.scene.Scene.projectLatitude(needsCover[0]) / (Math.PI * 2) *
