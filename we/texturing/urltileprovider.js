@@ -59,8 +59,8 @@ we.texturing.URLTileProvider.prototype.getTileURL = goog.abstractMethod;
 
 
 /** @inheritDoc */
-we.texturing.URLTileProvider.prototype.loadTile = function(tile, onload,
-                                                           opt_onerror) {
+we.texturing.URLTileProvider.prototype.loadTileInternal =
+    function(tile, onload, opt_onerror) {
   var image = new Image();
   var onload_ = function() {
     //if (goog.DEBUG)
@@ -90,6 +90,4 @@ we.texturing.URLTileProvider.prototype.loadTile = function(tile, onload,
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 
   this.loadingTileCounter++;
-
-  return true;
 };

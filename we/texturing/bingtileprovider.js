@@ -66,6 +66,12 @@ we.texturing.BingTileProvider = function(imagerySet, key) {
 goog.inherits(we.texturing.BingTileProvider, we.texturing.URLTileProvider);
 
 
+/** @inheritDoc */
+we.texturing.BingTileProvider.prototype.isReady = function() {
+  return !goog.isNull(this.resource_);
+};
+
+
 /**
  * Callback function.
  * @param {!Object} data Returned metadata.
@@ -75,6 +81,7 @@ we.texturing.BingTileProvider.prototype.setMetadata_ = function(data) {
   this.metaData_ = data;
   if (data['resourceSets'].length > 0) {
     this.resource_ = data['resourceSets'][0]['resources'][0];
+    this.gotReady();
   } else if (goog.DEBUG) {
     var msg = 'Bing: ' + (data['errorDetails'][0] || 'Unknown error.');
     we.texturing.TileProvider.logger.warning(msg);
@@ -132,10 +139,10 @@ we.texturing.BingTileProvider.prototype.getTileURL = function(zoom, x, y) {
 
 
 /** @inheritDoc */
-we.texturing.BingTileProvider.prototype.loadTile = function(tile, onload,
-                                                            opt_onerror) {
+we.texturing.BingTileProvider.prototype.loadTileInternal =
+    function(tile, onload, opt_onerror) {
   if (!goog.isNull(this.resource_)) {
-    return goog.base(this, 'loadTile', tile, onload, opt_onerror);
+    return goog.base(this, 'loadTileInternal', tile, onload, opt_onerror);
   } else {
     return false;
   }

@@ -86,6 +86,7 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
     this.mapType_ =
         we.texturing.GoogleTileProvider.sharedMapInstance.mapTypes[
         we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
+    this.gotReady();
   }, this);
 
   var onscriptload = function() {
@@ -141,6 +142,12 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
 goog.inherits(we.texturing.GoogleTileProvider, we.texturing.TileProvider);
 
 
+/** @inheritDoc */
+we.texturing.GoogleTileProvider.prototype.isReady = function() {
+  return !goog.isNull(this.mapType_);
+};
+
+
 /**
  * @type {?string}
  */
@@ -179,66 +186,61 @@ we.texturing.GoogleTileProvider.prototype.getTileSize = function() {
 
 
 /** @inheritDoc */
-we.texturing.GoogleTileProvider.prototype.loadTile = function(tile, onload,
-                                                              opt_onerror) {
-  if (this.mapType_) {
-    var onload_ = function() {
-      //TODO: better check if final tile is loaded
-      if (tile.getImage().src != tile.getImage()['__src__']) return;
-      tile.state = we.texturing.Tile.State.LOADED;
-      this.loadingTileCounter--;
-      onload(tile);
-    };
+we.texturing.GoogleTileProvider.prototype.loadTileInternal =
+    function(tile, onload, opt_onerror) {
+  var onload_ = function() {
+    //TODO: better check if final tile is loaded
+    if (tile.getImage().src != tile.getImage()['__src__']) return;
+    tile.state = we.texturing.Tile.State.LOADED;
+    this.loadingTileCounter--;
+    onload(tile);
+  };
 
-    var onerror_ = function() {
-      if (goog.DEBUG) {
-        we.texturing.TileProvider.logger.severe('Error loading tile: ' +
-                                                tile.getKey() + ' (' +
-                                                this.name + ')');
-      }
-      tile.failed++;
-      tile.state = we.texturing.Tile.State.ERROR;
-      this.loadingTileCounter--;
-      if (opt_onerror) opt_onerror(tile);
-    };
+  var onerror_ = function() {
+    if (goog.DEBUG) {
+      we.texturing.TileProvider.logger.severe('Error loading tile: ' +
+                                              tile.getKey() + ' (' +
+                                              this.name + ')');
+    }
+    tile.failed++;
+    tile.state = we.texturing.Tile.State.ERROR;
+    this.loadingTileCounter--;
+    if (opt_onerror) opt_onerror(tile);
+  };
 
-    var imageGetter = function(node) {
-      return node.getElementsByTagName('img')[0];
-    };
+  var imageGetter = function(node) {
+    return node.getElementsByTagName('img')[0];
+  };
 
-    tile.customImageGetter = imageGetter;
+  tile.customImageGetter = imageGetter;
 
-    var dataDisposer = function(node) {
-      this.mapType_.releaseTile(node);
-    };
+  var dataDisposer = function(node) {
+    this.mapType_.releaseTile(node);
+  };
 
-    tile.customDataDisposer = goog.bind(dataDisposer, this);
+  tile.customDataDisposer = goog.bind(dataDisposer, this);
 
-    var node_ = this.mapType_.getTile(new google.maps.Point(tile.x, tile.y),
-                                      tile.zoom, document);
+  var node_ = this.mapType_.getTile(new google.maps.Point(tile.x, tile.y),
+                                    tile.zoom, document);
 
-    var img = imageGetter(node_);
+  var img = imageGetter(node_);
 
-    img.onload = goog.bind(onload_, this);
-    img.onerror = goog.bind(onerror_, this);
-    tile.setData(node_);
+  img.onload = goog.bind(onload_, this);
+  img.onerror = goog.bind(onerror_, this);
+  tile.setData(node_);
 
-    tile.state = we.texturing.Tile.State.LOADING;
+  tile.state = we.texturing.Tile.State.LOADING;
 
-    this.loadingTileCounter++;
+  this.loadingTileCounter++;
 
-    //Loading was finished before attaching onload event
-    /*if (img.complete && tile.state != we.texturing.Tile.State.LOADED) {
-      if (goog.DEBUG)
-        we.texturing.TileProvider.logger.info(
-            'Google tile loaded too soon - fixing...');
-      onload_(tile);
-    }*/
+  //Loading was finished before attaching onload event
+  /*if (img.complete && tile.state != we.texturing.Tile.State.LOADED) {
+    if (goog.DEBUG)
+      we.texturing.TileProvider.logger.info(
+          'Google tile loaded too soon - fixing...');
+    onload_(tile);
+  }*/
 
-    return true;
-  } else {
-    return false;
-  }
 };
 
 
