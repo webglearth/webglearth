@@ -72,6 +72,12 @@ we.texturing.TileProvider = function(name) {
    * @private
    */
   this.maxLon_ = Math.PI;
+
+  /**
+   * @type {!Array.<goog.math.Box>}
+   * @private
+   */
+  this.boundingBoxCache_ = [];
 };
 
 
@@ -87,6 +93,8 @@ we.texturing.TileProvider.prototype.setBoundingBox = function(minLat, maxLat,
   this.maxLat_ = goog.math.toRadians(maxLat);
   this.minLon_ = goog.math.toRadians(minLon);
   this.maxLon_ = goog.math.toRadians(maxLon);
+
+  this.boundingBoxCache_ = []; //reset cache
 };
 
 
@@ -96,18 +104,21 @@ we.texturing.TileProvider.prototype.setBoundingBox = function(minLat, maxLat,
  * @return {!goog.math.Box} Bounding box in tile coordinates.
  */
 we.texturing.TileProvider.prototype.getBoundingBox = function(zoomLevel) {
-  var tileCount = 1 << zoomLevel;
+  if (!goog.isDefAndNotNull(this.boundingBoxCache_[zoomLevel])) {
+    var tileCount = 1 << zoomLevel;
 
-  var minX = Math.floor((this.minLon_ / (2 * Math.PI) + 0.5) * tileCount);
-  var maxX = Math.floor((this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount);
-  // Latitude vs Tile coordinates is inverted - switch max with min
-  var minY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
-             (Math.PI * 2)) * tileCount);
-  var maxY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
-             (Math.PI * 2)) * tileCount);
+    var minX = Math.floor((this.minLon_ / (2 * Math.PI) + 0.5) * tileCount);
+    var maxX = Math.floor((this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount);
+    // Latitude vs Tile coordinates is inverted - switch max with min
+    var minY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
+               (Math.PI * 2)) * tileCount);
+    var maxY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
+               (Math.PI * 2)) * tileCount);
 
-  //TODO: caching?
-  return new goog.math.Box(minY, maxX, maxY, minX);
+    this.boundingBoxCache_[zoomLevel] =
+        new goog.math.Box(minY, maxX, maxY, minX);
+  }
+  return /** @type {!goog.math.Box} */ (this.boundingBoxCache_[zoomLevel]);
 };
 
 
