@@ -31,6 +31,7 @@ goog.provide('weapp');
 goog.provide('weapp.App');
 
 goog.require('goog.Timer');
+goog.require('goog.Uri');
 goog.require('goog.debug.Logger');
 goog.require('goog.dom');
 goog.require('goog.events');
@@ -383,8 +384,10 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
-  var id = (new goog.Uri(document.location.toString()).getParameterValue('id')
-           ).toString() || '4I8A6MZxOzQeiWpo2S37aZ/201009211223-ANwdJGv';
+  var id_ = new goog.Uri(document.location.toString()).getParameterValue('id');
+
+  /** @type {string} */
+  var id = id_ ? id_.toString() : '4I8A6MZxOzQeiWpo2S37aZ/201009211223-ANwdJGv';
 
   var georeferencerTP = new we.texturing.GeoreferencerTileProvider(id);
 
