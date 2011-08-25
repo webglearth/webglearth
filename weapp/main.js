@@ -41,6 +41,7 @@ goog.require('we.gl.Context');
 goog.require('we.scene.Scene');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
+goog.require('we.texturing.GeoreferencerTileProvider');
 goog.require('we.texturing.GoogleTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
@@ -381,6 +382,12 @@ weapp.run = function() {
         'http://webglearth.googlecode.com/svn/resources/terrain/CleanTOPO2/' +
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
+
+  //TODO: Load id from hash
+  var georeferencerTP = new we.texturing.GeoreferencerTileProvider(
+      '4I8A6MZxOzQeiWpo2S37aZ/201009211223-ANwdJGv');
+
+  app.context.scene.earth.changeTileProvider(georeferencerTP, false, true);
 
   app.start();
 };
