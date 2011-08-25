@@ -108,12 +108,10 @@ goog.inherits(we.texturing.GeoreferencerTileProvider,
 
 
 /** @inheritDoc */
-/*we.texturing.OSMTileProvider.prototype.appendCopyrightContent =
+we.texturing.GeoreferencerTileProvider.prototype.appendCopyrightContent =
     function(element) {
-  goog.dom.append(element, '© ',
-      goog.dom.createDom('a',
-      {href: 'http://www.openstreetmap.org/'},
-      'OpenStreetMap'),
-      ' contributors, CC-BY-SA');
-};*/
+  goog.dom.append(element, goog.dom.createDom('a',
+      {href: 'http://www.georeferencer.org/', target: '_blank'},
+      'Georeferencer.org'));
+};
 
