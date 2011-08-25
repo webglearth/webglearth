@@ -260,7 +260,33 @@ we.texturing.GoogleTileProvider.prototype.appendCopyrightContent =
 
 /** @inheritDoc */
 we.texturing.GoogleTileProvider.prototype.getLogoUrl = function() {
-  return 'http://maps.gstatic.com/mapfiles/google_white.png';
+  // return 'http://maps.gstatic.com/mapfiles/google_white.png';
+  return 'data:image/png;base64,' +
+      'iVBORw0KGgoAAAANSUhEUgAAAD4AAAAYCAMAAACV6r5dAAABI1BMVEUAAAAAAAAAAAAAAA' +
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABx' +
+      'cXEAAAAAAAAAAAAAAAAAAAAAAAAAAAAJCQkLCwsRERESEhIZGRkjIyMsLCw6OjpNTU1WVl' +
+      'ZhYWFvb28AAABycnJ5eXl8fHzc3NyFhYWGhoaHiIeLi4uSkpKWlpaYmJiampqenp6mpqah' +
+      'oaGlpaWhoaGpqampqamrq6uqqqqur66vr6+usK6ysrK4uLi9vb3CwsLExMTJycnNzc3Q0N' +
+      'DT09PU1NTV1dXX19fZ2dmDg4Pg4ODi4uLj4+Pj4+Pl5eXk5OTl5eXk5OTl5eXk5OTo6Ojq' +
+      '6urv7+/x8fH5+fn9/f3////54OudAAAAYHRSTlNgXlpSTUY/Pjs5NTMwLSsoJiQiIB4cGh' +
+      'cUEgoBAAYXJy43QElWWV1SFRwQQp2LiaQyqYmwRIi1hwi5hyiEWrxsfwW/xMTJycW3qA2a' +
+      'jweNi4+YAdios7vFy5/g6vD2/P7aB358AAADLElEQVR4XpWUe3OiSBTFOxpMfDsqKt2dZG' +
+      'eiBBlx8zABx3EiZBJk8phsMyb4wvv9P8VexCpnq7aym/PX6Uv/qpt7uBDOuRB8IzRva2AY' +
+      'xinbbkNcrKvTqdGrMvtt2hoG4Es63+JIa9PAM03PX81GNf1NXPAR3O5av+GCn858kvlQLe' +
+      '+bcJfRORORYuB3G/sHuJXsbZ1wZbYgaU23bPrxcqd4wGMygsQ/bKynCN/WCTegsxtfWa8d' +
+      'HVhxe3oNigTaZ+OzorPIDofD62EtOv0H14a4RUGKKLOwWUAIxWxLcPr8apo+jDOHXJlGdu' +
+      'XldT6YeuNwdWeWI5wNgnusf61YnJyu5uSQb4THTBckV8m44GaVl3kiV0n54JTkmZvKmeCT' +
+      '6PTUYPFtv7q3AFURZAgLUuds0xw+hG+7skVPQlCv4UzSbNqFkDxAK23lfThb49MVyQ8e/J' +
+      'tWXZDeKmy1t0n8BRd7GH47gL4LHQyCF2fwJ9q8YPfQLyGenC3V+8moKRUOOTlewFX+ERP9' +
+      'YaA+T8DZwxX7BTe3cJG1GVde4MqBm/QjN0CN8J0ZdLrpUlU/YJxQD+Y7mhDYZRNv7MFd0s' +
+      'JMnuHiNo6Y/oJOawnn5ePASTSe8HkAV/uyrq+DYydL+J7BmChNz8NPXVg265jZBMg5duUI' +
+      '669LkjlxfXfhJGSOuPSAe5Q4eSKULytw/6C4qmAz02NwU4z3wn4i/QLfs4wPw7NdrZ5NzK' +
+      'GTstafTdqHebfUGAyYIPyx3fVhOXm6vr5f+M1q1gn9kRH0E8d0zw1dtJdJ2eY058KyW8M3' +
+      'mTvNlg8wCzyZIs7tuqQ6ruuNTJVkNL3YMs2vrYxMLZpXTfNLMyMzakw8x4fVebmnqt3jek' +
+      'q96v+U2jpfz7teK2SzxUq7qumM2Uq7UqtpDOt2o12N7OHr/GczlezDItmoVeqKjkC+dKQz' +
+      'xONxsi1LtzaTiH7juLB0EcWgSkeaVRiDWheWiAE7nrj/EuP0BdRcNKGjJanheqP/iUdD7n' +
+      '/EpOSgL2mcvwtHRbdevk5x/qRP7P24oAX1YuxctnIy5e/HMZrGh0Kx3MY43o1vo/mX3/jf' +
+      'zoX94Q7k9zgAAAAASUVORK5CYII=';
 };
 
 
