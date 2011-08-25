@@ -383,9 +383,10 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
-  //TODO: Load id from hash
-  var georeferencerTP = new we.texturing.GeoreferencerTileProvider(
-      '4I8A6MZxOzQeiWpo2S37aZ/201009211223-ANwdJGv');
+  var id = (new goog.Uri(document.location.toString()).getParameterValue('id')
+           ).toString() || '4I8A6MZxOzQeiWpo2S37aZ/201009211223-ANwdJGv';
+
+  var georeferencerTP = new we.texturing.GeoreferencerTileProvider(id);
 
   app.context.scene.earth.changeTileProvider(georeferencerTP, false, true);
 
