@@ -54,9 +54,41 @@ we.texturing.GeoreferencerTileProvider = function(id) {
 
   var decodeMetadata = function(data) {
 
-    //alert(goog.debug.deepExpose(data['document']));
-    //TODO: Calc boundingbox and zoomlevels
+    //TODO: Calc zoomlevels
     //      (and copyright info if available in the future)
+
+    var doc = data['document'];
+
+    if (goog.isDefAndNotNull(doc)) {
+      var geotrans = doc['geotrans'];
+      var width = doc['width'];
+      var height = doc['height'];
+
+      if (geotrans && width && height && geotrans.length > 5) {
+        //Calculate (relative) coordinates of the corners
+        //    and choose mins and maxes
+        //c1 c2
+        //c3 c4
+
+        var c2x = width * geotrans[0];
+        var c2y = height * geotrans[1];
+
+        var c3x = width * geotrans[2];
+        var c3y = height * geotrans[3];
+
+        var c4x = width * (geotrans[0] + geotrans[2]);
+        var c4y = height * (geotrans[1] + geotrans[3]);
+
+        var minX = geotrans[4] + Math.min(Math.min(0, c2x), Math.min(c3x, c4x));
+        var maxX = geotrans[4] + Math.max(Math.max(0, c2x), Math.max(c3x, c4x));
+
+        var minY = geotrans[5] + Math.min(Math.min(0, c2y), Math.min(c3y, c4y));
+        var maxY = geotrans[5] + Math.max(Math.max(0, c2y), Math.max(c3y, c4y));
+
+        this.setBoundingBox(minY, maxY, minX, maxX);
+      }
+    }
+
     goog.global[callbackFunc] = null;
   };
 
