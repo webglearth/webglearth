@@ -49,7 +49,7 @@ goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
 goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
-
+goog.require('we.ui.markers.PrettyMarker');
 goog.require('weapp.ui.Nominatim');
 goog.require('weapp.ui.PanControl');
 goog.require('weapp.ui.TileProviderSelector');
@@ -283,7 +283,21 @@ weapp.App = function(canvas) {
     var addMarker = function(e) {
       if (e.ctrlKey) {
         var coords = this.context.scene.getLatLongForXY(e.offsetX, e.offsetY);
-        var marker = new we.ui.markers.BasicMarker(coords[0], coords[1]);
+        var marker = new we.ui.markers.PrettyMarker(coords[0], coords[1],
+            'Title', /** @type {!HTMLElement} */ (goog.dom.createDom('span', {},
+            'This is an example of new PrettyMarker.' +
+            ' You can easily customize this popup and ' +
+            'even add links and other objects: ',
+            goog.dom.createDom('br'), goog.dom.createDom('br'),
+            goog.dom.createDom('a',
+            {target: 'blank', href: 'http://www.klokantech.com/'},
+            'Klokan Technologies'),
+            goog.dom.createDom('br'), goog.dom.createDom('br'),
+            goog.dom.createDom('iframe',
+            {'width': 240, 'height': 210,
+              'src': 'http://www.youtube.com/embed/xn8Y3wzLrXo',
+              'frameborder': 0}
+            ))));
         this.markerManager_.addMarker(null, marker);
         e.preventDefault();
       }
