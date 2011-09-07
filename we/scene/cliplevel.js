@@ -140,6 +140,7 @@ we.scene.ClipLevel.prototype.resetMeta_ = function() {
   for (var y = 0; y < this.side_; ++y) {
     this.metaBuffer.push(new Array(this.side_));
   }
+  if (this.buffer) this.buffer.clear();
 };
 
 
