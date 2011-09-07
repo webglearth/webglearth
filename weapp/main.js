@@ -187,7 +187,7 @@ weapp.App = function(canvas) {
 
     var runNominatimAction = goog.bind(function(item) {
       this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
-      this.context.scene.camera.tilt = 0;
+      this.context.scene.camera.setTilt(0);
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];
@@ -213,8 +213,8 @@ weapp.App = function(canvas) {
       var pos = this.context.scene.camera.getPositionDegrees();
       var newhash = '#ll=' + pos[0].toFixed(5) + ',' + pos[1].toFixed(5) +
           ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) +
-          ';h=' + this.context.scene.camera.heading.toFixed(3) +
-          ';t=' + this.context.scene.camera.tilt.toFixed(3);
+          ';h=' + this.context.scene.camera.getHeading().toFixed(3) +
+          ';t=' + this.context.scene.camera.getTilt().toFixed(3);
       window.location.hash = newhash;
     }
 
@@ -243,11 +243,11 @@ weapp.App = function(canvas) {
 
       var tilt = getValue('t');
       if (!isNaN(tilt))
-        this.context.scene.camera.tilt = parseFloat(tilt);
+        this.context.scene.camera.setTilt(parseFloat(tilt));
 
       var heading = getValue('h');
       if (!isNaN(heading))
-        this.context.scene.camera.heading = parseFloat(heading);
+        this.context.scene.camera.setHeading(parseFloat(heading));
 
       var ll = getValue('ll');
       if (goog.isDefAndNotNull(ll)) {

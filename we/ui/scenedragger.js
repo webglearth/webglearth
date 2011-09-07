@@ -156,17 +156,17 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
           window.debugMarker.enable(true);
         }
         //TODO: Optimize !!
-        if (this.scene_.camera.tilt == 0) {
+        if (this.scene_.camera.getTilt() == 0) {
           this.rotationDistance_ = this.scene_.camera.getAltitude();
         } else {
           var singamma =
               (1 + this.scene_.camera.getAltitude() / we.scene.EARTH_RADIUS) *
-              Math.sin(this.scene_.camera.tilt);
+              Math.sin(this.scene_.camera.getTilt());
           var gamma = Math.PI - Math.asin(singamma);
 
-          var beta = Math.PI - this.scene_.camera.tilt - gamma;
+          var beta = Math.PI - this.scene_.camera.getTilt() - gamma;
           this.rotationDistance_ =
-              (Math.sin(beta) / Math.sin(this.scene_.camera.tilt)) *
+              (Math.sin(beta) / Math.sin(this.scene_.camera.getTilt())) *
               we.scene.EARTH_RADIUS;
         }
       }
@@ -256,8 +256,8 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
           this.rotationTarget_[0], this.rotationTarget_[1],
           this.rotationDistance_, deltaX, deltaY);
     } else { //Free rotation
-      this.scene_.camera.heading += deltaX;
-      this.scene_.camera.tilt += deltaY;
+      this.scene_.camera.setHeading(this.scene_.camera.getHeading() + deltaX);
+      this.scene_.camera.setTilt(this.scene_.camera.getTilt() + deltaY);
     }
   } else { //Pan mode
     //PI * (How much is 1px on the screen?) * (How much is visible?)
