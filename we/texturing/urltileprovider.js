@@ -44,6 +44,11 @@ goog.require('we.texturing.TileProvider');
  */
 we.texturing.URLTileProvider = function(name) {
   goog.base(this, name);
+
+  /**
+   * @type {string}
+   */
+  this.proxyHost = '';
 };
 goog.inherits(we.texturing.URLTileProvider, we.texturing.TileProvider);
 
@@ -85,7 +90,14 @@ we.texturing.URLTileProvider.prototype.loadTileInternal =
   tile.state = we.texturing.Tile.State.LOADING;
   tile.setImage(image);
   image.crossOrigin = '';
-  image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
+  var url = this.getTileURL(tile.zoom, tile.x, tile.y);
+
+  if (this.proxyHost.length > 0) {
+    image.src = this.proxyHost + url;
+  } else {
+    image.src = url;
+  }
+
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 

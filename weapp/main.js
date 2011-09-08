@@ -76,6 +76,12 @@ weapp.BING_KEY = '';
 weapp.LOCAL_TMS = false;
 
 
+/**
+ * @define {string} CORS-enabled proxy to use.
+ */
+weapp.PROXY_URL = 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=';
+
+
 
 /**
  * Creates new WebGL Earth Application object and initializes everything
@@ -116,6 +122,8 @@ weapp.App = function(canvas) {
           this.markerManager_.updateMarkers();
         }, this)
     );
+
+    this.context.proxyHost = weapp.PROXY_URL;
 
     this.context.scene = new we.scene.Scene(this.context,
         goog.dom.getElement('weapp-infobox'),
