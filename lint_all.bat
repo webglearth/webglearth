@@ -6,7 +6,7 @@ REM   files from WebGL Earth through Closure Linter.
 set PROJECT_ROOT=%CD%
 
 REM  Change the following line to point to the directory where you have installed fixjsstyle.exe and gjslint.exe.
-set CLOSURE_LINTER=C:/Program Files (x86)/Python27/Scripts
+set CLOSURE_LINTER=C:/Program Files/Python27/Scripts
 
 REM @ECHO on
 

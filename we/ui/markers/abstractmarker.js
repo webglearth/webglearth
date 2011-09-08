@@ -67,6 +67,12 @@ we.ui.markers.AbstractMarker = function(lat, lon, element) {
    * @protected
    */
   this.enabled = true;
+
+  /**
+   * @type {boolean}
+   * @protected
+   */
+  this.visible = false;
 };
 
 
@@ -117,12 +123,21 @@ we.ui.markers.AbstractMarker.prototype.isEnabled = function() {
 
 
 /**
+ * @return {boolean} Whether this marker is enabled or not.
+ */
+we.ui.markers.AbstractMarker.prototype.isVisible = function() {
+  return this.visible;
+};
+
+
+/**
  * Shows/hides the marker.
  * @param {boolean=} opt_visible Whether this marker is visible or not.
  *                               Default true.
  */
 we.ui.markers.AbstractMarker.prototype.show = function(opt_visible) {
-  this.element.style.display = opt_visible === false ? 'none' : 'block';
+  this.visible = opt_visible == true;
+  this.element.style.display = this.visible ? 'block' : 'none';
 };
 
 

@@ -31,6 +31,7 @@ goog.provide('we.texturing.Tile');
 goog.provide('we.texturing.Tile.State');
 
 goog.require('goog.Disposable');
+goog.require('goog.functions');
 
 
 
@@ -65,6 +66,13 @@ we.texturing.Tile = function(opt_zoom, opt_x, opt_y, opt_requestTime) {
 
 
   /**
+   * Number of times the loading of this tile has failed
+   * @type {number}
+   */
+  this.failed = 0;
+
+
+  /**
    * @type {number}
    */
   this.requestTime = opt_requestTime || 0;
@@ -72,8 +80,16 @@ we.texturing.Tile = function(opt_zoom, opt_x, opt_y, opt_requestTime) {
 
   /**
    * @type {Image}
+   * @private
    */
-  this.image = null;
+  this.image_ = null;
+
+
+  /**
+   * @type {Object}
+   * @private
+   */
+  this.data_ = null;
 
 
   /**
@@ -106,6 +122,36 @@ we.texturing.Tile.prototype.getKey = function() {
 
 
 /**
+ * @param {Object} data Custom data.
+ */
+we.texturing.Tile.prototype.setData = function(data) {
+  this.data_ = data;
+};
+
+
+/**
+ * @type {function(!Object) : Image}
+ */
+we.texturing.Tile.prototype.customImageGetter = goog.functions.NULL;
+
+
+/**
+ * @param {Image} image Tile image.
+ */
+we.texturing.Tile.prototype.setImage = function(image) {
+  this.image_ = image;
+};
+
+
+/**
+ * @return {Image} Tile image.
+ */
+we.texturing.Tile.prototype.getImage = function() {
+  return this.data_ ? this.customImageGetter(this.data_) : this.image_;
+};
+
+
+/**
  * Compares two tiles.
  * @param {!we.texturing.Tile} t1 One tile.
  * @param {!we.texturing.Tile} t2 Second tile.
@@ -118,10 +164,20 @@ we.texturing.Tile.compare = function(t1, t2) {
 };
 
 
+/**
+ * @type {function(!Object)}
+ */
+we.texturing.Tile.prototype.customDataDisposer = goog.nullFunction;
+
+
 /** @inheritDoc */
 we.texturing.Tile.prototype.disposeInternal = function() {
   //goog.base(this, 'disposeInternal');
-  delete this.image;
+  this.image_ = null;
+  if (this.data_) {
+    this.customDataDisposer(this.data_);
+    this.data_ = null;
+  }
 };
 
 

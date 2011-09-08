@@ -28,6 +28,8 @@
  */
 
 goog.provide('we.texturing.TileProvider');
+goog.provide('we.texturing.TileProvider.AreaDescriptor');
+goog.provide('we.texturing.TileProvider.RequestDescriptor');
 
 goog.require('goog.debug.Logger');
 
@@ -46,6 +48,22 @@ we.texturing.TileProvider = function(name) {
    * @type {string}
    */
   this.name = name;
+
+
+  /**
+   * Number of currently loading tiles.
+   * @type {number}
+   */
+  this.loadingTileCounter = 0;
+
+
+  /**
+   * Queue of tile requests that could not yet be completed,
+   * because tileprovider was not ready.
+   * @type {!Array.<!we.texturing.TileProvider.RequestDescriptor>}
+   * @protected
+   */
+  this.deferredQueue = [];
 };
 
 
@@ -68,61 +86,54 @@ we.texturing.TileProvider.prototype.getTileSize = goog.abstractMethod;
 
 
 /**
- * @param {number} zoom Zoom level.
- * @param {number} x X coordinate.
- * @param {number} y Y coordinate.
- * @return {string} URL of the tile.
+ * When overriding this method, you have to call ".gotReady()" at some point.
+ * @return {boolean} Returns whether the TileProvider is ready.
  */
-we.texturing.TileProvider.prototype.getTileURL = goog.abstractMethod;
+we.texturing.TileProvider.prototype.isReady = function() {return true;};
 
 
 /**
- * @type {!function(we.texturing.Tile)}
+ * Implementing class is responsible for calling
+ * this method once it becomes "ready" to load tiles.
+ * @protected
  */
-we.texturing.TileProvider.prototype.tileLoadedHandler = goog.nullFunction;
-
-
-/**
- * Number of currently loading tiles.
- * @type {number}
- */
-we.texturing.TileProvider.prototype.loadingTileCounter = 0;
+we.texturing.TileProvider.prototype.gotReady = function() {
+  goog.array.forEach(this.deferredQueue,
+      function(el, i, arr) {
+        this.loadingTileCounter--;
+        this.loadTileInternal(el.tile, el.onload, el.opt_onerror);
+      }, this);
+  this.deferredQueue = [];
+};
 
 
 /**
  * Determines URL for given tile and starts loading it.
  * @param {!we.texturing.Tile} tile Tile to be loaded.
- * @return {boolean} Returns whether the TileProvider is ready to load the tile.
+ * @param {!function(!we.texturing.Tile)} onload onload.
+ * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
  */
-we.texturing.TileProvider.prototype.loadTile = function(tile) {
-  tile.image = new Image();
-  var onload = function(tileprovider) {return (function() {
-    //if (goog.DEBUG)
-    //  we.texturing.TileProvider.logger.info('Loaded tile ' + tile.getKey());
-    tile.state = we.texturing.Tile.State.LOADED;
-    tileprovider.loadingTileCounter--;
-    tileprovider.tileLoadedHandler(tile);
-  })};
-  var onerror = function(tileprovider) {return (function() {
-    if (goog.DEBUG) {
-      we.texturing.TileProvider.logger.severe('Error loading tile: ' +
-                                              tile.getKey() + ' (' +
-                                              tileprovider.name + ')');
-    }
-    tile.state = we.texturing.Tile.State.ERROR;
-    tileprovider.loadingTileCounter--;
-  })};
-  tile.image.onload = onload(this);
-  tile.image.onerror = onerror(this);
-  tile.state = we.texturing.Tile.State.LOADING;
-  tile.image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
-  //if (goog.DEBUG)
-  //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
-
-  this.loadingTileCounter++;
-
-  return true;
+we.texturing.TileProvider.prototype.loadTile = function(tile, onload,
+                                                        opt_onerror) {
+  if (this.isReady()) {
+    this.loadTileInternal(tile, onload, opt_onerror);
+  } else {
+    this.deferredQueue.push(
+        new we.texturing.TileProvider.RequestDescriptor(tile, onload,
+                                                        opt_onerror));
+    this.loadingTileCounter++; //to prevent the queue from getting really big
+  }
 };
+
+
+/**
+ * Determines URL for given tile and starts loading it.
+ * @param {!we.texturing.Tile} tile Tile to be loaded.
+ * @param {!function(!we.texturing.Tile)} onload onload.
+ * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
+ * @protected
+ */
+we.texturing.TileProvider.prototype.loadTileInternal = goog.abstractMethod;
 
 
 /**
@@ -142,6 +153,13 @@ we.texturing.TileProvider.prototype.getLogoUrl = function() {return null;};
 
 
 /**
+ * Request new copyright info for the given area.
+ * @param {!Array.<we.texturing.TileProvider.AreaDescriptor>} areas Area infos.
+ */
+we.texturing.TileProvider.prototype.requestNewCopyrightInfo = goog.nullFunction;
+
+
+/**
  * @type {!function()}
  */
 we.texturing.TileProvider.prototype.copyrightInfoChangedHandler =
@@ -155,3 +173,92 @@ if (goog.DEBUG) {
   we.texturing.TileProvider.logger =
       goog.debug.Logger.getLogger('we.texturing.TileProvider');
 }
+
+
+
+/**
+ * Describes a rectangular area on the surface of the planet.
+ * Useful for copyright requests.
+ * @param {number} centerLat Latitude of the area center in radians.
+ * @param {number} centerLon Longitude of the area center in radians.
+ * @param {number} spanLat Latitude span in radians.
+ * @param {number} spanLon Longitude span in radians.
+ * @param {number} zoomLevel zoom level.
+ * @constructor
+ */
+we.texturing.TileProvider.AreaDescriptor = function(centerLat, centerLon,
+                                                    spanLat, spanLon,
+                                                    zoomLevel) {
+  /**
+   * @type {number}
+   */
+  this.centerLat = centerLat;
+
+  /**
+   * @type {number}
+   */
+  this.centerLon = centerLon;
+
+  /**
+   * @type {number}
+   */
+  this.spanLat = spanLat;
+
+  /**
+   * @type {number}
+   */
+  this.spanLon = spanLon;
+
+  /**
+   * @type {number}
+   */
+  this.zoomLevel = zoomLevel;
+
+};
+
+
+/**
+ * @return {string} Represantation of the area center in degrees as "lat,lon".
+ */
+we.texturing.TileProvider.AreaDescriptor.prototype.getCenterInDegreesToString =
+    function() {
+  return goog.math.toDegrees(this.centerLat) + ',' +
+         goog.math.toDegrees(this.centerLon);
+};
+
+
+/**
+ * @return {string} Represantation of the area span in degrees as "lat,lon".
+ */
+we.texturing.TileProvider.AreaDescriptor.prototype.getSpanInDegreesToString =
+    function() {
+  return goog.math.toDegrees(this.spanLat) + ',' +
+         goog.math.toDegrees(this.spanLon);
+};
+
+
+
+/**
+ * Describes a tile request
+ * @param {!we.texturing.Tile} tile Tile to be loaded.
+ * @param {!function(!we.texturing.Tile)} onload onload.
+ * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
+ * @constructor
+ */
+we.texturing.TileProvider.RequestDescriptor = function(tile, onload,
+                                                       opt_onerror) {
+  /**
+   * @type {!we.texturing.Tile}
+   */
+  this.tile = tile;
+
+  /**
+   * @type {!function(!we.texturing.Tile)}
+   */
+  this.onload = onload;
+
+  /**
+   * @type {!function(!we.texturing.Tile)|undefined}
+   */
+  this.opt_onerror = opt_onerror;
+};

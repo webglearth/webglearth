@@ -85,7 +85,7 @@ we.texturing.TileCache = function(tileprovider) {
 we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
   this.tileProviderResetTime_ = goog.now();
   this.tileProvider_ = tileprovider;
-  this.tileProvider_.tileLoadedHandler = goog.bind(this.tileLoaded_, this);
+  goog.structs.forEach(this.tileMap_, function(val, key, col) {val.dispose();});
   this.tileMap_.clear();
   this.loadRequests_ = [];
 };
@@ -253,9 +253,7 @@ we.texturing.TileCache.prototype.processLoadRequests =
                    tilesToBeLoading - this.tileProvider_.loadingTileCounter);
   for (var i = 0; i < n; i++) {
     var tile = this.loadRequests_.pop();
-    if (!this.tileProvider_.loadTile(tile)) {
-      this.loadRequests_.push(tile);
-    }
+    this.tileProvider_.loadTile(tile, goog.bind(this.tileLoaded_, this));
   }
 };
 

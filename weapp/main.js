@@ -38,9 +38,11 @@ goog.require('goog.ui.AutoComplete.EventType');
 
 goog.require('we.debug');
 goog.require('we.gl.Context');
+goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
+goog.require('we.texturing.GoogleTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileProvider');
@@ -48,11 +50,13 @@ goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
 goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
-
+goog.require('we.ui.markers.PrettyMarker');
 goog.require('weapp.ui.Nominatim');
 goog.require('weapp.ui.PanControl');
 goog.require('weapp.ui.TileProviderSelector');
 goog.require('weapp.ui.ZoomSlider');
+
+
 
 //Dummy dependencies
 goog.addDependency('',
@@ -120,10 +124,16 @@ weapp.App = function(canvas) {
     this.context.resize();
 
     /**
+     * @type {!we.scene.CameraAnimator}
+     * @private
+     */
+    this.animator_ = new we.scene.CameraAnimator(this.context.scene.camera);
+
+    /**
      * @type {!we.ui.SceneDragger}
      * @private
      */
-    this.dragger_ = new we.ui.SceneDragger(this.context.scene);
+    this.dragger_ = new we.ui.SceneDragger(this.context.scene, this.animator_);
 
     /**
      * @type {!we.ui.MouseZoomer}
@@ -176,9 +186,18 @@ weapp.App = function(canvas) {
     nominMarker.enable(false);
     this.markerManager_.addMarker('nominatimMarker', nominMarker);
 
+    if (goog.DEBUG) {
+      window.debugMarker = new we.ui.markers.BasicMarker(0, 0);
+      window.debugMarker.enable(false);
+      this.markerManager_.addMarker('debugMarker', window.debugMarker);
+    }
+
     var runNominatimAction = goog.bind(function(item) {
-      this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
-      this.context.scene.camera.tilt = 0;
+      //this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
+      //this.context.scene.camera.setTilt(0);
+      this.animator_.goTo(goog.math.toRadians(parseFloat(item['lat'])),
+                          goog.math.toRadians(parseFloat(item['lon'])),
+                          1500000);
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];
@@ -203,11 +222,9 @@ weapp.App = function(canvas) {
     var updateHash = function() {
       var pos = this.context.scene.camera.getPositionDegrees();
       var newhash = '#ll=' + pos[0].toFixed(5) + ',' + pos[1].toFixed(5) +
-          (this.context.scene.camera.fixedAltitude ?
-          ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) :
-          ';z=' + this.context.scene.camera.getZoom().toFixed(2)) +
-          ';h=' + this.context.scene.camera.heading.toFixed(3) +
-          ';t=' + this.context.scene.camera.tilt.toFixed(3);
+          ';alt=' + this.context.scene.camera.getAltitude().toFixed(0) +
+          ';h=' + this.context.scene.camera.getHeading().toFixed(3) +
+          ';t=' + this.context.scene.camera.getTilt().toFixed(3);
       window.location.hash = newhash;
     }
 
@@ -236,11 +253,11 @@ weapp.App = function(canvas) {
 
       var tilt = getValue('t');
       if (!isNaN(tilt))
-        this.context.scene.camera.tilt = parseFloat(tilt);
+        this.context.scene.camera.setTilt(parseFloat(tilt));
 
       var heading = getValue('h');
       if (!isNaN(heading))
-        this.context.scene.camera.heading = parseFloat(heading);
+        this.context.scene.camera.setHeading(parseFloat(heading));
 
       var ll = getValue('ll');
       if (goog.isDefAndNotNull(ll)) {
@@ -276,7 +293,21 @@ weapp.App = function(canvas) {
     var addMarker = function(e) {
       if (e.ctrlKey) {
         var coords = this.context.scene.getLatLongForXY(e.offsetX, e.offsetY);
-        var marker = new we.ui.markers.BasicMarker(coords[0], coords[1]);
+        var marker = new we.ui.markers.PrettyMarker(coords[0], coords[1],
+            'Title', /** @type {!HTMLElement} */ (goog.dom.createDom('span', {},
+            'This is an example of new PrettyMarker.' +
+            ' You can easily customize this popup and ' +
+            'even add links and other objects: ',
+            goog.dom.createDom('br'), goog.dom.createDom('br'),
+            goog.dom.createDom('a',
+            {target: 'blank', href: 'http://www.klokantech.com/'},
+            'Klokan Technologies'),
+            goog.dom.createDom('br'), goog.dom.createDom('br'),
+            goog.dom.createDom('iframe',
+            {'width': 240, 'height': 210,
+              'src': 'http://www.youtube.com/embed/xn8Y3wzLrXo',
+              'frameborder': 0}
+            ))));
         this.markerManager_.addMarker(null, marker);
         e.preventDefault();
       }
@@ -284,19 +315,6 @@ weapp.App = function(canvas) {
     goog.events.listen(this.context.canvas,
         goog.events.EventType.CLICK,
         goog.bind(addMarker, this));
-
-
-
-    goog.events.listen(window.document,
-        goog.events.EventType.KEYDOWN,
-        function(e) {
-          if (e.keyCode == 70 /* 'f' */ && e.ctrlKey) {
-            this.fixedAltitude = !this.fixedAltitude;
-            e.preventDefault();
-          }
-        },
-        false, this.context.scene.camera);
-
 
     if (goog.DEBUG) {
       weapp.logger.info('Done');
@@ -361,6 +379,18 @@ weapp.run = function() {
             '../../resources/tms/{z}/{x}/{y}.jpg',
             0, 5, 256, true));
   }
+
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.SATELLITE));
+
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.ROADMAP));
+
+  app.addTileProvider(
+      new we.texturing.GoogleTileProvider(
+          we.texturing.GoogleTileProvider.MapTypes.TERRAIN));
 
   app.addTileProvider(new we.texturing.MapQuestTileProvider());
   app.addTileProvider(new we.texturing.OSMTileProvider());

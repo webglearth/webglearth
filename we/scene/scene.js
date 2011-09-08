@@ -193,8 +193,7 @@ we.scene.Scene.prototype.draw = function() {
     this.infobox_.innerHTML =
         goog.math.toDegrees(this.camera.getLatitude()).toFixed(4) + '; ' +
         goog.math.toDegrees(this.camera.getLongitude()).toFixed(4) + ' @ ' +
-        this.camera.getAltitude().toFixed(0) + 'm ' +
-        (this.camera.fixedAltitude ? '->' : '<-') + ' z=' +
+        this.camera.getAltitude().toFixed(0) + 'm -> z=' +
         this.camera.getZoom().toFixed(3) + '; ' +
         this.earth.getInfoText();
   }
@@ -210,6 +209,14 @@ we.scene.Scene.prototype.draw = function() {
   var zFar = 1 + cameraDistance; //from the camera to center of the Earth
 
   this.context.redimensionZBuffer(zNear, zFar);
+
+  this.context.modelViewMatrix.rotate001(-this.camera.getRoll());
+  this.context.modelViewMatrix.rotate100(-this.camera.getTilt());
+  this.context.modelViewMatrix.rotate001(-this.camera.getHeading());
+  this.context.modelViewMatrix.translate(0, 0, -1 -
+      this.camera.getAltitude() / we.scene.EARTH_RADIUS);
+  this.context.modelViewMatrix.rotate100(this.camera.getLatitude());
+  this.context.modelViewMatrix.rotate010(-this.camera.getLongitude());
 
   this.earth.draw();
   this.modelManager.draw();

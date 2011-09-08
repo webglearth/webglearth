@@ -135,8 +135,6 @@ weapi.App = function(divid, opt_options) {
       '.')
       );
 
-  this.context.scene.camera.fixedAltitude = false; //use fixedZoom mode for api
-
   //Parsing options
   if (goog.isDef(opt_options) && 'zoom' in opt_options) {
     this.context.scene.camera.setZoom(opt_options['zoom']);

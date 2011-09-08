@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script> 
+<script>
+  function initialize() {
+    var options = { zoom: 3.0, center: [40.0,-104.0] };
+    var earth = new WebGLEarth('earth_div', options);
+     earth.initMap(WebGLEarth.Maps.WMS, ['BlueMarble', 'http://demo.mapserver.org/cgi-bin/mapserv?', 
+                                    '1.3.0', 'world_merc', 'EPSG:3857', 'image/jpeg', '', 
+                                    'map=/osgeo/mapserver/msautotest/world/world.map', 1, 15]);
+    /* name, service url, wms version, layers, CRS , format, styles, extra parameters , minZoom, maxZoom 
+     *
+     * WebGLEarth WMS Tiling requires server supports mercator Coordinate Reference System.  Requires either
+     * EPSG:3857 or EPSG:900913.  All other CRS's will be rejected.
+     */
+
+     earth.setMap(WebGLEarth.Maps.WMS, 'BlueMarble');
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Hello World</h1>
+  <div id="earth_div" style="width:800px;height:600px;border:1px solid gray; padding:2px;"></div>
+</body>
+</html>

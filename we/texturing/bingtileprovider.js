@@ -31,7 +31,7 @@ goog.provide('we.texturing.BingTileProvider');
 
 goog.require('goog.functions');
 
-goog.require('we.texturing.TileProvider');
+goog.require('we.texturing.URLTileProvider');
 goog.require('we.utils');
 
 
@@ -41,7 +41,7 @@ goog.require('we.utils');
  * @constructor
  * @param {string} imagerySet The type of imagery.
  * @param {string} key Bing maps key.
- * @extends {we.texturing.TileProvider}
+ * @extends {we.texturing.URLTileProvider}
  * @inheritDoc
  */
 we.texturing.BingTileProvider = function(imagerySet, key) {
@@ -63,7 +63,13 @@ we.texturing.BingTileProvider = function(imagerySet, key) {
   goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
 
 };
-goog.inherits(we.texturing.BingTileProvider, we.texturing.TileProvider);
+goog.inherits(we.texturing.BingTileProvider, we.texturing.URLTileProvider);
+
+
+/** @inheritDoc */
+we.texturing.BingTileProvider.prototype.isReady = function() {
+  return !goog.isNull(this.resource_);
+};
 
 
 /**
@@ -75,6 +81,7 @@ we.texturing.BingTileProvider.prototype.setMetadata_ = function(data) {
   this.metaData_ = data;
   if (data['resourceSets'].length > 0) {
     this.resource_ = data['resourceSets'][0]['resources'][0];
+    this.gotReady();
   } else if (goog.DEBUG) {
     var msg = 'Bing: ' + (data['errorDetails'][0] || 'Unknown error.');
     we.texturing.TileProvider.logger.warning(msg);
@@ -132,9 +139,10 @@ we.texturing.BingTileProvider.prototype.getTileURL = function(zoom, x, y) {
 
 
 /** @inheritDoc */
-we.texturing.BingTileProvider.prototype.loadTile = function(tile) {
+we.texturing.BingTileProvider.prototype.loadTileInternal =
+    function(tile, onload, opt_onerror) {
   if (!goog.isNull(this.resource_)) {
-    return goog.base(this, 'loadTile', tile);
+    return goog.base(this, 'loadTileInternal', tile, onload, opt_onerror);
   } else {
     return false;
   }
