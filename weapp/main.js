@@ -195,9 +195,9 @@ weapp.App = function(canvas) {
     var runNominatimAction = goog.bind(function(item) {
       //this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
       //this.context.scene.camera.setTilt(0);
-      this.animator_.goTo(goog.math.toRadians(parseFloat(item['lat'])),
-                          goog.math.toRadians(parseFloat(item['lon'])),
-                          1500000);
+      this.animator_.flyTo(goog.math.toRadians(parseFloat(item['lat'])),
+                           goog.math.toRadians(parseFloat(item['lon'])),
+                           1500000);
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];

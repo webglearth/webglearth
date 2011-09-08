@@ -97,9 +97,9 @@ we.scene.CameraAnimator = function(camera) {
  * @param {number=} opt_heading Heading (otherwise 0).
  * @param {number=} opt_tilt Tilt (otherwise 0).
  */
-we.scene.CameraAnimator.prototype.goTo = function(latitude, longitude,
-                                                  opt_altitude,
-                                                  opt_heading, opt_tilt) {
+we.scene.CameraAnimator.prototype.flyTo = function(latitude, longitude,
+                                                   opt_altitude,
+                                                   opt_heading, opt_tilt) {
   //TODO: animate everything in one animation, except altitude
   //altitude has to be divided into two animations: easein+easeout (serial)
   //everything+altitude(paralel)
