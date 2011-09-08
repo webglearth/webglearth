@@ -38,6 +38,7 @@ goog.require('goog.ui.AutoComplete.EventType');
 
 goog.require('we.debug');
 goog.require('we.gl.Context');
+goog.require('we.math.geo');
 goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 goog.require('we.texturing.BingTileProvider');
@@ -193,11 +194,24 @@ weapp.App = function(canvas) {
     }
 
     var runNominatimAction = goog.bind(function(item) {
-      //this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
-      //this.context.scene.camera.setTilt(0);
+      var bounds = item['boundingbox'];
+
+      /*var markerTL = new we.ui.markers.BasicMarker(bounds[0], bounds[2]);
+      this.markerManager_.addMarker(null, markerTL);
+
+      var markerBR = new we.ui.markers.BasicMarker(bounds[1], bounds[3]);
+      this.markerManager_.addMarker(null, markerBR);*/
+
+      var altitude = we.math.geo.calcDistanceToViewBounds(
+          goog.math.toRadians(parseFloat(bounds[0])),
+          goog.math.toRadians(parseFloat(bounds[1])),
+          goog.math.toRadians(parseFloat(bounds[2])),
+          goog.math.toRadians(parseFloat(bounds[3])),
+          this.context.aspectRatio, this.context.fov);
+
       this.animator_.flyTo(goog.math.toRadians(parseFloat(item['lat'])),
                            goog.math.toRadians(parseFloat(item['lon'])),
-                           1500000);
+                           altitude);
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];
