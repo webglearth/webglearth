@@ -101,8 +101,8 @@ we.scene.ModelManager.prototype.addModelFromUrl = function(url, opt_o3d) {
         model = new we.scene.O3DModel(this.context, data);
       } else {
         model = new we.scene.Model(
-            this.context, data.vertexPositions, data.vertexNormals,
-            data.indices);
+            this.context, data['vertexPositions'], data['vertexNormals'],
+            data['indices']);
       }
       this.models.push(model);
     } else if (goog.DEBUG) {
