@@ -36,10 +36,10 @@ goog.require('goog.fx.Animation');
 goog.require('goog.fx.Animation.EventType');
 goog.require('goog.fx.AnimationEvent');
 goog.require('goog.fx.easing');
-
 goog.require('goog.math');
-
 goog.require('goog.ui.Component.EventType');
+
+goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 
 

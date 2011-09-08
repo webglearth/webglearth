@@ -30,6 +30,13 @@
 
 goog.provide('we.scene.CameraAnimator');
 
+goog.require('goog.events');
+goog.require('goog.fx.Animation');
+goog.require('goog.fx.Animation.EventType');
+goog.require('goog.fx.AnimationParallelQueue');
+goog.require('goog.fx.AnimationSerialQueue');
+goog.require('goog.math');
+
 goog.require('we.scene.Camera');
 goog.require('we.scene.CameraEvent');
 
