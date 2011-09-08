@@ -38,6 +38,7 @@ goog.require('goog.ui.AutoComplete.EventType');
 
 goog.require('we.debug');
 goog.require('we.gl.Context');
+goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
@@ -123,10 +124,16 @@ weapp.App = function(canvas) {
     this.context.resize();
 
     /**
+     * @type {!we.scene.CameraAnimator}
+     * @private
+     */
+    this.animator_ = new we.scene.CameraAnimator(this.context.scene.camera);
+
+    /**
      * @type {!we.ui.SceneDragger}
      * @private
      */
-    this.dragger_ = new we.ui.SceneDragger(this.context.scene);
+    this.dragger_ = new we.ui.SceneDragger(this.context.scene, this.animator_);
 
     /**
      * @type {!we.ui.MouseZoomer}
@@ -186,8 +193,11 @@ weapp.App = function(canvas) {
     }
 
     var runNominatimAction = goog.bind(function(item) {
-      this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
-      this.context.scene.camera.setTilt(0);
+      //this.context.scene.camera.setPositionDegrees(item['lat'], item['lon']);
+      //this.context.scene.camera.setTilt(0);
+      this.animator_.goTo(goog.math.toRadians(parseFloat(item['lat'])),
+                          goog.math.toRadians(parseFloat(item['lon'])),
+                          1500000);
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];

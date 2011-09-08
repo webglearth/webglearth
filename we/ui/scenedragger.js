@@ -47,9 +47,11 @@ goog.require('we.scene.Scene');
 /**
  * Creates new dragger for the given scene.
  * @param {!we.scene.Scene} scene Scene.
+ * @param {we.scene.CameraAnimator=} opt_animator CameraAnimator to
+ *                                                cancel on user input.
  * @constructor
  */
-we.ui.SceneDragger = function(scene) {
+we.ui.SceneDragger = function(scene, opt_animator) {
   /**
    * @type {!we.scene.Scene}
    * @private
@@ -120,6 +122,12 @@ we.ui.SceneDragger = function(scene) {
   goog.events.listen(goog.dom.getOwnerDocument(this.scene_.context.canvas),
                      goog.events.EventType.MOUSEUP,
                      goog.bind(this.onMouseUp_, this));
+
+  /**
+   * @type {we.scene.CameraAnimator}
+   * @private
+   */
+  this.animator_ = opt_animator || null;
 };
 
 
@@ -130,6 +138,8 @@ we.ui.SceneDragger = function(scene) {
 we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
   if (!e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT) &&
       !e.ctrlKey && !e.altKey) {
+
+    if (goog.isDefAndNotNull(this.animator_)) this.animator_.cancel();
 
     // Stop inertial animation
     if (this.inertialAnimation_) {
