@@ -302,12 +302,12 @@ weapp.App = function(canvas) {
             goog.dom.createDom('a',
             {target: 'blank', href: 'http://www.klokantech.com/'},
             'Klokan Technologies'),
-            goog.dom.createDom('br'), goog.dom.createDom('br'),
+            goog.dom.createDom('br'), goog.dom.createDom('br')/*,
             goog.dom.createDom('iframe',
             {'width': 240, 'height': 210,
               'src': 'http://www.youtube.com/embed/xn8Y3wzLrXo',
               'frameborder': 0}
-            ))));
+            )*/)));
         this.markerManager_.addMarker(null, marker);
         e.preventDefault();
       }
