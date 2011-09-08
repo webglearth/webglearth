@@ -119,7 +119,13 @@ weapp.App = function(canvas) {
     this.context.scene = new we.scene.Scene(this.context,
         goog.dom.getElement('weapp-infobox'),
         goog.dom.getElement('weapp-mapcopyright'),
-        goog.dom.getElement('weapp-maplogo'));
+        goog.dom.getElement('weapp-maplogo'),
+        undefined,
+        goog.dom.createDom('p', null, '3D Buildings Source: ',
+        goog.dom.createDom('a',
+            {'href': 'http://www.swisstopo.ch/'},
+            'Swiss Federal Office of Topography'), '.')
+        );
 
     this.context.resize();
 
