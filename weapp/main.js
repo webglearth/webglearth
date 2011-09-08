@@ -408,13 +408,13 @@ weapp.run = function() {
         '{z}/{x}/{y}.png', 0, 5, 256));
   }
 
-  app.addModelFromUrl('demo1.o3djson', true);
+  app.addModelFromUrl('swissBUILDINGS3d_10.json');
 
-  //#ll=49.19326,16.59753;alt=200;h=-0.736;t=0.696
-  app.context.scene.camera.setPositionDegrees(49.19326, 16.59753);
-  app.context.scene.camera.setAltitude(200);
-  app.context.scene.camera.heading = -0.736;
-  app.context.scene.camera.tilt = 0.696;
+  //#ll=46.91131,7.45883;alt=1144;h=0.000;t=0.923
+  app.context.scene.camera.setPositionDegrees(46.91131, 7.45883);
+  app.context.scene.camera.setAltitude(1144);
+  app.context.scene.camera.setHeading(0);
+  app.context.scene.camera.setTilt(0.923);
 
   app.start();
 };
