@@ -171,6 +171,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
       return;
     } else { //Opposite direction - just revert to previous level
       this.animation_.dispose();
+      this.animation_ = null;
       duration *= (this.scene_.camera.getAltitude() - this.startX_) /
                   (this.targetX_ - this.startX_);
       var tempX = this.targetX_;
@@ -183,7 +184,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
         Math.pow(we.ui.MOUSERZOOMER_DISTANCEMODIFIER, direction));
   }
 
-  if (duration <= 0)
+  if (isNaN(duration) || duration <= 0)
     return;
 
   var startPos = this.scene_.camera.getPosition();
