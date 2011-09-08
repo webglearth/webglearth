@@ -365,6 +365,23 @@ we.scene.Earth.prototype.draw = function() {
 };
 
 
+/**
+ * Calculates distance between two points using the havesine formula
+ * @param {number} lat1 Latitude of the first point.
+ * @param {number} lon1 Longitude of the first point.
+ * @param {number} lat2 Latitude of the second point.
+ * @param {number} lon2 Longitude of the second point.
+ * @return {number} Calculated distance in meters.
+ */
+we.scene.Earth.calculateDistance = function(lat1, lon1, lat2, lon2) {
+  var sindlathalf = Math.sin((lat2 - lat1) / 2);
+  var sindlonhalf = Math.sin((lon2 - lon1) / 2);
+  var a = sindlathalf * sindlathalf +
+          Math.cos(lat1) * Math.cos(lat2) * sindlonhalf * sindlonhalf;
+  var angle = 2 * Math.asin(Math.sqrt(a));
+  return we.scene.EARTH_RADIUS * angle;
+};
+
 if (goog.DEBUG) {
   /**
    * Shared logger instance
