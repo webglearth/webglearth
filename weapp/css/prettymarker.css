@@ -1,0 +1,68 @@
+.leaflet-marker-icon {
+  position: absolute;
+  margin-left: -13px;
+  margin-top: -41px;
+  width: 25px;
+  height: 41px;
+  z-index: 64;
+  background-image: url(data:image/png;base64,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);
+}
+.leaflet-popup {
+  z-index:100;
+  -webkit-transition: opacity 0.2s linear;
+  -moz-transition: opacity 0.2s linear;
+  -o-transition: opacity 0.2s linear;
+  transition: opacity 0.2s linear;
+  position: absolute;
+  bottom: 41px; /*marker height*/
+  min-width: 300px;
+}
+.leaflet-popup-close-button {
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAk1BMVEX////Ny8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8vNy8sw0horAAAAMHRSTlMA/YGxFAWCpa1LNzHb5VmjvdITrPl9Bg63MtGnEjbYILiDqJ5X7IARzz9mhwQdlzwcGvIpAAAAWUlEQVR4Xh3IRRbDMADEUMUOM5aZuXP/09WpVv+JIIx8SOMEjCfrZ7mKkkpS3UgytJ3G+mEC05mTZwDmi5HLFaw3+me37NzaH5yPnM66cLW63eHxfMH78+UH9TcKeugd7VgAAAAASUVORK5CYII=);
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 10px;
+  height: 10px;
+  overflow: hidden;
+}
+.leaflet-popup-content-wrapper {
+  padding: 1px;
+  text-align: left;
+  -moz-border-radius: 20px; 
+  -webkit-border-radius: 20px;
+  border-radius: 20px;
+}
+.leaflet-popup-content {
+  display: inline-block;
+  margin: 19px;
+  font: 12px/1.4 "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+.leaflet-popup-content p {
+  margin: 18px 0;
+  text-align: justify;
+}
+.leaflet-popup-tip-container {
+  margin: 0 auto;
+  width: 40px;
+  height: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.leaflet-popup-tip {
+  width: 15px;
+  height: 15px;
+  padding: 1px;
+  margin: -8px auto 0;
+  -moz-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: white;
+  box-shadow: 0 1px 10px #888;
+  -moz-box-shadow: 0 1px 10px #888;
+  -webkit-box-shadow: 0 1px 14px #999;
+}

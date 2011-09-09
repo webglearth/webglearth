@@ -36,10 +36,10 @@ goog.require('goog.fx.Animation');
 goog.require('goog.fx.Animation.EventType');
 goog.require('goog.fx.AnimationEvent');
 goog.require('goog.fx.easing');
-
 goog.require('goog.math');
-
 goog.require('goog.ui.Component.EventType');
+
+goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 
 
@@ -47,9 +47,11 @@ goog.require('we.scene.Scene');
 /**
  * Creates new dragger for the given scene.
  * @param {!we.scene.Scene} scene Scene.
+ * @param {we.scene.CameraAnimator=} opt_animator CameraAnimator to
+ *                                                cancel on user input.
  * @constructor
  */
-we.ui.SceneDragger = function(scene) {
+we.ui.SceneDragger = function(scene, opt_animator) {
   /**
    * @type {!we.scene.Scene}
    * @private
@@ -120,6 +122,12 @@ we.ui.SceneDragger = function(scene) {
   goog.events.listen(goog.dom.getOwnerDocument(this.scene_.context.canvas),
                      goog.events.EventType.MOUSEUP,
                      goog.bind(this.onMouseUp_, this));
+
+  /**
+   * @type {we.scene.CameraAnimator}
+   * @private
+   */
+  this.animator_ = opt_animator || null;
 };
 
 
@@ -130,6 +138,8 @@ we.ui.SceneDragger = function(scene) {
 we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
   if (!e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT) &&
       !e.ctrlKey && !e.altKey) {
+
+    if (goog.isDefAndNotNull(this.animator_)) this.animator_.cancel();
 
     // Stop inertial animation
     if (this.inertialAnimation_) {
@@ -156,17 +166,17 @@ we.ui.SceneDragger.prototype.onMouseDown_ = function(e) {
           window.debugMarker.enable(true);
         }
         //TODO: Optimize !!
-        if (this.scene_.camera.tilt == 0) {
+        if (this.scene_.camera.getTilt() == 0) {
           this.rotationDistance_ = this.scene_.camera.getAltitude();
         } else {
           var singamma =
               (1 + this.scene_.camera.getAltitude() / we.scene.EARTH_RADIUS) *
-              Math.sin(this.scene_.camera.tilt);
+              Math.sin(this.scene_.camera.getTilt());
           var gamma = Math.PI - Math.asin(singamma);
 
-          var beta = Math.PI - this.scene_.camera.tilt - gamma;
+          var beta = Math.PI - this.scene_.camera.getTilt() - gamma;
           this.rotationDistance_ =
-              (Math.sin(beta) / Math.sin(this.scene_.camera.tilt)) *
+              (Math.sin(beta) / Math.sin(this.scene_.camera.getTilt())) *
               we.scene.EARTH_RADIUS;
         }
       }
@@ -256,8 +266,8 @@ we.ui.SceneDragger.prototype.scenePixelMove_ = function(xDiff, yDiff) {
           this.rotationTarget_[0], this.rotationTarget_[1],
           this.rotationDistance_, deltaX, deltaY);
     } else { //Free rotation
-      this.scene_.camera.heading += deltaX;
-      this.scene_.camera.tilt += deltaY;
+      this.scene_.camera.setHeading(this.scene_.camera.getHeading() + deltaX);
+      this.scene_.camera.setTilt(this.scene_.camera.getTilt() + deltaY);
     }
   } else { //Pan mode
     //PI * (How much is 1px on the screen?) * (How much is visible?)

@@ -48,10 +48,10 @@ goog.require('we.texturing.TileProvider.AreaDescriptor');
  */
 we.scene.ClipLevel = function(tileprovider, context, side, zoom) {
   /**
-   * @type {!WebGLRenderingContext}
+   * @type {!we.gl.Context}
    * @private
    */
-  this.gl_ = context.gl;
+  this.context_ = context;
 
   /**
    * Array of buffer requests - ordered by request time
@@ -311,8 +311,9 @@ we.scene.ClipLevel.prototype.processTiles = function(tilesToBuffer,
   this.tileCache_.processLoadRequests(tilesToBeLoading);
 
   if (we.scene.TRILINEAR_FILTERING && buffered > 0) {
-    this.gl_.bindTexture(this.gl_.TEXTURE_2D, this.buffer.texture);
-    this.gl_.generateMipmap(this.gl_.TEXTURE_2D);
+    this.context_.gl.bindTexture(this.context_.gl.TEXTURE_2D,
+                                 this.buffer.texture);
+    this.context_.gl.generateMipmap(this.context_.gl.TEXTURE_2D);
   }
 
   return buffered;
@@ -353,7 +354,7 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
     return;
   }
 
-  var gl = this.gl_;
+  var gl = this.context_.gl;
   var tileSize = this.tileProvider_.getTileSize();
 
   gl.bindTexture(gl.TEXTURE_2D, this.buffer.texture);
@@ -362,10 +363,22 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
   var yPos = (this.side_ -
       goog.math.modulo(y + this.offY, this.side_) - 1) * tileSize;
 
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, xPos, yPos,
-                   gl.RGBA, gl.UNSIGNED_BYTE, tile.getImage());
+  try {
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, xPos, yPos,
+                     gl.RGBA, gl.UNSIGNED_BYTE, tile.getImage());
 
-  this.metaBuffer[y][x] = 1;
+    this.metaBuffer[y][x] = 1;
+  } catch (DOMException) {
+    if (this.context_.proxyHost.length > 0 &&
+        this.tileProvider_.proxyHost != this.context_.proxyHost) {
+      this.tileProvider_.proxyHost = this.context_.proxyHost;
+      this.needTile_(tile.x, tile.y, tile.requestTime);
+    } else {
+      //TODO: warn
+      //TODO: solve duplicity with ClipLevelN::ClipLevelN
+      if (goog.DEBUG) alert('CORS proxy failed');
+    }
+  }
 };
 
 
