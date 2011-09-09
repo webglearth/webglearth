@@ -32,6 +32,7 @@ goog.provide('we.texturing.Tile.State');
 
 goog.require('goog.Disposable');
 goog.require('goog.functions');
+goog.require('goog.string');
 
 
 
@@ -161,6 +162,16 @@ we.texturing.Tile.compare = function(t1, t2) {
   return t1.zoom == t2.zoom ?
       (t1.x == t2.x ? t1.y - t2.y : t1.x - t2.x) :
       t1.zoom - t2.zoom;
+};
+
+
+/**
+ * Determine if this tile was loaded using given proxy
+ * @param {string} url URL of the proxy.
+ * @return {boolean} ..
+ */
+we.texturing.Tile.prototype.usedProxy = function(url) {
+  return this.image_ ? goog.string.startsWith(this.image_.src, url) : false;
 };
 
 

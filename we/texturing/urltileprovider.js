@@ -47,10 +47,23 @@ we.texturing.URLTileProvider = function(name) {
 
   /**
    * @type {string}
+   * @private
    */
-  this.proxyHost = '';
+  this.proxyHost_ = '';
 };
 goog.inherits(we.texturing.URLTileProvider, we.texturing.TileProvider);
+
+
+/** @inheritDoc */
+we.texturing.URLTileProvider.prototype.canUseProxy = function() {return true;};
+
+
+/** @inheritDoc */
+we.texturing.URLTileProvider.prototype.setProxyHost = function(url) {
+  var result = this.proxyHost_ != url;
+  this.proxyHost_ = url;
+  return result;
+};
 
 
 /**
@@ -92,11 +105,7 @@ we.texturing.URLTileProvider.prototype.loadTileInternal =
   image.crossOrigin = '';
   var url = this.getTileURL(tile.zoom, tile.x, tile.y);
 
-  if (this.proxyHost.length > 0) {
-    image.src = this.proxyHost + url;
-  } else {
-    image.src = url;
-  }
+  image.src = this.proxyHost_ + url;
 
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());

@@ -72,12 +72,11 @@ we.scene.ClipLevelN = function(tileprovider, context, zoom) {
           (tileCount - tile.y - 1) * tileSize, gl.RGBA,
           gl.UNSIGNED_BYTE, tile.getImage());
     } catch (DOMException) {
-      if (context.proxyHost.length > 0 &&
-          tileprovider.proxyHost != context.proxyHost) {
-        tileprovider.proxyHost = context.proxyHost;
+      if (tileprovider.canUseProxy() &&
+          (tileprovider.setProxyHost(context.proxyHost) ||
+          !tile.usedProxy(context.proxyHost))) {
         tileprovider.loadTile(tile, onload, onerror);
       } else {
-        //TODO: warn
         //TODO: solve duplicity with ClipLevel::bufferTile_
         context.onCorsError();
       }
