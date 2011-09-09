@@ -78,7 +78,7 @@ a:visited {
   width:20px;
 }
 
-.goog-slider-thumb {
+#weapp-zoomslider .goog-slider-thumb {
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAMAAAAFH/x6AAABfVBMVEX///8nPgGs9yrb/KK3+ETa/KHe/Kne/KrV+5KT5wLQ+4XA+V17wQLV+5Oh9gxelAGg9gsnPgGI1QLF+mgnPgF1twFhlwEnPgFsqgFUhAE+YQErRAEnPgEnPgEnPgGd9gPV+5LP+4PJ+nPH+m7U+5DH+m1mnwG5+UvX+5jb/KPL+njK+nbF+mi++Vi7+VC6+U26+UzN+n7S+4qF0AJurQHY+5u0+D6z+Dyy+Dmu+C+o9x6h9gye9gXT+46c9QKb8gKV6QKG0gJvrgFajQHM+nt4vAJppAFbjwFPewEpQAHW+5Wg9grZ+5xOewE+YQExTQHR+4mM2wLP+4LS+4vd/Kfc/KW5+UlrpwFnoQG5+UrK+ndlngFknQFimQFckAFNeQE6XAEtRgHW+5ad9gLU+4/G+mzD+WO4+Ui2+EFGbQFDaQFCaAGu+C5BZQE+YAE2VQGs9yrF+mrD+WS7+U6t9yvI+nLQ+4VIcQFmoAE/YgFCZwGZ7wKO3gKCzAJ0tgFNNsWwAAAAHnRSTlMABgkJjdXbjQASk9uTD9Xt7e2E7YQGzMwABnjPz3gcEpMlAAAAsElEQVR4Xk3I05ZDQRQA0RPbGaIvEdu2rbFtG98+/Zbsp1oFSolCbg83SJZlT9JDitZIxQA62WjcYntvFDbwbz1NXvQqUJO2o0DplWE4jjt9PHu+afa1YKEdTpfb4/UJgrB5fvFABEMGiERj8UQyRRxjmWwuXyi+f4Lx++f3b33jg+f57Z3dvf2DQ2QCc7lSrV1eXX9ht3f3dYSQFebm250uzqkFESwuLa/MrtU1EfwD2xMnpQb7z0sAAAAASUVORK5CYII=);
   position: absolute;
   width: 20px;
@@ -146,7 +146,28 @@ a:visited {
 .goog-control-focused {
   border-color: orange;
 }
+  
+#weapp-opacityslider {
+  position:absolute;
+  top:130px;
+  right:30px;
+}
 
+#weapp-opacityslider .goog-slider-horizontal {
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAOBAMAAAAcbWtvAAAAElBMVEX////////////8/Py1tbWfn58UvkXdAAAABnRSTlMALYCAgEAWxJhEAAAAH0lEQVR4XkXAwQAAAAgEsCGEEMIhhJA/Tc/mlRZjAQ4LDADxoBzNvAAAAABJRU5ErkJggg==);
+  position: relative;
+  height:14px;
+  width:80px;
+}
+
+#weapp-opacityslider .goog-slider-thumb {
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAOCAYAAAAMn20lAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAADzSURBVBiVTY0xTgJRGIS/fWIBhYmNx/AKHoDKzit4A6OFpZ0nsLCw8wzWxs4tMBoCwkZQV4Flwz53N/v+scHINJOZL5OJJBE3F4eFkqtJuGsPh4PLWaLz1mu47bbZu6nJOlVZ8dnnbPTIjgMdR9FWJyKiKgPLVMwSDlyg7jZaUbMkzwpmY5i/se8aFZQsKPWN9wU+g6YCZ9QYJYEKs0AIIIEThjBAwL85+MtiU46NQtpYCEMywLAAFtagwRP4Iaik9uDzNfCaznMNWOiJ6bPIUwBWLrf+9dxiRi9fTHrrH3hoFZqefLynu+NYR3nKNnAPnP4C0Q+aKB2imj0AAAAASUVORK5CYII=);
+  position: absolute;
+  width: 6px;
+  height: 14px;
+  overflow: hidden;
+}
+  
 #controls {
   float:right;
 }
@@ -232,6 +253,7 @@ h1 {
   </div>
   <div id="weapp-zoomslider"></div>
   <div id="weapp-pancontrol"></div>
+  <div id="weapp-opacityslider"></div>
   <div id="credits"><img id="weapp-maplogo" /><div id="weapp-mapcopyright"></div></div></div>
   <div id="klokantechlogo"></div>
   <div id="statusbar"><span id="weapp-infobox"></span><span id="weapp-fpsbox"></span></div>

@@ -53,6 +53,7 @@ goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
 goog.require('we.ui.markers.PrettyMarker');
 goog.require('weapp.ui.Nominatim');
+//goog.require('weapp.ui.OpacitySlider');
 goog.require('weapp.ui.PanControl');
 goog.require('weapp.ui.TileProviderSelector');
 goog.require('weapp.ui.ZoomSlider');
@@ -74,6 +75,12 @@ weapp.BING_KEY = '';
  * @define {boolean} Use local TMS tiles by default.
  */
 weapp.LOCAL_TMS = false;
+
+
+/**
+ * @define {string} CORS-enabled proxy to use.
+ */
+weapp.PROXY_URL = 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=';
 
 
 
@@ -116,6 +123,15 @@ weapp.App = function(canvas) {
           this.markerManager_.updateMarkers();
         }, this)
     );
+
+    this.context.proxyHost = weapp.PROXY_URL;
+    var corsErrorOccurred = false;
+    this.context.onCorsError = function() {
+      if (!corsErrorOccurred) {
+        corsErrorOccurred = true;
+        window.location = 'http://www.webglearth.com/corserror.html';
+      }
+    };
 
     this.context.scene = new we.scene.Scene(this.context,
         goog.dom.getElement('weapp-infobox'),
@@ -168,6 +184,13 @@ weapp.App = function(canvas) {
      */
     this.pcontrol_ = new weapp.ui.PanControl(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('weapp-pancontrol')));
+
+    // /**
+    // * @type {!weapp.ui.OpacitySlider}
+    // * @private
+    // */
+    //this.oslider_ = new weapp.ui.OpacitySlider(this.context.scene.earth,
+    //    /** @type {!Element} */(goog.dom.getElement('weapp-opacityslider')));
 
 
     /**
@@ -345,7 +368,7 @@ weapp.App = function(canvas) {
     try {
       innerInit.call(this);
     } catch (e) {
-      goog.debug.Logger.getLogger('we.ex').shout(goog.debug.deepExpose(e));
+      goog.debug.Logger.getLogger('we.ex').shout('Exception', e);
     }
   } else {
     innerInit.call(this);

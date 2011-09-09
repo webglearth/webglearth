@@ -67,9 +67,21 @@ we.scene.ClipLevelN = function(tileprovider, context, zoom) {
 
   var handleLoadedTile = function(tile) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, tile.x * tileSize,
-                     (tileCount - tile.y - 1) * tileSize, gl.RGBA,
-                     gl.UNSIGNED_BYTE, tile.getImage());
+    try {
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, tile.x * tileSize,
+          (tileCount - tile.y - 1) * tileSize, gl.RGBA,
+          gl.UNSIGNED_BYTE, tile.getImage());
+    } catch (DOMException) {
+      if (context.proxyHost.length > 0 &&
+          tileprovider.proxyHost != context.proxyHost) {
+        tileprovider.proxyHost = context.proxyHost;
+        tileprovider.loadTile(tile, onload, onerror);
+      } else {
+        //TODO: warn
+        //TODO: solve duplicity with ClipLevel::bufferTile_
+        context.onCorsError();
+      }
+    }
   };
 
   var onload = function(tile) {

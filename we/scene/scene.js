@@ -55,6 +55,12 @@ we.scene.MIN_ZOOM = 1;
 we.scene.TRILINEAR_FILTERING = false;
 
 
+/**
+ * @define {number} Latitude extrema for mercator projection.
+ */
+we.scene.LATITUDE_EXTREMA = 1.4844222297453323669610967939;
+
+
 
 /**
  * Object handling scene data
@@ -144,6 +150,16 @@ we.scene.Scene.prototype.updateCopyrights = function() {
     goog.dom.append(this.tpCopyrightElement_, this.additionalCopyright_);
     this.earth.getCurrentTileProvider().appendCopyrightContent(
         this.tpCopyrightElement_);
+
+    if (this.earth.getCurrentTileProvider(true)) {
+      goog.dom.append(this.tpCopyrightElement_,
+                      goog.dom.createDom('br'),
+                      goog.dom.createDom('strong', {}, 'Overlay data:'),
+                      goog.dom.createDom('br'));
+
+      this.earth.getCurrentTileProvider(true).appendCopyrightContent(
+          this.tpCopyrightElement_);
+    }
   }
   if (!goog.isNull(this.tpLogoImg_)) {
     if (!goog.isNull(this.earth.getCurrentTileProvider().getLogoUrl())) {

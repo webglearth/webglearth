@@ -32,6 +32,7 @@ goog.provide('we.texturing.TileProvider.AreaDescriptor');
 goog.provide('we.texturing.TileProvider.RequestDescriptor');
 
 goog.require('goog.debug.Logger');
+goog.require('goog.math.Box');
 
 goog.require('we.texturing.Tile');
 goog.require('we.texturing.Tile.State');
@@ -64,6 +65,90 @@ we.texturing.TileProvider = function(name) {
    * @protected
    */
   this.deferredQueue = [];
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.minLat_ = -we.scene.LATITUDE_EXTREMA;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.maxLat_ = we.scene.LATITUDE_EXTREMA;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.minLon_ = -Math.PI;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.maxLon_ = Math.PI;
+
+  /**
+   * @type {!Array.<goog.math.Box>}
+   * @private
+   */
+  this.boundingBoxCache_ = [];
+};
+
+
+/**
+ * @param {number} minLat Minimal latitude in degrees.
+ * @param {number} maxLat Maximal latitude in degrees.
+ * @param {number} minLon Minimal longitude in degrees.
+ * @param {number} maxLon Maximal longitude in degrees.
+ */
+we.texturing.TileProvider.prototype.setBoundingBox = function(minLat, maxLat,
+                                                              minLon, maxLon) {
+  this.minLat_ = goog.math.toRadians(minLat);
+  this.maxLat_ = goog.math.toRadians(maxLat);
+  this.minLon_ = goog.math.toRadians(minLon);
+  this.maxLon_ = goog.math.toRadians(maxLon);
+
+  this.boundingBoxCache_ = []; //reset cache
+};
+
+
+/**
+ * Calculates Bounding Box in tile coordinates for given zoomLevel.
+ * @param {number} zoomLevel Zoom level.
+ * @return {!goog.math.Box} Bounding box in tile coordinates.
+ */
+we.texturing.TileProvider.prototype.getBoundingBox = function(zoomLevel) {
+  if (!goog.isDefAndNotNull(this.boundingBoxCache_[zoomLevel])) {
+    var tileCount = 1 << zoomLevel;
+
+    var minX = Math.floor((this.minLon_ / (2 * Math.PI) + 0.5) * tileCount);
+    var maxX = Math.floor((this.maxLon_ / (2 * Math.PI) + 0.5) * tileCount);
+    // Latitude vs Tile coordinates is inverted - switch max with min
+    var minY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.maxLat_) /
+               (Math.PI * 2)) * tileCount);
+    var maxY = Math.floor((0.5 - we.scene.Scene.projectLatitude(this.minLat_) /
+               (Math.PI * 2)) * tileCount);
+
+    this.boundingBoxCache_[zoomLevel] =
+        new goog.math.Box(minY, maxX, maxY, minX);
+  }
+  return /** @type {!goog.math.Box} */ (this.boundingBoxCache_[zoomLevel]);
+};
+
+
+/**
+ * Validates whether the tile is within the bounding box of this tile provider.
+ * @param {!we.texturing.Tile} tile The tile.
+ * @return {boolean} True or false.
+ */
+we.texturing.TileProvider.prototype.isTileInBounds = function(tile) {
+  var bb = this.getBoundingBox(tile.zoom);
+
+  return tile.x >= bb.left && tile.x <= bb.right &&
+         tile.y >= bb.top && tile.y <= bb.bottom;
 };
 
 

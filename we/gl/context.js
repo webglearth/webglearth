@@ -392,6 +392,21 @@ we.gl.Context.prototype.renderFrame = function() {
   }
 
 };
+
+
+/**
+ * Function to call when CORS does not seem to be supported in the browser.
+ * May get called multiple times!
+ * @type {!Function}
+ */
+we.gl.Context.prototype.onCorsError = goog.nullFunction;
+
+
+/**
+ * @type {string} URL of CORS-enabled proxy for loading images
+ */
+we.gl.Context.prototype.proxyHost = '';
+
 if (goog.DEBUG) {
   /**
    * Shared logger instance
