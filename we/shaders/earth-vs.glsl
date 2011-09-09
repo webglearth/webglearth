@@ -22,7 +22,7 @@
  */
 
 #define BUFF_SIDE 8.0
-#define BUFF_SIZE (8*8)
+#define BUFF_SIZE 64
 
 #define TERRAIN %TERRAIN_BOOL%
 #define BUFF_SIDE_T %BUFFER_SIDE_T_FLOAT%
