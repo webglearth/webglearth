@@ -31,7 +31,7 @@ goog.provide('we.texturing.OSMTileProvider');
 
 goog.require('goog.string.StringBuffer');
 
-goog.require('we.texturing.TileProvider');
+goog.require('we.texturing.URLTileProvider');
 goog.require('we.utils');
 
 
@@ -40,13 +40,13 @@ goog.require('we.utils');
  * Tile provider for OpenStreetMaps
  * @param {string=} opt_name Optional name override.
  * @constructor
- * @extends {we.texturing.TileProvider}
+ * @extends {we.texturing.URLTileProvider}
  * @inheritDoc
  */
 we.texturing.OSMTileProvider = function(opt_name) {
   goog.base(this, opt_name || 'OpenStreetMaps');
 };
-goog.inherits(we.texturing.OSMTileProvider, we.texturing.TileProvider);
+goog.inherits(we.texturing.OSMTileProvider, we.texturing.URLTileProvider);
 
 
 /** @inheritDoc */

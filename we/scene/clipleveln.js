@@ -67,34 +67,42 @@ we.scene.ClipLevelN = function(tileprovider, context, zoom) {
 
   var handleLoadedTile = function(tile) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, tile.x * tileSize,
-                     (tileCount - tile.y - 1) * tileSize, gl.RGBA,
-                     gl.UNSIGNED_BYTE, tile.image);
+    try {
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, tile.x * tileSize,
+          (tileCount - tile.y - 1) * tileSize, gl.RGBA,
+          gl.UNSIGNED_BYTE, tile.getImage());
+    } catch (DOMException) {
+      if (context.proxyHost.length > 0 &&
+          tileprovider.proxyHost != context.proxyHost) {
+        tileprovider.proxyHost = context.proxyHost;
+        tileprovider.loadTile(tile, onload, onerror);
+      } else {
+        //TODO: warn
+        //TODO: solve duplicity with ClipLevel::bufferTile_
+        context.onCorsError();
+      }
+    }
   };
 
-  var loadPart = function(x, y) {
-    var tile = {x: x, y: y, image: new Image(), failed: 0};
-    tile.image.onload = function() {
-      if (!gl.isTexture(texture)) return; //late tile
-      handleLoadedTile(tile);
-    };
-    tile.image.onerror = function() {
-      if (!gl.isTexture(texture)) return; //late tile
-      tile.failed++;
-      if (tile.failed >= 3) {
-        if (goog.DEBUG)
-          we.scene.Scene.logger.warning('The tile failed to load 3x - giving ' +
-                                        'up. (' + tileprovider.name + ')');
-        return;
-      }
-      tile.image.src = tileprovider.getTileURL(zoom, x, y);
+  var onload = function(tile) {
+    if (!gl.isTexture(texture)) return; //late tile
+    handleLoadedTile(tile);
+  }
+
+  var onerror = function(tile) {
+    if (!gl.isTexture(texture)) return; //late tile
+    if (tile.failed >= 3) {
+      if (goog.DEBUG)
+        we.scene.Scene.logger.warning('The tile failed to load 3x - giving ' +
+                                      'up. (' + tileprovider.name + ')');
+      return;
     }
-    tile.image.src = tileprovider.getTileURL(zoom, x, y); //start loading
-  };
+    tileprovider.loadTile(tile, onload, onerror);
+  }
 
   for (var x = 0; x < tileCount; ++x) {
     for (var y = 0; y < tileCount; ++y) {
-      loadPart(x, y);
+      tileprovider.loadTile(new we.texturing.Tile(zoom, x, y), onload, onerror);
     }
   }
 };

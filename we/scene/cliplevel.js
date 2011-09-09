@@ -34,6 +34,7 @@ goog.require('goog.debug.Logger');
 
 goog.require('we.texturing.Tile');
 goog.require('we.texturing.TileCache');
+goog.require('we.texturing.TileProvider.AreaDescriptor');
 
 
 
@@ -47,10 +48,10 @@ goog.require('we.texturing.TileCache');
  */
 we.scene.ClipLevel = function(tileprovider, context, side, zoom) {
   /**
-   * @type {!WebGLRenderingContext}
+   * @type {!we.gl.Context}
    * @private
    */
-  this.gl_ = context.gl;
+  this.context_ = context;
 
   /**
    * Array of buffer requests - ordered by request time
@@ -139,6 +140,7 @@ we.scene.ClipLevel.prototype.resetMeta_ = function() {
   for (var y = 0; y < this.side_; ++y) {
     this.metaBuffer.push(new Array(this.side_));
   }
+  if (this.buffer) this.buffer.clear();
 };
 
 
@@ -153,17 +155,13 @@ we.scene.ClipLevel.prototype.disable = function() {
 
 
 /**
- * @param {number} centerOffX X offset of the center in tiles.
- * @param {number} centerOffY Y offset of the center in tiles.
+ * @param {number} offX X offset of the ClipLevel in tiles.
+ * @param {number} offY Y offset of the ClipLevel in tiles.
+ * @return {boolean} True if the covered area has changed.
  */
-we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
-
+we.scene.ClipLevel.prototype.setOffset = function(offX, offY) {
+  var changed = false;
   if (!this.degenerated_) {
-    var offX = goog.math.modulo(Math.round(centerOffX - this.side_ / 2),
-                                this.tileCount_);
-    var offY = Math.round(centerOffY - this.side_ / 2);
-
-
     var diffX = offX - this.offX;
     var diffY = offY - this.offY;
 
@@ -177,7 +175,9 @@ we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
 
     if (Math.abs(diffX) >= this.side_ || Math.abs(diffY) >= this.side_) {
       this.resetMeta_(); //too different - reset everything
+      changed = true;
     } else {
+      changed = diffX != 0 || diffY != 0;
       if (diffX > 0) {
         for (var i = 0; i < this.side_; ++i) {
           this.metaBuffer[i].splice(0, diffX);
@@ -206,6 +206,7 @@ we.scene.ClipLevel.prototype.moveCenter = function(centerOffX, centerOffY) {
     }
   }
   this.needTiles_();
+  return changed;
 };
 
 
@@ -274,7 +275,7 @@ we.scene.ClipLevel.prototype.needTile_ = function(x, y, requestTime) {
   y = goog.math.modulo(y, this.tileCount_);
 
   var tile = this.tileCache_.retrieveTile(this.zoom_, x, y, requestTime);
-  if (tile.state == we.texturing.Tile.State.LOADED) {
+  if (!goog.isNull(tile) && tile.state == we.texturing.Tile.State.LOADED) {
     //Tile is in the cache -> put it into buffering queue
     this.bufferRequests_.push(tile);
   }
@@ -310,8 +311,9 @@ we.scene.ClipLevel.prototype.processTiles = function(tilesToBuffer,
   this.tileCache_.processLoadRequests(tilesToBeLoading);
 
   if (we.scene.TRILINEAR_FILTERING && buffered > 0) {
-    this.gl_.bindTexture(this.gl_.TEXTURE_2D, this.buffer.texture);
-    this.gl_.generateMipmap(this.gl_.TEXTURE_2D);
+    this.context_.gl.bindTexture(this.context_.gl.TEXTURE_2D,
+                                 this.buffer.texture);
+    this.context_.gl.generateMipmap(this.context_.gl.TEXTURE_2D);
   }
 
   return buffered;
@@ -352,7 +354,7 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
     return;
   }
 
-  var gl = this.gl_;
+  var gl = this.context_.gl;
   var tileSize = this.tileProvider_.getTileSize();
 
   gl.bindTexture(gl.TEXTURE_2D, this.buffer.texture);
@@ -361,8 +363,49 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
   var yPos = (this.side_ -
       goog.math.modulo(y + this.offY, this.side_) - 1) * tileSize;
 
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, xPos, yPos,
-                   gl.RGBA, gl.UNSIGNED_BYTE, tile.image);
+  try {
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, xPos, yPos,
+                     gl.RGBA, gl.UNSIGNED_BYTE, tile.getImage());
 
-  this.metaBuffer[y][x] = 1;
+    this.metaBuffer[y][x] = 1;
+  } catch (DOMException) {
+    if (this.context_.proxyHost.length > 0 &&
+        this.tileProvider_.proxyHost != this.context_.proxyHost) {
+      this.tileProvider_.proxyHost = this.context_.proxyHost;
+      this.needTile_(tile.x, tile.y, tile.requestTime);
+    } else {
+      //TODO: warn
+      //TODO: solve duplicity with ClipLevelN::ClipLevelN
+      this.context_.onCorsError();
+    }
+  }
+};
+
+
+/**
+ *
+ * @return {!we.texturing.TileProvider.AreaDescriptor} Area info.
+ */
+we.scene.ClipLevel.prototype.getAreaDescriptor = function() {
+  //Longitude span is simple
+  var spanLon = this.degenerated_ ? Math.PI :
+                this.side_ / this.tileCount_ * 2 * Math.PI;
+
+  //Latitude span depends on latitude itself
+  var topLat = we.scene.Scene.unprojectLatitude(
+      (0.5 - (this.offY) / this.tileCount_) * 2 * Math.PI);
+  var botLat = we.scene.Scene.unprojectLatitude(
+      (0.5 - (this.offY + this.side_) / this.tileCount_) * 2 * Math.PI);
+
+  var spanLat = this.degenerated_ ? Math.PI / 2 : Math.abs(topLat - botLat);
+
+  var centerLat = this.degenerated_ ? 0 : we.scene.Scene.unprojectLatitude(
+      (0.5 - (this.offY + this.side_ / 2) / this.tileCount_) * 2 * Math.PI);
+  var centerLon = this.degenerated_ ? 0 :
+                  ((this.offX + this.side_ / 2) / this.tileCount_ - 0.5) *
+                  2 * Math.PI;
+
+  return new we.texturing.TileProvider.AreaDescriptor(centerLat, centerLon,
+                                                      spanLat, spanLon,
+                                                      this.zoom_);
 };

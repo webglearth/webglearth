@@ -69,7 +69,7 @@ we.scene.Camera = function(scene) {
 
   /**
    * Altitude of this camera in meters
-   * @type {?number}
+   * @type {number}
    * @private
    */
   this.altitude_ = 10000000;
@@ -84,8 +84,9 @@ we.scene.Camera = function(scene) {
   /**
    * Camera heading in radians
    * @type {number}
+   * @private
    */
-  this.heading = 0;
+  this.heading_ = 0;
 
   /**
    * Camera tilt in radians, [0,2*PI)
@@ -93,14 +94,16 @@ we.scene.Camera = function(scene) {
    * PI/2 - viewing along the horizon
    * PI - straight up at the sky
    * @type {number}
+   * @private
    */
-  this.tilt = 0;
+  this.tilt_ = 0;
 
   /**
    * Camera roll in radians, [-PI,+PI]
    * @type {number}
+   * @private
    */
-  this.roll = 0;
+  this.roll_ = 0;
 };
 goog.inherits(we.scene.Camera, goog.events.EventTarget);
 
@@ -145,9 +148,9 @@ we.scene.Camera.prototype.moveRelative = function(vertical, horizontal) {
     vertical = x * Math.sin(angle) / 2 + vertical * Math.cos(angle);
   }
 
-  rotateAxes(this.roll);
-  vertical /= Math.max(Math.abs(Math.cos(this.tilt)), 0.1);
-  rotateAxes(this.heading);
+  rotateAxes(this.roll_);
+  vertical /= Math.max(Math.abs(Math.cos(this.tilt_)), 0.1);
+  rotateAxes(this.heading_);
 
   this.setPosition(this.latitude_ + vertical, this.longitude_ + horizontal);
 };
@@ -157,27 +160,45 @@ we.scene.Camera.prototype.moveRelative = function(vertical, horizontal) {
  * Rotates the camera around fixed point
  * @param {number} latitude Latitude of fixed point in radians.
  * @param {number} longitude Longitude of fixed point in radians.
+ * @param {number} distance Distance of camera from the rotation point.
  * @param {number} horizontalAngle Angle in radians.
+ * @param {number} verticalAngle Angle in radians.
  */
-we.scene.Camera.prototype.rotateAround = function(latitude, longitude,
-                                                  horizontalAngle) {
+we.scene.Camera.prototype.rotateAround = function(latitude, longitude, distance,
+                                                  horizontalAngle,
+                                                  verticalAngle) {
 
-  this.heading += horizontalAngle;
+  this.heading_ += horizontalAngle;
 
-  var direction = new goog.math.Vec2(this.longitude_ - longitude,
-                                     this.latitude_ - latitude);
-  var distance = direction.magnitude();
+  //distance from the center of the Earth
+  var distanceFromCOE = Math.sqrt(distance * distance +
+      we.scene.EARTH_RADIUS * we.scene.EARTH_RADIUS);
 
-  direction.normalize();
+  //maximum tilt that can be used so that the rotation target is still visible
+  var maxTilt = Math.asin(we.scene.EARTH_RADIUS / distanceFromCOE);
 
-  var x = direction.x;
-  direction.x = x * Math.cos(horizontalAngle) -
-                direction.y * Math.sin(horizontalAngle);
-  direction.y = x * Math.sin(horizontalAngle) +
-                direction.y * Math.cos(horizontalAngle);
+  this.tilt_ = goog.math.clamp(this.tilt_ + verticalAngle,
+                               -maxTilt, maxTilt);
 
-  this.setPosition(latitude + direction.y * distance,
-                   longitude + direction.x * distance);
+  //angle between camera position and the target from the center of the Earth
+  var beta = Math.asin((distance / we.scene.EARTH_RADIUS) *
+                       Math.sin(this.tilt_));
+
+  if (Math.abs(this.tilt_) < 0.0001) {
+    this.setAltitude(distance);
+  } else {
+    //angle between the center of the Earth and camera position from the target
+    var gamma = Math.PI - this.tilt_ - beta;
+
+    this.setAltitude((Math.sin(gamma) / Math.sin(this.tilt_) - 1) *
+                     we.scene.EARTH_RADIUS);
+  }
+
+  //move away from the target
+  var nlat = latitude - Math.cos(this.heading_) * beta;
+  this.setPosition(nlat,
+                   longitude + Math.sin(this.heading_) * beta / Math.cos(nlat));
+
 };
 
 
@@ -217,11 +238,21 @@ we.scene.Camera.prototype.getLongitude = function() {
 
 
 /**
+ * Validates given altitude
+ * @param {number} altitude Altitude in meters.
+ * @return {number} Closest allowed altitude.
+ */
+we.scene.Camera.prototype.validateAltitude = function(altitude) {
+  return goog.math.clamp(altitude, 250, 10000000);
+};
+
+
+/**
  * Sets this camera to fixed altitude
  * @param {number} altitude Altitude in meters.
  */
 we.scene.Camera.prototype.setAltitude = function(altitude) {
-  this.altitude_ = goog.math.clamp(altitude, 250, 10000000);
+  this.altitude_ = this.validateAltitude(altitude);
 
   this.zoom_ = null; //invalidate cached zoom
 
@@ -236,10 +267,7 @@ we.scene.Camera.prototype.setAltitude = function(altitude) {
  * @return {number} Altitude in meters.
  */
 we.scene.Camera.prototype.getAltitude = function() {
-  if (goog.isNull(this.altitude_)) {
-    this.calcAltitude_();
-  }
-  return /** @type {number} */(this.altitude_);
+  return this.altitude_;
 };
 
 
@@ -251,7 +279,12 @@ we.scene.Camera.prototype.setZoom = function(zoom) {
   this.zoom_ = goog.math.clamp(zoom, this.scene_.getMinZoom(),
                                this.scene_.getMaxZoom());
 
-  this.calcAltitude_(); //recalc altitude
+  //recalc altitude
+  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, this.zoom_);
+  var sizeIWannaSee = thisPosDeformation * this.scene_.tilesVertically;
+  this.altitude_ = (1 / Math.tan(this.scene_.context.fov / 2)) *
+      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
 
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.ZOOMCHANGED));
@@ -300,15 +333,50 @@ we.scene.Camera.prototype.calcZoom_ = function() {
 
 
 /**
- * Calculates altitude from zoom
- * @private
+ * @param {number} heading ...
  */
-we.scene.Camera.prototype.calcAltitude_ = function() {
-  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.zoom_);
-  var sizeIWannaSee = thisPosDeformation * this.scene_.tilesVertically;
-  this.altitude_ = (1 / Math.tan(this.scene_.context.fov / 2)) *
-      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
+we.scene.Camera.prototype.setHeading = function(heading) {
+  this.heading_ = heading;
+};
+
+
+/**
+ * @param {number} tilt ...
+ */
+we.scene.Camera.prototype.setTilt = function(tilt) {
+  this.tilt_ = tilt;
+};
+
+
+/**
+ * @param {number} roll ...
+ */
+we.scene.Camera.prototype.setRoll = function(roll) {
+  this.roll_ = roll;
+};
+
+
+/**
+ * @return {number} Heading.
+ */
+we.scene.Camera.prototype.getHeading = function() {
+  return this.heading_;
+};
+
+
+/**
+ * @return {number} Tilt.
+ */
+we.scene.Camera.prototype.getTilt = function() {
+  return this.tilt_;
+};
+
+
+/**
+ * @return {number} Roll.
+ */
+we.scene.Camera.prototype.getRoll = function() {
+  return this.roll_;
 };
 
 
@@ -317,13 +385,7 @@ we.scene.Camera.prototype.calcAltitude_ = function() {
  * @enum {string}
  */
 we.scene.Camera.EventType = {
-  /**
-   * Dispatched when the zoom of the camera is changed or recalculated.
-   */
   ZOOMCHANGED: 'zoomchanged',
-  /**
-   * Dispatched when the altitude of the camera is changed or recalculated.
-   */
   ALTITUDECHANGED: 'altchanged'
 };
 

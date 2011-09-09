@@ -171,6 +171,7 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
       return;
     } else { //Opposite direction - just revert to previous level
       this.animation_.dispose();
+      this.animation_ = null;
       duration *= (this.scene_.camera.getAltitude() - this.startX_) /
                   (this.targetX_ - this.startX_);
       var tempX = this.targetX_;
@@ -179,22 +180,30 @@ we.ui.MouseZoomer.prototype.zoom_ = function(direction) {
     }
   } else {
     this.startX_ = this.scene_.camera.getAltitude();
-    this.targetX_ = this.startX_ *
-                    Math.pow(we.ui.MOUSERZOOMER_DISTANCEMODIFIER, direction);
+    this.targetX_ = this.scene_.camera.validateAltitude(this.startX_ *
+        Math.pow(we.ui.MOUSERZOOMER_DISTANCEMODIFIER, direction));
   }
 
-  if (duration <= 0)
+  if (isNaN(duration) || duration <= 0)
     return;
 
-  this.animation_ = new goog.fx.Animation(
-      [this.scene_.camera.getAltitude()],
-      [this.targetX_],
+  var startPos = this.scene_.camera.getPosition();
+  var target = this.scene_.camera.getTarget() || startPos;
+  var ratio = this.targetX_ / this.scene_.camera.getAltitude();
+
+  startPos.push(this.scene_.camera.getAltitude());
+
+  this.animation_ = new goog.fx.Animation(startPos,
+      [goog.math.lerp(target[0], startPos[0], ratio),
+       goog.math.lerp(target[1], startPos[1], ratio),
+       this.targetX_],
       duration);
 
   goog.events.listen(this.animation_,
       [goog.fx.Animation.EventType.ANIMATE, goog.fx.Animation.EventType.FINISH],
       function(e) {
-        this.scene_.camera.setAltitude(e.x);
+        this.scene_.camera.setPosition(e.x, e.y);
+        this.scene_.camera.setAltitude(e.z);
       }, false, this);
 
   goog.events.listen(this.animation_,

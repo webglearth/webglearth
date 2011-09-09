@@ -40,7 +40,7 @@ goog.exportSymbol('WebGLEarth', weapi.App);
 //Backwards compatibility
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
   this.context.scene.camera.setPositionDegrees(coords[0], coords[1]);
-  this.context.scene.camera.tilt = 0;
+  this.context.scene.camera.setTilt(0);
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
@@ -67,26 +67,26 @@ goog.exportSymbol('WebGLEarth.prototype.getAltitude', function() {
 
 //Heading
 goog.exportSymbol('WebGLEarth.prototype.setHeading', function(heading) {
-  this.context.scene.camera.heading = heading;
+  this.context.scene.camera.setHeading(heading);
 });
 goog.exportSymbol('WebGLEarth.prototype.getHeading', function() {
-  return this.context.scene.camera.heading;
+  return this.context.scene.camera.getHeading();
 });
 
 //Tilt
 goog.exportSymbol('WebGLEarth.prototype.setTilt', function(tilt) {
-  this.context.scene.camera.tilt = tilt;
+  this.context.scene.camera.setTilt(tilt);
 });
 goog.exportSymbol('WebGLEarth.prototype.getTilt', function() {
-  return this.context.scene.camera.tilt;
+  return this.context.scene.camera.getTilt();
 });
 
 //Roll
 goog.exportSymbol('WebGLEarth.prototype.setRoll', function(roll) {
-  this.context.scene.camera.roll = roll;
+  this.context.scene.camera.setRoll(roll);
 });
 goog.exportSymbol('WebGLEarth.prototype.getRoll', function() {
-  return this.context.scene.camera.roll;
+  return this.context.scene.camera.getRoll();
 });
 
 /* Extended functions */

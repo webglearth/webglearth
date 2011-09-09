@@ -85,7 +85,7 @@ we.texturing.TileCache = function(tileprovider) {
 we.texturing.TileCache.prototype.setTileProvider = function(tileprovider) {
   this.tileProviderResetTime_ = goog.now();
   this.tileProvider_ = tileprovider;
-  this.tileProvider_.tileLoadedHandler = goog.bind(this.tileLoaded_, this);
+  goog.structs.forEach(this.tileMap_, function(val, key, col) {val.dispose();});
   this.tileMap_.clear();
   this.loadRequests_ = [];
 };
@@ -159,7 +159,7 @@ we.texturing.TileCache.prototype.cleanCache = function() {
  * @param {number} x X.
  * @param {number} y Y.
  * @param {number} requestTime Time of the request, used as priority.
- * @return {!we.texturing.Tile} Requested tile.
+ * @return {we.texturing.Tile} Requested tile.
  */
 we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
                                                          requestTime) {
@@ -167,6 +167,7 @@ we.texturing.TileCache.prototype.retrieveTile = function(zoom, x, y,
   var tile = this.getTileFromCache(key);
   if (!goog.isDefAndNotNull(tile)) {
     tile = new we.texturing.Tile(zoom, x, y, requestTime);
+    if (!this.tileProvider_.isTileInBounds(tile)) return null;
     this.tileMap_.set(key, tile);
     this.loadRequests_.push(tile);
   } else if (tile.state == we.texturing.Tile.State.ERROR) {
@@ -253,9 +254,7 @@ we.texturing.TileCache.prototype.processLoadRequests =
                    tilesToBeLoading - this.tileProvider_.loadingTileCounter);
   for (var i = 0; i < n; i++) {
     var tile = this.loadRequests_.pop();
-    if (!this.tileProvider_.loadTile(tile)) {
-      this.loadRequests_.push(tile);
-    }
+    this.tileProvider_.loadTile(tile, goog.bind(this.tileLoaded_, this));
   }
 };
 
