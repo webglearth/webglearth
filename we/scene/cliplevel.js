@@ -376,7 +376,7 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
     } else {
       //TODO: warn
       //TODO: solve duplicity with ClipLevelN::ClipLevelN
-      if (goog.DEBUG) alert('CORS proxy failed');
+      this.context_.onCorsError();
     }
   }
 };

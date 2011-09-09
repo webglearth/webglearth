@@ -125,6 +125,13 @@ weapp.App = function(canvas) {
     );
 
     this.context.proxyHost = weapp.PROXY_URL;
+    var corsErrorOccurred = false;
+    this.context.onCorsError = function() {
+      if (!corsErrorOccurred) {
+        corsErrorOccurred = true;
+        window.location = 'http://www.webglearth.com/corserror.html';
+      }
+    };
 
     this.context.scene = new we.scene.Scene(this.context,
         goog.dom.getElement('weapp-infobox'),
