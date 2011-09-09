@@ -35,10 +35,11 @@ goog.provide('we.scene.LocatedProgram');
 /**
  * @param {!WebGLProgram} program Shader program.
  * @param {!we.gl.Context} context Context.
+ * @param {boolean} overlay Overlay?
  * @param {boolean} terrain Terrain?
  * @constructor
  */
-we.scene.LocatedProgram = function(program, context, terrain) {
+we.scene.LocatedProgram = function(program, context, overlay, terrain) {
   var gl = context.gl;
 
   /**
@@ -119,56 +120,56 @@ we.scene.LocatedProgram = function(program, context, terrain) {
 
 
   //Texture B
+  if (overlay) {
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.metaL0BUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMetaL0B');
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.metaL0BUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL0B');
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.metaL1BUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMetaL1B');
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.metaL1BUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL1B');
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.metaL2BUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMetaL2B');
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.metaL2BUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMetaL2B');
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.levelOffsetsBUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uOffLB');
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.levelOffsetsBUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uOffLB');
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.bufferL0BUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uBufferL0B');
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.bufferL0BUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL0B');
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.bufferL1BUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uBufferL1B');
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.bufferL1BUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL1B');
-
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.bufferL2BUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uBufferL2B');
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.bufferL2BUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uBufferL2B');
 
 
-  /**
-   * @type {WebGLUniformLocation}
-   */
-  this.mixFactorUniform =
-      this.getValidatedUniformLocation_(gl, this.program, 'uMixFactor');
-
+    /**
+     * @type {WebGLUniformLocation}
+     */
+    this.mixFactorUniform =
+        this.getValidatedUniformLocation_(gl, this.program, 'uMixFactor');
+  }
 
   //Texture T
   if (terrain) {

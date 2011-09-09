@@ -146,13 +146,15 @@ we.scene.Scene.prototype.updateCopyrights = function() {
     this.earth.getCurrentTileProvider().appendCopyrightContent(
         this.tpCopyrightElement_);
 
-    goog.dom.append(this.tpCopyrightElement_,
-                    goog.dom.createDom('br'),
-                    goog.dom.createDom('strong', {}, 'Overlay data:'),
-                    goog.dom.createDom('br'));
+    if (this.earth.getCurrentTileProvider(true)) {
+      goog.dom.append(this.tpCopyrightElement_,
+                      goog.dom.createDom('br'),
+                      goog.dom.createDom('strong', {}, 'Overlay data:'),
+                      goog.dom.createDom('br'));
 
-    this.earth.getCurrentTileProvider(true).appendCopyrightContent(
-        this.tpCopyrightElement_);
+      this.earth.getCurrentTileProvider(true).appendCopyrightContent(
+          this.tpCopyrightElement_);
+    }
   }
   if (!goog.isNull(this.tpLogoImg_)) {
     if (!goog.isNull(this.earth.getCurrentTileProvider().getLogoUrl())) {
