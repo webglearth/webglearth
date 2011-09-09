@@ -103,3 +103,15 @@ we.scene.ClipBuffer.prototype.create_ = function() {
       we.scene.TRILINEAR_FILTERING ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
 
 };
+
+
+/**
+ * Clears the buffer to contain transparent color.
+ */
+we.scene.ClipBuffer.prototype.clear = function() {
+  this.gl_.deleteTexture(this.texture);
+
+  this.texture = this.gl_.createTexture();
+
+  this.create_();
+};

@@ -47,10 +47,11 @@ goog.require('we.scene.ClipLevelN');
  * @param {number} buffers Number of stack buffers.
  * @param {number} minLevel Zoom of the first ClipLevel.
  * @param {number} maxLevel Zoom of the last ClipLevel.
+ * @param {boolean=} opt_noleveln If set to true, no ClipLevelN is maintained.
  * @constructor
  */
 we.scene.ClipStack = function(tileprovider, context, side, buffers,
-                              minLevel, maxLevel) {
+                              minLevel, maxLevel, opt_noleveln) {
   /**
    * @type {!we.gl.Context}
    * @private
@@ -118,9 +119,10 @@ we.scene.ClipStack = function(tileprovider, context, side, buffers,
    * "Level-n" fallback - this is the texture to
    * fall back to if there's no other data.
    * It's better to have really blurry image than solid color.
-   * @type {!we.scene.ClipLevelN}
+   * @type {we.scene.ClipLevelN}
    */
-  this.leveln = new we.scene.ClipLevelN(tileprovider, context, 2);
+  this.leveln = opt_noleveln ? null :
+                new we.scene.ClipLevelN(tileprovider, context, 2);
 
 };
 
@@ -130,9 +132,10 @@ we.scene.ClipStack = function(tileprovider, context, side, buffers,
  * @param {!we.texturing.TileProvider} tileprovider TileProvider to be set.
  */
 we.scene.ClipStack.prototype.changeTileProvider = function(tileprovider) {
-  this.leveln.dispose();
-  this.leveln = new we.scene.ClipLevelN(tileprovider, this.context_, 2);
-
+  if (!goog.isNull(this.leveln)) {
+    this.leveln.dispose();
+    this.leveln = new we.scene.ClipLevelN(tileprovider, this.context_, 2);
+  }
   this.tileProvider_ = tileprovider;
   var tileSize = tileprovider.getTileSize();
   var size = this.side_ * tileSize;
@@ -190,15 +193,25 @@ we.scene.ClipStack.prototype.moveCenter = function(mostDetailsLat,
   var coverY = (0.5 - we.scene.Scene.projectLatitude(coverLat) /
                (Math.PI * 2)) * tileCount;
 
-
   for (var i = zoomLevel - this.minLevel_; i >= this.buffersOffset_; i--) {
-    var posX = goog.math.clamp(mostDetailsX,
-                               coverX - this.side_ / 2,
-                               coverX + this.side_ / 2);
-    var posY = goog.math.clamp(mostDetailsY,
-                               coverY - this.side_ / 2,
-                               coverY + this.side_ / 2);
-    needCopyrightUpdate |= this.levels_[i].moveCenter(posX, posY);
+
+    //Ensure that [coverX, coverY] is covered
+    var posX = goog.math.clamp(mostDetailsX - this.side_ / 2,
+                               coverX - this.side_, coverX);
+    var posY = goog.math.clamp(mostDetailsY - this.side_ / 2,
+                               coverY - this.side_, coverY);
+
+    //Ensure that the covered area is fully within specified bounding box
+    // - it doesn't make any sense to cover area without valid data
+    var bounds = this.tileProvider_.getBoundingBox(this.minLevel_ + i);
+    posX = goog.math.clamp(posX, bounds.left, bounds.right + 1 - this.side_);
+    posY = goog.math.clamp(posY, bounds.top, bounds.bottom + 1 - this.side_);
+
+    //Round and modulo
+    posX = goog.math.modulo(Math.round(posX), tileCount);
+    posY = Math.round(posY);
+
+    needCopyrightUpdate |= this.levels_[i].setOffset(posX, posY);
     mostDetailsX /= 2;
     mostDetailsY /= 2;
     coverX /= 2;
@@ -224,9 +237,7 @@ we.scene.ClipStack.prototype.moveCenter = function(mostDetailsLat,
  * @return {Array.<number>} meta data.
  */
 we.scene.ClipStack.prototype.getMeta = function(zoomLevel, fallback) {
-  if (goog.DEBUG && zoomLevel > this.maxLevel_)
-    we.scene.Scene.logger.warning('zoomLevel too high');
-  if (zoomLevel - fallback < this.minLevel_) {
+  if (zoomLevel > this.maxLevel_ || zoomLevel - fallback < this.minLevel_) {
     return new Array(this.side_ * this.side_);
   }
   return goog.array.flatten(
@@ -240,9 +251,7 @@ we.scene.ClipStack.prototype.getMeta = function(zoomLevel, fallback) {
  * @return {WebGLTexture} texture.
  */
 we.scene.ClipStack.prototype.getBuffer = function(zoomLevel, fallback) {
-  if (goog.DEBUG && zoomLevel > this.maxLevel_)
-    we.scene.Scene.logger.warning('zoomLevel too high');
-  if (zoomLevel - fallback < this.minLevel_) {
+  if (zoomLevel > this.maxLevel_ || zoomLevel - fallback < this.minLevel_) {
     return null;
   }
   return this.levels_[zoomLevel - this.minLevel_ - fallback].buffer.texture;
@@ -255,8 +264,10 @@ we.scene.ClipStack.prototype.getBuffer = function(zoomLevel, fallback) {
  * @return {Array.<number>} offset data.
  */
 we.scene.ClipStack.prototype.getOffsets = function(zoomLevel, count) {
-  if (goog.DEBUG && zoomLevel > this.maxLevel_)
-    we.scene.Scene.logger.warning('zoomLevel too high');
+  if (zoomLevel > this.maxLevel_) {
+    return new Array(2 * count);
+  }
+
   var result = [];
   for (var i = zoomLevel - this.minLevel_;
        i > zoomLevel - this.minLevel_ - count; --i) {
