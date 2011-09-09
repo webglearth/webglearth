@@ -219,6 +219,14 @@ we.scene.Scene.prototype.draw = function() {
 
   this.context.redimensionZBuffer(zNear, zFar);
 
+  this.context.modelViewMatrix.rotate001(-this.camera.getRoll());
+  this.context.modelViewMatrix.rotate100(-this.camera.getTilt());
+  this.context.modelViewMatrix.rotate001(-this.camera.getHeading());
+  this.context.modelViewMatrix.translate(0, 0, -1 -
+      this.camera.getAltitude() / we.scene.EARTH_RADIUS);
+  this.context.modelViewMatrix.rotate100(this.camera.getLatitude());
+  this.context.modelViewMatrix.rotate010(-this.camera.getLongitude());
+
   this.earth.draw();
 };
 

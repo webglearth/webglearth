@@ -274,8 +274,9 @@ we.scene.Earth.prototype.getCurrentTileProvider = function(opt_B) {
 we.scene.Earth.prototype.updateTiles_ = function() {
   this.tileCount = 1 << this.scene.camera.getZoom();
 
-  var mostDetails = this.scene.camera.getTarget();
   var needsCover = this.scene.camera.getPosition();
+  var mostDetails = this.scene.camera.getTarget() || needsCover;
+
   this.offset[0] = Math.floor(needsCover[1] / (2 * Math.PI) * this.tileCount);
   this.offset[1] = goog.math.clamp(Math.floor(
       we.scene.Scene.projectLatitude(needsCover[0]) / (Math.PI * 2) *
@@ -308,14 +309,6 @@ we.scene.Earth.prototype.draw = function() {
   var zoom = Math.floor(this.scene.camera.getZoom());
 
   this.tileCount = 1 << zoom;
-
-  this.context.modelViewMatrix.rotate001(-this.scene.camera.roll);
-  this.context.modelViewMatrix.rotate100(-this.scene.camera.tilt);
-  this.context.modelViewMatrix.rotate001(-this.scene.camera.heading);
-  this.context.modelViewMatrix.translate(0, 0, -1 -
-      this.scene.camera.getAltitude() / we.scene.EARTH_RADIUS);
-  this.context.modelViewMatrix.rotate100(this.scene.camera.getLatitude());
-  this.context.modelViewMatrix.rotate010(-this.scene.camera.getLongitude());
 
   gl.useProgram(this.locatedProgram.program);
 
@@ -429,6 +422,23 @@ we.scene.Earth.prototype.draw = function() {
   //  gl.drawElements(gl.LINES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
 };
 
+
+/**
+ * Calculates distance between two points using the havesine formula
+ * @param {number} lat1 Latitude of the first point.
+ * @param {number} lon1 Longitude of the first point.
+ * @param {number} lat2 Latitude of the second point.
+ * @param {number} lon2 Longitude of the second point.
+ * @return {number} Calculated distance in meters.
+ */
+we.scene.Earth.calculateDistance = function(lat1, lon1, lat2, lon2) {
+  var sindlathalf = Math.sin((lat2 - lat1) / 2);
+  var sindlonhalf = Math.sin((lon2 - lon1) / 2);
+  var a = sindlathalf * sindlathalf +
+          Math.cos(lat1) * Math.cos(lat2) * sindlonhalf * sindlonhalf;
+  var angle = 2 * Math.asin(Math.sqrt(a));
+  return we.scene.EARTH_RADIUS * angle;
+};
 
 if (goog.DEBUG) {
   /**

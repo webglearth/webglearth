@@ -53,12 +53,6 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
                    'js?v=3.5&sensor=false&callback=';
 
   /**
-   * @type {google.maps.Map}
-   * @private
-   */
-  this.map_ = null;
-
-  /**
    * @type {google.maps.MapType}
    * @private
    */
@@ -88,35 +82,88 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
    */
   this.loadingCopyrights_ = [];
 
+  var pickType = goog.bind(function() {
+    this.mapType_ =
+        we.texturing.GoogleTileProvider.sharedMapInstance.mapTypes[
+        we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
+    this.gotReady();
+  }, this);
+
   var onscriptload = function() {
-    this.map_ = new google.maps.Map(goog.dom.createElement('div'));
+    if (goog.isNull(we.texturing.GoogleTileProvider.sharedMapInstance)) {
+      //Create Map instance
+      we.texturing.GoogleTileProvider.sharedMapInstance =
+          new google.maps.Map(goog.dom.createElement('div'));
+    }
 
-    var pickType = function() {
-      this.mapType_ = this.map_.mapTypes[
-          we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
-    };
-
-    google.maps.event.addListenerOnce(this.map_, 'idle',
-                                      goog.bind(pickType, this));
+    if (we.texturing.GoogleTileProvider.sharedMapInstanceReady) {
+      //Instance ready, pick MapType
+      pickType();
+    } else {
+      //Not ready, join waiting queue
+      google.maps.event.addListenerOnce(
+          we.texturing.GoogleTileProvider.sharedMapInstance, 'idle',
+          function() {
+            we.texturing.GoogleTileProvider.sharedMapInstanceReady = true;
+            pickType();
+          });
+    }
   }
 
   if (goog.isDefAndNotNull(goog.global.google) &&
       google.maps &&
       google.maps.Map) {
+    //Main script loaded
     onscriptload();
-  } else {
-    var callbackName = 'googleMapsCallback' + goog.string.getRandomString();
+  } else if (!goog.isNull(
+      we.texturing.GoogleTileProvider.sharedScriptCallbackName)) {
+    //Already waiting for the script to load, join the callback queue
+    goog.global[we.texturing.GoogleTileProvider.sharedScriptCallbackName] =
+        goog.functions.sequence(
+        goog.global[we.texturing.GoogleTileProvider.sharedScriptCallbackName],
+        goog.bind(onscriptload, this));
 
-    goog.global[callbackName] = goog.bind(onscriptload, this);
+  } else {
+    //Not loaded and not waiting, start loading and wait on callback
+    we.texturing.GoogleTileProvider.sharedScriptCallbackName =
+        'googleMapsCallback' + goog.string.getRandomString();
+
+    goog.global[we.texturing.GoogleTileProvider.sharedScriptCallbackName] =
+        goog.bind(onscriptload, this);
 
     var scriptEl = goog.dom.createElement('script');
     goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(scriptEl);
     scriptEl.type = 'text/javascript';
-    scriptEl.src = scriptPath + callbackName;
+    scriptEl.src =
+        scriptPath + we.texturing.GoogleTileProvider.sharedScriptCallbackName;
   }
 
 };
 goog.inherits(we.texturing.GoogleTileProvider, we.texturing.TileProvider);
+
+
+/** @inheritDoc */
+we.texturing.GoogleTileProvider.prototype.isReady = function() {
+  return !goog.isNull(this.mapType_);
+};
+
+
+/**
+ * @type {?string}
+ */
+we.texturing.GoogleTileProvider.sharedScriptCallbackName = null;
+
+
+/**
+ * @type {google.maps.Map}
+ */
+we.texturing.GoogleTileProvider.sharedMapInstance = null;
+
+
+/**
+ * @type {boolean}
+ */
+we.texturing.GoogleTileProvider.sharedMapInstanceReady = false;
 
 
 /** @inheritDoc */
@@ -139,66 +186,61 @@ we.texturing.GoogleTileProvider.prototype.getTileSize = function() {
 
 
 /** @inheritDoc */
-we.texturing.GoogleTileProvider.prototype.loadTile = function(tile, onload,
-                                                              opt_onerror) {
-  if (this.mapType_) {
-    var onload_ = function() {
-      //TODO: better check if final tile is loaded
-      if (tile.getImage().src != tile.getImage()['__src__']) return;
-      tile.state = we.texturing.Tile.State.LOADED;
-      this.loadingTileCounter--;
-      onload(tile);
-    };
+we.texturing.GoogleTileProvider.prototype.loadTileInternal =
+    function(tile, onload, opt_onerror) {
+  var onload_ = function() {
+    //TODO: better check if final tile is loaded
+    if (tile.getImage().src != tile.getImage()['__src__']) return;
+    tile.state = we.texturing.Tile.State.LOADED;
+    this.loadingTileCounter--;
+    onload(tile);
+  };
 
-    var onerror_ = function() {
-      if (goog.DEBUG) {
-        we.texturing.TileProvider.logger.severe('Error loading tile: ' +
-                                                tile.getKey() + ' (' +
-                                                this.name + ')');
-      }
-      tile.failed++;
-      tile.state = we.texturing.Tile.State.ERROR;
-      this.loadingTileCounter--;
-      if (opt_onerror) opt_onerror(tile);
-    };
+  var onerror_ = function() {
+    if (goog.DEBUG) {
+      we.texturing.TileProvider.logger.severe('Error loading tile: ' +
+                                              tile.getKey() + ' (' +
+                                              this.name + ')');
+    }
+    tile.failed++;
+    tile.state = we.texturing.Tile.State.ERROR;
+    this.loadingTileCounter--;
+    if (opt_onerror) opt_onerror(tile);
+  };
 
-    var imageGetter = function(node) {
-      return node.getElementsByTagName('img')[0];
-    };
+  var imageGetter = function(node) {
+    return node.getElementsByTagName('img')[0];
+  };
 
-    tile.customImageGetter = imageGetter;
+  tile.customImageGetter = imageGetter;
 
-    var dataDisposer = function(node) {
-      this.mapType_.releaseTile(node);
-    };
+  var dataDisposer = function(node) {
+    this.mapType_.releaseTile(node);
+  };
 
-    tile.customDataDisposer = goog.bind(dataDisposer, this);
+  tile.customDataDisposer = goog.bind(dataDisposer, this);
 
-    var node_ = this.mapType_.getTile(new google.maps.Point(tile.x, tile.y),
-                                      tile.zoom, document);
+  var node_ = this.mapType_.getTile(new google.maps.Point(tile.x, tile.y),
+                                    tile.zoom, document);
 
-    var img = imageGetter(node_);
+  var img = imageGetter(node_);
 
-    img.onload = goog.bind(onload_, this);
-    img.onerror = goog.bind(onerror_, this);
-    tile.setData(node_);
+  img.onload = goog.bind(onload_, this);
+  img.onerror = goog.bind(onerror_, this);
+  tile.setData(node_);
 
-    tile.state = we.texturing.Tile.State.LOADING;
+  tile.state = we.texturing.Tile.State.LOADING;
 
-    this.loadingTileCounter++;
+  this.loadingTileCounter++;
 
-    //Loading was finished before attaching onload event
-    /*if (img.complete && tile.state != we.texturing.Tile.State.LOADED) {
-      if (goog.DEBUG)
-        we.texturing.TileProvider.logger.info(
-            'Google tile loaded too soon - fixing...');
-      onload_(tile);
-    }*/
+  //Loading was finished before attaching onload event
+  /*if (img.complete && tile.state != we.texturing.Tile.State.LOADED) {
+    if (goog.DEBUG)
+      we.texturing.TileProvider.logger.info(
+          'Google tile loaded too soon - fixing...');
+    onload_(tile);
+  }*/
 
-    return true;
-  } else {
-    return false;
-  }
 };
 
 
@@ -218,7 +260,33 @@ we.texturing.GoogleTileProvider.prototype.appendCopyrightContent =
 
 /** @inheritDoc */
 we.texturing.GoogleTileProvider.prototype.getLogoUrl = function() {
-  return 'http://maps.gstatic.com/mapfiles/google_white.png';
+  // return 'http://maps.gstatic.com/mapfiles/google_white.png';
+  return 'data:image/png;base64,' +
+      'iVBORw0KGgoAAAANSUhEUgAAAD4AAAAYCAMAAACV6r5dAAABI1BMVEUAAAAAAAAAAAAAAA' +
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABx' +
+      'cXEAAAAAAAAAAAAAAAAAAAAAAAAAAAAJCQkLCwsRERESEhIZGRkjIyMsLCw6OjpNTU1WVl' +
+      'ZhYWFvb28AAABycnJ5eXl8fHzc3NyFhYWGhoaHiIeLi4uSkpKWlpaYmJiampqenp6mpqah' +
+      'oaGlpaWhoaGpqampqamrq6uqqqqur66vr6+usK6ysrK4uLi9vb3CwsLExMTJycnNzc3Q0N' +
+      'DT09PU1NTV1dXX19fZ2dmDg4Pg4ODi4uLj4+Pj4+Pl5eXk5OTl5eXk5OTl5eXk5OTo6Ojq' +
+      '6urv7+/x8fH5+fn9/f3////54OudAAAAYHRSTlNgXlpSTUY/Pjs5NTMwLSsoJiQiIB4cGh' +
+      'cUEgoBAAYXJy43QElWWV1SFRwQQp2LiaQyqYmwRIi1hwi5hyiEWrxsfwW/xMTJycW3qA2a' +
+      'jweNi4+YAdios7vFy5/g6vD2/P7aB358AAADLElEQVR4XpWUe3OiSBTFOxpMfDsqKt2dZG' +
+      'eiBBlx8zABx3EiZBJk8phsMyb4wvv9P8VexCpnq7aym/PX6Uv/qpt7uBDOuRB8IzRva2AY' +
+      'xinbbkNcrKvTqdGrMvtt2hoG4Es63+JIa9PAM03PX81GNf1NXPAR3O5av+GCn858kvlQLe' +
+      '+bcJfRORORYuB3G/sHuJXsbZ1wZbYgaU23bPrxcqd4wGMygsQ/bKynCN/WCTegsxtfWa8d' +
+      'HVhxe3oNigTaZ+OzorPIDofD62EtOv0H14a4RUGKKLOwWUAIxWxLcPr8apo+jDOHXJlGdu' +
+      'XldT6YeuNwdWeWI5wNgnusf61YnJyu5uSQb4THTBckV8m44GaVl3kiV0n54JTkmZvKmeCT' +
+      '6PTUYPFtv7q3AFURZAgLUuds0xw+hG+7skVPQlCv4UzSbNqFkDxAK23lfThb49MVyQ8e/J' +
+      'tWXZDeKmy1t0n8BRd7GH47gL4LHQyCF2fwJ9q8YPfQLyGenC3V+8moKRUOOTlewFX+ERP9' +
+      'YaA+T8DZwxX7BTe3cJG1GVde4MqBm/QjN0CN8J0ZdLrpUlU/YJxQD+Y7mhDYZRNv7MFd0s' +
+      'JMnuHiNo6Y/oJOawnn5ePASTSe8HkAV/uyrq+DYydL+J7BmChNz8NPXVg265jZBMg5duUI' +
+      '669LkjlxfXfhJGSOuPSAe5Q4eSKULytw/6C4qmAz02NwU4z3wn4i/QLfs4wPw7NdrZ5NzK' +
+      'GTstafTdqHebfUGAyYIPyx3fVhOXm6vr5f+M1q1gn9kRH0E8d0zw1dtJdJ2eY058KyW8M3' +
+      'mTvNlg8wCzyZIs7tuqQ6ruuNTJVkNL3YMs2vrYxMLZpXTfNLMyMzakw8x4fVebmnqt3jek' +
+      'q96v+U2jpfz7teK2SzxUq7qumM2Uq7UqtpDOt2o12N7OHr/GczlezDItmoVeqKjkC+dKQz' +
+      'xONxsi1LtzaTiH7juLB0EcWgSkeaVRiDWheWiAE7nrj/EuP0BdRcNKGjJanheqP/iUdD7n' +
+      '/EpOSgL2mcvwtHRbdevk5x/qRP7P24oAX1YuxctnIy5e/HMZrGh0Kx3MY43o1vo/mX3/jf' +
+      'zoX94Q7k9zgAAAAASUVORK5CYII=';
 };
 
 
@@ -324,4 +392,25 @@ we.texturing.GoogleTileProvider.MapTypes.toLetterId = function(mapType) {
     case we.texturing.GoogleTileProvider.MapTypes.SATELLITE:
       return 'k';
   }
+};
+
+
+/**
+ * Ugly hack for Google Maps - make all img tags CORS-enabled
+ * TODO: remove when (if) solved
+ * @type {function(string): !Element}
+ */
+we.texturing.GoogleTileProvider.createElementOrig =
+    goog.bind(document.createElement, document);
+
+
+/**
+ * @param {string} arg ...
+ * @return {!Element} ...
+ */
+document.createElement = function(arg) {
+  var el = we.texturing.GoogleTileProvider.createElementOrig(arg);
+  if (arg == 'img')
+    el.crossOrigin = '';
+  return el;
 };

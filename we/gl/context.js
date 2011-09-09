@@ -392,6 +392,13 @@ we.gl.Context.prototype.renderFrame = function() {
   }
 
 };
+
+
+/**
+ * @type {string} URL of CORS-enabled proxy for loading images
+ */
+we.gl.Context.prototype.proxyHost = '';
+
 if (goog.DEBUG) {
   /**
    * Shared logger instance

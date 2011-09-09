@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2011 National Oceanic Atmospheric Administration
- * All rights reserved
+ * Copyright (C) 2011 Klokan Technologies GmbH (info@klokantech.com)
+ *
+ * Created by National Oceanic Atmospheric Administration (NOAA)
  *
  * The JavaScript code in this page is free software: you can
  * redistribute it and/or modify it under the terms of the GNU
@@ -11,24 +12,13 @@
  * FOR A PARTICULAR PURPOSE. See the GNU GPL for more details.
  *
  * USE OF THIS CODE OR ANY PART OF IT IN A NONFREE SOFTWARE IS NOT ALLOWED
- * WITHOUT PRIOR WRITTEN PERMISSION.
+ * WITHOUT PRIOR WRITTEN PERMISSION FROM KLOKAN TECHNOLOGIES GMBH.
  *
  * As additional permission under GNU GPL version 3 section 7, you
  * may distribute non-source (e.g., minimized or compacted) forms of
  * that code without the copy of the GNU GPL normally required by
  * section 4, provided you include this license notice and a URL
  * through which recipients can access the Corresponding Source.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
 
@@ -40,15 +30,13 @@
  * extra variable.
  *
  * @author jebb.q.stewart@noaa.gov (Jebb Stewart)
+ * @author petr.sloup@klokantech.com (Petr Sloup)
  *
  */
 
 goog.provide('we.texturing.WMSTileProvider');
 
-goog.require('goog.debug.Logger');
-goog.require('goog.events');
 goog.require('we.texturing.URLTileProvider');
-goog.require('we.utils');
 
 
 
@@ -179,7 +167,7 @@ we.texturing.WMSTileProvider.prototype.getTileSize = function() {
 
 /** @inheritDoc */
 we.texturing.WMSTileProvider.prototype.getTileURL = function(zoom, x, y) {
-
+  //TODO: Clean, optimize and reuse already implemented functions
 
   function tile2lon(x, z) {
     return (x / Math.pow(2, z) * 360 - 180);
@@ -195,8 +183,7 @@ we.texturing.WMSTileProvider.prototype.getTileURL = function(zoom, x, y) {
   }
 
   function merc_x(lon) {
-    var r_major = 6378137.000;
-    return r_major * deg_rad(lon);
+    return we.scene.EARTH_RADIUS * deg_rad(lon);
   }
 
   function merc_y(lat) {
@@ -204,18 +191,9 @@ we.texturing.WMSTileProvider.prototype.getTileURL = function(zoom, x, y) {
       lat = 89.5;
     if (lat < -89.5)
       lat = -89.5;
-    var r_major = 6378137.000;
-    var r_minor = 6356752.3142;
-    var temp = r_minor / r_major;
-    var es = 1.0 - (temp * temp);
-    var eccent = Math.sqrt(es);
     var phi = deg_rad(lat);
-    var sinphi = Math.sin(phi);
-    var con = eccent * sinphi;
-    var com = .5 * eccent;
-    con = Math.pow((1.0 - con) / (1.0 + con), com);
-    var ts = Math.tan(.5 * (Math.PI * 0.5 - phi)) / con;
-    var y = 0 - r_major * Math.log(ts);
+    var ts = Math.tan(.5 * (Math.PI * 0.5 - phi));
+    var y = 0 - we.scene.EARTH_RADIUS * Math.log(ts);
     return y;
   }
 
@@ -261,15 +239,3 @@ we.texturing.WMSTileProvider.prototype.getTileURL = function(zoom, x, y) {
 
   return url;
 };
-
-
-/** @inheritDoc */
-/*we.texturing.OSMTileProvider.prototype.appendCopyrightContent =
-    function(element) {
-  goog.dom.append(element, '© ',
-      goog.dom.createDom('a',
-      {href: 'http://www.openstreetmap.org/'},
-      'OpenStreetMap'),
-      ' contributors, CC-BY-SA');
-};*/
-

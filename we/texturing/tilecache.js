@@ -254,9 +254,7 @@ we.texturing.TileCache.prototype.processLoadRequests =
                    tilesToBeLoading - this.tileProvider_.loadingTileCounter);
   for (var i = 0; i < n; i++) {
     var tile = this.loadRequests_.pop();
-    if (!this.tileProvider_.loadTile(tile, goog.bind(this.tileLoaded_, this))) {
-      this.loadRequests_.push(tile);
-    }
+    this.tileProvider_.loadTile(tile, goog.bind(this.tileLoaded_, this));
   }
 };
 

@@ -44,6 +44,11 @@ goog.require('we.texturing.TileProvider');
  */
 we.texturing.URLTileProvider = function(name) {
   goog.base(this, name);
+
+  /**
+   * @type {string}
+   */
+  this.proxyHost = '';
 };
 goog.inherits(we.texturing.URLTileProvider, we.texturing.TileProvider);
 
@@ -59,8 +64,8 @@ we.texturing.URLTileProvider.prototype.getTileURL = goog.abstractMethod;
 
 
 /** @inheritDoc */
-we.texturing.URLTileProvider.prototype.loadTile = function(tile, onload,
-                                                           opt_onerror) {
+we.texturing.URLTileProvider.prototype.loadTileInternal =
+    function(tile, onload, opt_onerror) {
   var image = new Image();
   var onload_ = function() {
     //if (goog.DEBUG)
@@ -84,11 +89,17 @@ we.texturing.URLTileProvider.prototype.loadTile = function(tile, onload,
   image.onerror = goog.bind(onerror_, this);
   tile.state = we.texturing.Tile.State.LOADING;
   tile.setImage(image);
-  image.src = this.getTileURL(tile.zoom, tile.x, tile.y);
+  image.crossOrigin = '';
+  var url = this.getTileURL(tile.zoom, tile.x, tile.y);
+
+  if (this.proxyHost.length > 0) {
+    image.src = this.proxyHost + url;
+  } else {
+    image.src = url;
+  }
+
   //if (goog.DEBUG)
   //  we.texturing.TileProvider.logger.info('Loading tile ' + tile.getKey());
 
   this.loadingTileCounter++;
-
-  return true;
 };

@@ -29,6 +29,7 @@
 
 goog.provide('we.texturing.TileProvider');
 goog.provide('we.texturing.TileProvider.AreaDescriptor');
+goog.provide('we.texturing.TileProvider.RequestDescriptor');
 
 goog.require('goog.debug.Logger');
 goog.require('goog.math.Box');
@@ -48,6 +49,22 @@ we.texturing.TileProvider = function(name) {
    * @type {string}
    */
   this.name = name;
+
+
+  /**
+   * Number of currently loading tiles.
+   * @type {number}
+   */
+  this.loadingTileCounter = 0;
+
+
+  /**
+   * Queue of tile requests that could not yet be completed,
+   * because tileprovider was not ready.
+   * @type {!Array.<!we.texturing.TileProvider.RequestDescriptor>}
+   * @protected
+   */
+  this.deferredQueue = [];
 
   /**
    * @type {number}
@@ -154,10 +171,25 @@ we.texturing.TileProvider.prototype.getTileSize = goog.abstractMethod;
 
 
 /**
- * Number of currently loading tiles.
- * @type {number}
+ * When overriding this method, you have to call ".gotReady()" at some point.
+ * @return {boolean} Returns whether the TileProvider is ready.
  */
-we.texturing.TileProvider.prototype.loadingTileCounter = 0;
+we.texturing.TileProvider.prototype.isReady = function() {return true;};
+
+
+/**
+ * Implementing class is responsible for calling
+ * this method once it becomes "ready" to load tiles.
+ * @protected
+ */
+we.texturing.TileProvider.prototype.gotReady = function() {
+  goog.array.forEach(this.deferredQueue,
+      function(el, i, arr) {
+        this.loadingTileCounter--;
+        this.loadTileInternal(el.tile, el.onload, el.opt_onerror);
+      }, this);
+  this.deferredQueue = [];
+};
 
 
 /**
@@ -165,9 +197,28 @@ we.texturing.TileProvider.prototype.loadingTileCounter = 0;
  * @param {!we.texturing.Tile} tile Tile to be loaded.
  * @param {!function(!we.texturing.Tile)} onload onload.
  * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
- * @return {boolean} Returns whether the TileProvider is ready to load the tile.
  */
-we.texturing.TileProvider.prototype.loadTile = goog.abstractMethod;
+we.texturing.TileProvider.prototype.loadTile = function(tile, onload,
+                                                        opt_onerror) {
+  if (this.isReady()) {
+    this.loadTileInternal(tile, onload, opt_onerror);
+  } else {
+    this.deferredQueue.push(
+        new we.texturing.TileProvider.RequestDescriptor(tile, onload,
+                                                        opt_onerror));
+    this.loadingTileCounter++; //to prevent the queue from getting really big
+  }
+};
+
+
+/**
+ * Determines URL for given tile and starts loading it.
+ * @param {!we.texturing.Tile} tile Tile to be loaded.
+ * @param {!function(!we.texturing.Tile)} onload onload.
+ * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
+ * @protected
+ */
+we.texturing.TileProvider.prototype.loadTileInternal = goog.abstractMethod;
 
 
 /**
@@ -268,4 +319,31 @@ we.texturing.TileProvider.AreaDescriptor.prototype.getSpanInDegreesToString =
     function() {
   return goog.math.toDegrees(this.spanLat) + ',' +
          goog.math.toDegrees(this.spanLon);
+};
+
+
+
+/**
+ * Describes a tile request
+ * @param {!we.texturing.Tile} tile Tile to be loaded.
+ * @param {!function(!we.texturing.Tile)} onload onload.
+ * @param {!function(!we.texturing.Tile)=} opt_onerror onerror.
+ * @constructor
+ */
+we.texturing.TileProvider.RequestDescriptor = function(tile, onload,
+                                                       opt_onerror) {
+  /**
+   * @type {!we.texturing.Tile}
+   */
+  this.tile = tile;
+
+  /**
+   * @type {!function(!we.texturing.Tile)}
+   */
+  this.onload = onload;
+
+  /**
+   * @type {!function(!we.texturing.Tile)|undefined}
+   */
+  this.opt_onerror = opt_onerror;
 };
