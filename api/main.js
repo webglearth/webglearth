@@ -35,6 +35,7 @@ goog.require('goog.dom');
 goog.require('goog.events');
 
 goog.require('we.gl.Context');
+goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.SceneDragger');
@@ -146,10 +147,16 @@ weapi.App = function(divid, opt_options) {
   }
 
   /**
+   * @type {!we.scene.CameraAnimator}
+   * @private
+   */
+  this.animator_ = new we.scene.CameraAnimator(this.context.scene.camera);
+
+  /**
    * @type {!we.ui.SceneDragger}
    * @private
    */
-  this.dragger_ = new we.ui.SceneDragger(this.context.scene);
+  this.dragger_ = new we.ui.SceneDragger(this.context.scene, this.animator_);
 
   /**
    * @type {!we.ui.MouseZoomer}

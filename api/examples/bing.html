@@ -7,10 +7,15 @@
   function initialize() {
     var options = { zoom: 3, center: [49.190791, 16.61165] };
     earth = new WebGLEarth('earth_div', options);
-    earth.initMap(WebGLEarth.Maps.BING, ['Aerial', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
-    earth.initMap(WebGLEarth.Maps.BING, ['AerialWithLabels', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
-    earth.initMap(WebGLEarth.Maps.BING, ['Road', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
+    earth.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
+    
     // Get your own key from: https://www.bingmapsportal.com/
+    var bingKey = 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu';
+    
+    earth.initMap(WebGLEarth.Maps.BING, ['Aerial', bingKey]);
+    earth.initMap(WebGLEarth.Maps.BING, ['AerialWithLabels', bingKey]);
+    earth.initMap(WebGLEarth.Maps.BING, ['Road', bingKey]);
+    
     earth.setMap(WebGLEarth.Maps.BING, 'AerialWithLabels');
   }
 </script>

@@ -29,16 +29,21 @@
 
 goog.provide('weapi.exports');
 
+goog.require('goog.math');
+
+goog.require('we.math.geo');
 goog.require('we.scene.Scene');
 goog.require('weapi.App');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
+
 
 //Constructor
 goog.exportSymbol('WebGLEarth', weapi.App);
 
 //Backwards compatibility
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
+  this.animator_.cancel();
   this.context.scene.camera.setPositionDegrees(coords[0], coords[1]);
   this.context.scene.camera.setTilt(0);
 });
@@ -50,6 +55,7 @@ goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
 /* Elemental functions - Simple mappings */
 //Position
 goog.exportSymbol('WebGLEarth.prototype.setPosition', function(lat, lon, zoom) {
+  this.animator_.cancel();
   this.context.scene.camera.setPositionDegrees(lat, lon);
   if (goog.isDefAndNotNull(zoom)) this.context.scene.camera.setZoom(zoom);
 });
@@ -59,6 +65,7 @@ goog.exportSymbol('WebGLEarth.prototype.getPosition', function() {
 
 //Altitude
 goog.exportSymbol('WebGLEarth.prototype.setAltitude', function(altitude) {
+  this.animator_.cancel();
   this.context.scene.camera.setAltitude(altitude);
 });
 goog.exportSymbol('WebGLEarth.prototype.getAltitude', function() {
@@ -67,6 +74,7 @@ goog.exportSymbol('WebGLEarth.prototype.getAltitude', function() {
 
 //Heading
 goog.exportSymbol('WebGLEarth.prototype.setHeading', function(heading) {
+  this.animator_.cancel();
   this.context.scene.camera.setHeading(heading);
 });
 goog.exportSymbol('WebGLEarth.prototype.getHeading', function() {
@@ -75,6 +83,7 @@ goog.exportSymbol('WebGLEarth.prototype.getHeading', function() {
 
 //Tilt
 goog.exportSymbol('WebGLEarth.prototype.setTilt', function(tilt) {
+  this.animator_.cancel();
   this.context.scene.camera.setTilt(tilt);
 });
 goog.exportSymbol('WebGLEarth.prototype.getTilt', function() {
@@ -83,6 +92,7 @@ goog.exportSymbol('WebGLEarth.prototype.getTilt', function() {
 
 //Roll
 goog.exportSymbol('WebGLEarth.prototype.setRoll', function(roll) {
+  this.animator_.cancel();
   this.context.scene.camera.setRoll(roll);
 });
 goog.exportSymbol('WebGLEarth.prototype.getRoll', function() {
@@ -92,6 +102,7 @@ goog.exportSymbol('WebGLEarth.prototype.getRoll', function() {
 /* Extended functions */
 //Zoom
 goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
+  this.animator_.cancel();
   this.context.scene.camera.setZoom(zoom);
 });
 
@@ -99,10 +110,44 @@ goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
   return this.context.scene.camera.getZoom();
 });
 
+goog.exportSymbol('WebGLEarth.prototype.flyTo', function(latitude, longitude,
+                                                         opt_altitude,
+                                                         opt_heading,
+                                                         opt_tilt) {
+      this.animator_.flyTo(goog.math.toRadians(latitude),
+          goog.math.toRadians(longitude),
+          opt_altitude, opt_heading, opt_tilt);
+    });
+
+goog.exportSymbol('WebGLEarth.prototype.flyToFitBounds', function(minlat,
+                                                                  maxlat,
+                                                                  minlon,
+                                                                  maxlon) {
+      minlat = goog.math.toRadians(minlat);
+      maxlat = goog.math.toRadians(maxlat);
+      minlon = goog.math.toRadians(minlon);
+      maxlon = goog.math.toRadians(maxlon);
+
+      var altitude = we.math.geo.calcDistanceToViewBounds(minlat, maxlat,
+          minlon, maxlon,
+          this.context.aspectRatio,
+          this.context.fov);
+
+      var center = we.math.geo.calcBoundsCenter(minlat, maxlat, minlon, maxlon);
+
+      this.animator_.flyTo(center[0], center[1], altitude);
+    });
+
+/* MISC */
 
 // Handle canvas resizing - this is necessary to prevent weird deformations
 goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
   return this.context.resize();
+});
+
+// CORS bypass
+goog.exportSymbol('WebGLEarth.prototype.setProxyHost', function(url) {
+  this.context.proxyHost = url;
 });
 
 

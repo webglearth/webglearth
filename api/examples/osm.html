@@ -7,6 +7,7 @@
   function initialize() {
     var options = { zoom: 3, map:WebGLEarth.Maps.OSM };
     earth = new WebGLEarth('earth_div', options);
+    earth.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
   }
 </script>
 </head>

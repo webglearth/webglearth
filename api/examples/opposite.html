@@ -40,6 +40,8 @@
   function initialize() {
     earth1 = new WebGLEarth( 'earth_div1', { zoom:zoom, center:center } );
     earth2 = new WebGLEarth( 'earth_div2', { zoom:zoom, center:antipode(center) } );
+    earth1.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
+    earth2.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
     // Recalculate positions whenever any of the two globes moves
     setInterval('update()', 50);
   }

@@ -9,6 +9,7 @@
      earth.initMap(WebGLEarth.Maps.WMS, ['BlueMarble', 'http://demo.mapserver.org/cgi-bin/mapserv?', 
                                     '1.3.0', 'world_merc', 'EPSG:3857', 'image/jpeg', '', 
                                     'map=/osgeo/mapserver/msautotest/world/world.map', 1, 15]);
+     earth.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
     /* name, service url, wms version, layers, CRS , format, styles, extra parameters , minZoom, maxZoom 
      *
      * WebGLEarth WMS Tiling requires server supports mercator Coordinate Reference System.  Requires either

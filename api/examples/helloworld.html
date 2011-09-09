@@ -6,6 +6,7 @@
   function initialize() {
     var options = { zoom: 3, center: [47.19537,8.524404] };
     var earth = new WebGLEarth('earth_div', options);
+    earth.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
   }
 </script>
 </head>

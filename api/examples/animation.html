@@ -7,6 +7,7 @@
   function initialize() {
     var options = { zoom: 3, center: [40.0, -10.0] };
     earth = new WebGLEarth('earth_div', options);
+    earth.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
     // Start a simple rotation animation
     setInterval('var c = earth.getCenter(); earth.setCenter([c[0],c[1]+0.1]);', 30);
   }
