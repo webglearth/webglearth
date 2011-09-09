@@ -180,6 +180,8 @@ weapp.App = function(canvas) {
      */
     this.pcontrol_ = new weapp.ui.PanControl(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('weapp-pancontrol')));
+        
+    this.context.scene.earth.overlayOpacity = 0.5;
 
     /**
      * @type {!weapp.ui.OpacitySlider}
@@ -444,7 +446,6 @@ weapp.run = function() {
 
   var georeferencerTP = new we.texturing.GeoreferencerTileProvider(id);
 
-  app.context.scene.earth.overlayOpacity = 0.5;
   app.context.scene.earth.changeTileProvider(georeferencerTP, false, true);
 
   app.start();
