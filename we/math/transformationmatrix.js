@@ -81,6 +81,22 @@ we.math.TransformationMatrix.prototype.translate = function(x, y, z) {
 
 
 /**
+ * Multiplies current model-view matrix to represent the scale
+ * @param {number} x X scale.
+ * @param {number} y Y scale.
+ * @param {number} z Z scale.
+ */
+we.math.TransformationMatrix.prototype.scale = function(x, y, z) {
+  this.matrix_ = this.matrix_.multiply(new goog.math.Matrix([
+    [x, 0, 0, 0],
+    [0, y, 0, 0],
+    [0, 0, z, 0],
+    [0, 0, 0, 1]
+  ]));
+};
+
+
+/**
  * Computes a matrix that performs a counterclockwise rotation of given angle
  * about the vector from the origin through the point (x, y, z).
  * @param {number} angle Angle to rotate in radians.
