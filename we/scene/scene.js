@@ -40,6 +40,7 @@ goog.require('goog.math.Vec3');
 goog.require('we.gl.utils');
 goog.require('we.scene.Camera');
 goog.require('we.scene.Earth');
+goog.require('we.scene.Halo');
 goog.require('we.scene.ModelManager');
 
 
@@ -118,6 +119,12 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    * @type {!we.scene.Earth}
    */
   this.earth = new we.scene.Earth(this, opt_tileProvider);
+
+  /**
+   * @type {!we.scene.Halo}
+   * @private
+   */
+  this.halo_ = new we.scene.Halo(this);
 
 
   /**
@@ -226,6 +233,24 @@ we.scene.Scene.prototype.draw = function() {
 
   this.context.redimensionZBuffer(zNear, zFar);
 
+  // HALO
+  gl.enable(gl.BLEND);
+  gl.disable(gl.DEPTH_TEST);
+  var scale = Math.sin((Math.PI - this.context.fov) / 2);
+  var distance = Math.sin(this.context.fov / 2);
+
+  this.context.modelViewMatrix.loadIdentity();
+  this.context.modelViewMatrix.rotate100(-this.camera.getTilt());
+  this.context.modelViewMatrix.translate(0, 0, distance - 1 -
+      this.camera.getAltitude() / we.scene.EARTH_RADIUS);
+  this.context.modelViewMatrix.scale(scale, scale, scale);
+
+  this.halo_.draw();
+  gl.disable(gl.BLEND);
+  gl.enable(gl.DEPTH_TEST);
+
+  //EARTH
+  this.context.modelViewMatrix.loadIdentity();
   this.context.modelViewMatrix.rotate001(-this.camera.getRoll());
   this.context.modelViewMatrix.rotate100(-this.camera.getTilt());
   this.context.modelViewMatrix.rotate001(-this.camera.getHeading());

@@ -81,7 +81,7 @@ we.math.TransformationMatrix.prototype.translate = function(x, y, z) {
 
 
 /**
- * Multiplies the current matrix by a matrix representing a scaling operation.
+ * Multiplies current model-view matrix to represent the scale
  * @param {number} x X scale.
  * @param {number} y Y scale.
  * @param {number} z Z scale.

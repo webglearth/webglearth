@@ -95,7 +95,12 @@ we.ui.markers.PrettyMarker.prototype.showPopup = function(visible) {
     this.popup_.style.left = -Math.round((this.popup_.offsetWidth -
         this.element.offsetWidth) / 2) + 'px';
     this.popup_.style.opacity = 1.0;
+    this.popup_.style.visibility = 'visible';
   } else {
     this.popup_.style.opacity = 0.0;
+
+    //this breaks the fade-out animation, but is important to fix dragging
+    //TODO: timeout and then visibility:hidden ?
+    this.popup_.style.visibility = 'hidden';
   }
 };

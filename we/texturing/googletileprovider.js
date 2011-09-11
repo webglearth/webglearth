@@ -43,10 +43,13 @@ goog.require('we.texturing.TileProvider.AreaDescriptor');
  * Tile provider for Google maps
  * @constructor
  * @param {!we.texturing.GoogleTileProvider.MapTypes} mapTypeId Type of the map.
+ * @param {number=} opt_layerId ID of the layer to use - defaults to 0.
+ * @param {Function=} opt_onGotReady Function to call when this TP gets ready.
  * @extends {we.texturing.TileProvider}
  * @inheritDoc
  */
-we.texturing.GoogleTileProvider = function(mapTypeId) {
+we.texturing.GoogleTileProvider = function(mapTypeId,
+                                           opt_layerId, opt_onGotReady) {
   goog.base(this, 'Google Maps - ' + mapTypeId);
 
   var scriptPath = 'http://maps.google.com/maps/api/' +
@@ -63,6 +66,18 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
    * @private
    */
   this.mapTypeId_ = mapTypeId;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.layerId_ = opt_layerId || 0;
+
+  /**
+   * @type {Function}
+   * @private
+   */
+  this.onGotReady_ = opt_onGotReady || goog.nullFunction;
 
   /**
    * @type {!goog.structs.Set}
@@ -87,6 +102,7 @@ we.texturing.GoogleTileProvider = function(mapTypeId) {
         we.texturing.GoogleTileProvider.sharedMapInstance.mapTypes[
         we.texturing.GoogleTileProvider.MapTypes.toGoogleMapsType(mapTypeId)];
     this.gotReady();
+    this.onGotReady_();
   }, this);
 
   var onscriptload = function() {
@@ -208,9 +224,10 @@ we.texturing.GoogleTileProvider.prototype.loadTileInternal =
     if (opt_onerror) opt_onerror(tile);
   };
 
-  var imageGetter = function(node) {
-    return node.getElementsByTagName('img')[0];
-  };
+  var imageGetter = goog.bind(function(node) {
+    var imgs = node.getElementsByTagName('img');
+    return imgs[this.layerId_] || imgs[0];
+  }, this);
 
   tile.customImageGetter = imageGetter;
 
