@@ -131,7 +131,8 @@ weapp.App = function(canvas) {
     this.context.onCorsError = function() {
       if (!corsErrorOccurred) {
         corsErrorOccurred = true;
-        window.location = 'http://www.webglearth.com/corserror.html';
+        //Redirect to the compatibility version on data hosting
+        window.location = 'http://data.webglearth.com/';
       }
     };
 
