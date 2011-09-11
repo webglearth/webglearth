@@ -181,7 +181,7 @@ weapp.App = function(canvas) {
      */
     this.pcontrol_ = new weapp.ui.PanControl(this.context.scene,
         /** @type {!Element} */(goog.dom.getElement('weapp-pancontrol')));
-        
+
     this.context.scene.earth.overlayOpacity = 0.5;
 
     /**
