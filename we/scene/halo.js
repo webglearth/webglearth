@@ -50,22 +50,42 @@ we.scene.Halo = function(scene) {
    * @type {!WebGLRenderingContext}
    */
   this.gl = scene.context.gl;
+  var gl = this.gl;
 
-  this.vertexBuffer_ = this.gl.createBuffer();
+  this.vertexBuffer_ = gl.createBuffer();
 
-  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer_);
-  var MAX = 2;
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
+  var MAX = 1.1;
   var vertices = [
     MAX, MAX,
     -MAX, MAX,
     MAX, -MAX,
     -MAX, -MAX
   ];
-  this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
+  gl.bufferData(
+      gl.ARRAY_BUFFER,
       new Float32Array(vertices),
-      this.gl.STATIC_DRAW
+      gl.STATIC_DRAW
   );
+
+  this.gradient_ = gl.createTexture();
+
+  var gradientData = new Uint8Array([224, 224, 255, 255,
+                                     207, 218, 250, 220,
+                                     179, 194, 245, 180,
+                                     137, 166, 237, 145,
+                                     84, 123, 221, 110,
+                                     51, 94, 198, 75,
+                                     25, 67, 178, 30,
+                                     13, 53, 161, 0]);
+
+  gl.bindTexture(gl.TEXTURE_2D, this.gradient_);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 8, 1, 0,
+                gl.RGBA, gl.UNSIGNED_BYTE, gradientData);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
   var fragmentShaderCode = we.shaderbank.getShaderCode('halo-fs.glsl');
   var vertexShaderCode = we.shaderbank.getShaderCode('halo-vs.glsl');
@@ -101,13 +121,17 @@ we.scene.Halo = function(scene) {
   /**
    * @type {WebGLUniformLocation}
    */
-  this.mvMatrixUniform =
-      this.gl.getUniformLocation(this.program_, 'uMVMatrix');
+  this.mvMatrixUniform = this.gl.getUniformLocation(this.program_, 'uMVMatrix');
+
   /**
    * @type {WebGLUniformLocation}
    */
-  this.pMatrixUniform =
-      this.gl.getUniformLocation(this.program_, 'uPMatrix');
+  this.pMatrixUniform = this.gl.getUniformLocation(this.program_, 'uPMatrix');
+
+  /**
+   * @type {WebGLUniformLocation}
+   */
+  this.gradientUniform = this.gl.getUniformLocation(this.program_, 'uGradient');
 };
 
 
@@ -120,6 +144,10 @@ we.scene.Halo.prototype.draw = function() {
   this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer_);
   this.gl.vertexAttribPointer(this.vertexPositionAttribute, 2, this.gl.FLOAT,
                               false, 0, 0);
+
+  this.gl.activeTexture(this.gl.TEXTURE0);
+  this.gl.bindTexture(this.gl.TEXTURE_2D, this.gradient_);
+  this.gl.uniform1i(this.gradientUniform, 0);
 
   var mvm = new Float32Array(goog.array.flatten(
       this.context.modelViewMatrix.getStandardMatrix().

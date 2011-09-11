@@ -23,6 +23,8 @@
 
 precision lowp float;
 
+uniform sampler2D uGradient;
+
 varying vec2 vCoords;
 
 void main(){
@@ -31,6 +33,6 @@ void main(){
   if (distance < 0.98) {
     discard;
   } else {
-    gl_FragColor = vec4(0.67,0.84,0.94,max(0.0,2.0 - distance*distance));
+    gl_FragColor = texture2D(uGradient,vec2((sqrt(distance)-1.0)/0.1, 0.5));
   }
 }
