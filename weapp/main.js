@@ -283,7 +283,7 @@ weapp.App = function(canvas) {
 
       var zoom = getValue('zoom') || getValue('z');
       if (!isNaN(zoom))
-        this.context.scene.camera.setZoom(zoom);
+        this.context.scene.earth.setZoom(zoom);
 
       var altitude = getValue('alt');
       if (!isNaN(altitude))

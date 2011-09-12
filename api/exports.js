@@ -40,11 +40,11 @@ goog.exportSymbol('WebGLEarth', weapi.App);
 
 //Simple mappings
 goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
-  this.context.scene.camera.setZoom(zoom);
+  this.context.scene.earth.setZoom(zoom);
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
-  return this.context.scene.camera.getZoom();
+  return this.context.scene.earth.getZoom();
 });
 
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {

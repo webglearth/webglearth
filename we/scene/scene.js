@@ -115,6 +115,11 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.additionalCopyright_ = opt_copyright || null;
 
   /**
+   * @type {!we.scene.Camera}
+   */
+  this.camera = new we.scene.Camera(this);
+
+  /**
    * @type {!we.scene.Earth}
    */
   this.earth = new we.scene.Earth(this, opt_tileProvider);
@@ -131,11 +136,6 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    * @type {number}
    */
   this.tilesVertically = 0;
-
-  /**
-   * @type {!we.scene.Camera}
-   */
-  this.camera = new we.scene.Camera(this);
 
 
   this.recalcTilesVertically();
@@ -212,7 +212,7 @@ we.scene.Scene.prototype.draw = function() {
         goog.math.toDegrees(this.camera.getLatitude()).toFixed(4) + '; ' +
         goog.math.toDegrees(this.camera.getLongitude()).toFixed(4) + ' @ ' +
         this.camera.getAltitude().toFixed(0) + 'm -> z=' +
-        this.camera.getZoom().toFixed(3) + '; ' +
+        this.earth.getZoom().toFixed(3) + '; ' +
         this.earth.getInfoText();
   }
 
