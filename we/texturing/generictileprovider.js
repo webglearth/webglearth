@@ -112,8 +112,8 @@ we.texturing.GenericTileProvider.prototype.getTileURL = function(zoom, x, y) {
   url = url.replace('{x}', x.toFixed(0));
   url = url.replace('{y}', (this.flipY ? ((1 << zoom) - y - 1) : y).toFixed(0));
   if (this.subdomains.length > 0) {
-    url = url.replace('{sub}',
-        /** @type {string} */ (we.utils.randomElement(this.subdomains)));
+    var subid = goog.math.modulo(x + y + zoom, this.subdomains.length);
+    url = url.replace('{sub}', this.subdomains[subid]);
   }
   return url;
 };
