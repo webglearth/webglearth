@@ -492,13 +492,10 @@ we.scene.Earth.prototype.setZoom = function(zoom) {
                                this.currentTileProviderA_.getMinZoomLevel(),
                                this.currentTileProviderA_.getMaxZoomLevel());
 
-  //recalc altitude
-  var o = Math.cos(Math.abs(this.scene.camera.getLatitude())) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.zoom_);
-  var sizeIWannaSee = thisPosDeformation * this.scene.tilesVertically;
-  this.scene.camera.setAltitude((1 / Math.tan(this.context.fov / 2)) *
-      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS);
+  var altitude = this.calcAltitudeForZoom(this.zoom_,
+                                          this.scene.camera.getLatitude());
 
+  this.scene.camera.setAltitude(altitude);
 };
 
 
@@ -548,6 +545,21 @@ we.scene.Earth.prototype.calcZoom = function(opt_dontClampAndSet) {
   //if (desiredZoom != this.zoom_) {
   //  this.setZoom(this.zoom_);
   //}
+};
+
+
+/**
+ * Calculates zoom from altitude
+ * @param {number} zoom Zoom.
+ * @param {number} latitude Latitude.
+ * @return {number} Calculated zoom.
+ */
+we.scene.Earth.prototype.calcAltitudeForZoom = function(zoom, latitude) {
+  var o = Math.cos(Math.abs(latitude)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, zoom);
+  var sizeIWannaSee = thisPosDeformation * this.scene.tilesVertically;
+  return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2) *
+             we.scene.EARTH_RADIUS;
 };
 
 
