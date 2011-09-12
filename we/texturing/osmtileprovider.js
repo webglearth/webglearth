@@ -29,10 +29,7 @@
 
 goog.provide('we.texturing.OSMTileProvider');
 
-goog.require('goog.string.StringBuffer');
-
-goog.require('we.texturing.URLTileProvider');
-goog.require('we.utils');
+goog.require('we.texturing.GenericTileProvider');
 
 
 
@@ -40,33 +37,15 @@ goog.require('we.utils');
  * Tile provider for OpenStreetMaps
  * @param {string=} opt_name Optional name override.
  * @constructor
- * @extends {we.texturing.URLTileProvider}
+ * @extends {we.texturing.GenericTileProvider}
  * @inheritDoc
  */
 we.texturing.OSMTileProvider = function(opt_name) {
-  goog.base(this, opt_name || 'OpenStreetMaps');
+  goog.base(this, opt_name || 'OpenStreetMaps',
+            'http://{sub}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            0, 18, 256, false, ['a', 'b', 'c']);
 };
-goog.inherits(we.texturing.OSMTileProvider, we.texturing.URLTileProvider);
-
-
-/** @inheritDoc */
-we.texturing.OSMTileProvider.prototype.getMaxZoomLevel = function() {
-  return 18;
-};
-
-
-/** @inheritDoc */
-we.texturing.OSMTileProvider.prototype.getTileSize = function() {
-  return 256;
-};
-
-
-/** @inheritDoc */
-we.texturing.OSMTileProvider.prototype.getTileURL = function(zoom, x, y) {
-  return new goog.string.StringBuffer('http://',
-      /** @type {string} */(we.utils.randomElement(['a', 'b', 'c'])),
-      '.tile.openstreetmap.org/', zoom, '/', x, '/', y, '.png').toString();
-};
+goog.inherits(we.texturing.OSMTileProvider, we.texturing.GenericTileProvider);
 
 
 /** @inheritDoc */
