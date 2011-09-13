@@ -40,9 +40,8 @@ goog.require('we.texturing.TileProvider');
 weapi.exports.Map = function(tileprovider) {
   /**
    * @type {!we.texturing.TileProvider}
-   * @private
    */
-  this.tp_ = tileprovider;
+  this.tp = tileprovider;
 };
 
 
@@ -54,5 +53,21 @@ weapi.exports.Map = function(tileprovider) {
  */
 weapi.exports.Map.prototype.setBoundingBox = function(minLat, maxLat,
                                                       minLon, maxLon) {
-  this.tp_.setBoundingBox(minLat, maxLat, minLon, maxLon);
+  this.tp.setBoundingBox(minLat, maxLat, minLon, maxLon);
+};
+
+
+/**
+ * @param {number} opacity Opacity.
+ */
+weapi.exports.Map.prototype.setOpacity = function(opacity) {
+  this.tp.opacity = opacity;
+};
+
+
+/**
+ * @return {number} Opacity.
+ */
+weapi.exports.Map.prototype.getOpacity = function() {
+  return this.tp.opacity;
 };

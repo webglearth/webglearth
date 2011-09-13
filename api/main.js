@@ -204,6 +204,7 @@ weapi.App = function(divid, opt_options) {
 
 
 /**
+ * DEPRECATED
  * @param {!weapi.maps.MapType} type Type of the map.
  * @param {string=} opt_subtype Optional subtype of the map.
  */
@@ -213,4 +214,20 @@ weapi.App.prototype.setMap = function(type, opt_subtype) {
   if (goog.isDefAndNotNull(tileProvider)) {
     this.context.scene.earth.changeTileProvider(tileProvider);
   }
+};
+
+
+/**
+ * @param {!weapi.exports.Map} map Map.
+ */
+weapi.App.prototype.setBaseMap = function(map) {
+  this.context.scene.earth.changeTileProvider(map.tp);
+};
+
+
+/**
+ * @param {!weapi.exports.Map} map Map.
+ */
+weapi.App.prototype.setOverlayMap = function(map) {
+  this.context.scene.earth.changeTileProvider(map.tp, false, true);
 };

@@ -40,10 +40,8 @@ goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
 
 
-//Constructors
+//Constructor
 goog.exportSymbol('WebGLEarth', weapi.App);
-goog.exportSymbol('WebGLEarth.AppOptions', weapi.exports.AppOptions);
-goog.exportSymbol('WebGLEarth.Map', weapi.exports.Map);
 
 /* DEPRECATED */
 //Backwards compatibility
@@ -159,10 +157,22 @@ goog.exportSymbol('WebGLEarth.prototype.setProxyHost', function(url) {
   this.context.proxyHost = url;
 });
 
+goog.exportSymbol('WebGLEarth.AppOptions', weapi.exports.AppOptions);
 
 
-//Maps
 goog.exportSymbol('WebGLEarth.Maps', weapi.maps.MapType);
-
 goog.exportSymbol('WebGLEarth.prototype.initMap', weapi.maps.initMap);
 goog.exportSymbol('WebGLEarth.prototype.setMap', weapi.App.prototype.setMap);
+goog.exportSymbol('WebGLEarth.prototype.setBaseMap',
+                  weapi.App.prototype.setBaseMap);
+goog.exportSymbol('WebGLEarth.prototype.setOverlayMap',
+                  weapi.App.prototype.setOverlayMap);
+
+
+goog.exportSymbol('WebGLEarth.Map', weapi.exports.Map);
+goog.exportSymbol('WebGLEarth.Map.prototype.setBoundingBox',
+                  weapi.exports.Map.prototype.setBoundingBox);
+goog.exportSymbol('WebGLEarth.Map.prototype.setOpacity',
+                  weapi.exports.Map.prototype.setOpacity);
+goog.exportSymbol('WebGLEarth.Map.prototype.getOpacity',
+                  weapi.exports.Map.prototype.getOpacity);
