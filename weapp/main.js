@@ -48,7 +48,8 @@ goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
-goog.require('we.ui.SceneDragger');
+goog.require('we.ui.ScenePanner');
+goog.require('we.ui.SceneTilter');
 goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
 goog.require('we.ui.markers.PrettyMarker');
@@ -147,10 +148,16 @@ weapp.App = function(canvas) {
     this.animator_ = new we.scene.CameraAnimator(this.context.scene.camera);
 
     /**
-     * @type {!we.ui.SceneDragger}
+     * @type {!we.ui.ScenePanner}
      * @private
      */
-    this.dragger_ = new we.ui.SceneDragger(this.context.scene, this.animator_);
+    this.panner_ = new we.ui.ScenePanner(this.context.scene, this.animator_);
+
+    /**
+     * @type {!we.ui.SceneTilter}
+     * @private
+     */
+    this.tilter_ = new we.ui.SceneTilter(this.context.scene, this.animator_);
 
     /**
      * @type {!we.ui.MouseZoomer}
