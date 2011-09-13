@@ -71,10 +71,11 @@ we.scene.LATITUDE_EXTREMA = 1.4844222297453323669610967939;
  * @param {we.texturing.TileProvider=} opt_tileProvider Default TileProvider.
  * @param {Element=} opt_copyright Additional copyright info to display
  *                                 before map copyright info.
+ * @param {boolean=} opt_nohalo Don't render the halo.
  * @constructor
  */
 we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
-                          opt_tileProvider, opt_copyright) {
+                          opt_tileProvider, opt_copyright, opt_nohalo) {
   /**
    * @type {!we.gl.Context}
    */
@@ -125,10 +126,10 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.earth = new we.scene.Earth(this, opt_tileProvider);
 
   /**
-   * @type {!we.scene.Halo}
+   * @type {we.scene.Halo}
    * @private
    */
-  this.halo_ = new we.scene.Halo(this);
+  this.halo_ = opt_nohalo === true ? null : new we.scene.Halo(this);
 
 
   /**
@@ -229,20 +230,22 @@ we.scene.Scene.prototype.draw = function() {
   this.context.redimensionZBuffer(zNear, zFar);
 
   // HALO
-  gl.enable(gl.BLEND);
-  gl.disable(gl.DEPTH_TEST);
-  var scale = Math.sin((Math.PI - this.context.fov) / 2);
-  var distance = Math.sin(this.context.fov / 2);
+  if (this.halo_) {
+    gl.enable(gl.BLEND);
+    gl.disable(gl.DEPTH_TEST);
+    var scale = Math.sin((Math.PI - this.context.fov) / 2);
+    var distance = Math.sin(this.context.fov / 2);
 
-  this.context.modelViewMatrix.loadIdentity();
-  this.context.modelViewMatrix.rotate100(-this.camera.getTilt());
-  this.context.modelViewMatrix.translate(0, 0, distance - 1 -
-      this.camera.getAltitude() / we.scene.EARTH_RADIUS);
-  this.context.modelViewMatrix.scale(scale, scale, scale);
+    this.context.modelViewMatrix.loadIdentity();
+    this.context.modelViewMatrix.rotate100(-this.camera.getTilt());
+    this.context.modelViewMatrix.translate(0, 0, distance - 1 -
+        this.camera.getAltitude() / we.scene.EARTH_RADIUS);
+    this.context.modelViewMatrix.scale(scale, scale, scale);
 
-  this.halo_.draw();
-  gl.disable(gl.BLEND);
-  gl.enable(gl.DEPTH_TEST);
+    this.halo_.draw();
+    gl.disable(gl.BLEND);
+    gl.enable(gl.DEPTH_TEST);
+  }
 
   //EARTH
   this.context.modelViewMatrix.loadIdentity();

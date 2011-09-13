@@ -34,12 +34,14 @@ goog.require('goog.math');
 goog.require('we.math.geo');
 goog.require('we.scene.Scene');
 goog.require('weapi.App');
+goog.require('weapi.AppOptions');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
 
 
 //Constructor
 goog.exportSymbol('WebGLEarth', weapi.App);
+goog.exportSymbol('WebGLEarth.Options', weapi.AppOptions);
 
 //Backwards compatibility
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
