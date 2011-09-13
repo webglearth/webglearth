@@ -38,6 +38,8 @@ goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.WMSTileProvider');
 
+goog.require('weapi.exports.Map');
+
 
 /**
  * Constants for map names.
@@ -61,6 +63,7 @@ weapi.maps.mapMap = new goog.structs.Map();
 /**
  * @param {!weapi.maps.MapType} type Type of the map.
  * @param {...*} var_args Optional parameters to be passed to the TileProvider.
+ * @return {weapi.exports.Map} Initialized TileProvider.
  */
 weapi.maps.initMap = function(type, var_args) {
 
@@ -89,7 +92,7 @@ weapi.maps.initMap = function(type, var_args) {
       break;
     default:
       alert('Unknown MapType \'' + type + '\' !');
-      return;
+      return null;
       break;
   }
 
@@ -112,6 +115,8 @@ weapi.maps.initMap = function(type, var_args) {
   var tileProvider = construct(tileProviderCtor, var_args);
 
   weapi.maps.mapMap.set(key, tileProvider);
+
+  return new weapi.exports.Map(tileProvider);
 };
 
 

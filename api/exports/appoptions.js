@@ -27,7 +27,7 @@
  *
  */
 
-goog.provide('weapi.AppOptions');
+goog.provide('weapi.exports.AppOptions');
 
 goog.require('weapi.maps.MapType');
 
@@ -37,25 +37,25 @@ goog.require('weapi.maps.MapType');
  * Object holding application options
  * @constructor
  */
-weapi.AppOptions = function() {};
+weapi.exports.AppOptions = function() {};
 
 
 /**
  * @type {weapi.maps.MapType|undefined}
  */
-weapi.AppOptions.prototype.map;
+weapi.exports.AppOptions.prototype.map;
 
 
 /**
  * @type {number|undefined}
  */
-weapi.AppOptions.prototype.zoom;
+weapi.exports.AppOptions.prototype.zoom;
 
 
 /**
  * @type {Array.<number>|undefined}
  */
-weapi.AppOptions.prototype.position;
+weapi.exports.AppOptions.prototype.position;
 
 // alias for position
 //weapi.AppOptions.prototype.center;
@@ -64,34 +64,34 @@ weapi.AppOptions.prototype.position;
 /**
  * @type {number|undefined}
  */
-weapi.AppOptions.prototype.altitude;
+weapi.exports.AppOptions.prototype.altitude;
 
 
 /**
  * @type {boolean|undefined}
  */
-weapi.AppOptions.prototype.panning;
+weapi.exports.AppOptions.prototype.panning;
 
 
 /**
  * @type {boolean|undefined}
  */
-weapi.AppOptions.prototype.tilting;
+weapi.exports.AppOptions.prototype.tilting;
 
 
 /**
  * @type {boolean|undefined}
  */
-weapi.AppOptions.prototype.zooming;
+weapi.exports.AppOptions.prototype.zooming;
 
 
 /**
  * @type {boolean|undefined}
  */
-weapi.AppOptions.prototype.atmosphere;
+weapi.exports.AppOptions.prototype.atmosphere;
 
 
 /**
  * @type {string|undefined}
  */
-weapi.AppOptions.prototype.proxyHost;
+weapi.exports.AppOptions.prototype.proxyHost;

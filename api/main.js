@@ -41,7 +41,7 @@ goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.ScenePanner');
 goog.require('we.ui.SceneTilter');
 
-goog.require('weapi.AppOptions');
+goog.require('weapi.exports.AppOptions');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
 
@@ -54,7 +54,7 @@ goog.addDependency('',
 
 /**
  * @param {string} divid Div element ID.
- * @param {weapi.AppOptions=} opt_options Application options.
+ * @param {weapi.exports.AppOptions=} opt_options Application options.
  * @constructor
  */
 weapi.App = function(divid, opt_options) {

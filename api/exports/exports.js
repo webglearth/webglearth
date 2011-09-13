@@ -34,15 +34,18 @@ goog.require('goog.math');
 goog.require('we.math.geo');
 goog.require('we.scene.Scene');
 goog.require('weapi.App');
-goog.require('weapi.AppOptions');
+goog.require('weapi.exports.AppOptions');
+goog.require('weapi.exports.Map');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
 
 
-//Constructor
+//Constructors
 goog.exportSymbol('WebGLEarth', weapi.App);
-goog.exportSymbol('WebGLEarth.Options', weapi.AppOptions);
+goog.exportSymbol('WebGLEarth.AppOptions', weapi.exports.AppOptions);
+goog.exportSymbol('WebGLEarth.Map', weapi.exports.Map);
 
+/* DEPRECATED */
 //Backwards compatibility
 goog.exportSymbol('WebGLEarth.prototype.setCenter', function(coords) {
   this.animator_.cancel();
@@ -137,7 +140,11 @@ goog.exportSymbol('WebGLEarth.prototype.flyToFitBounds', function(minlat,
 
       var center = we.math.geo.calcBoundsCenter(minlat, maxlat, minlon, maxlon);
 
-      this.animator_.flyTo(center[0], center[1], altitude);
+      var minalt = this.context.scene.earth.calcAltitudeForZoom(
+          this.context.scene.getMaxZoom() + 0.1, center[0]);
+
+
+      this.animator_.flyTo(center[0], center[1], Math.max(altitude, minalt));
     });
 
 /* MISC */
