@@ -75,13 +75,6 @@ we.scene.Camera = function(scene) {
   this.altitude_ = 10000000;
 
   /**
-   * Cached zoom
-   * @type {?number}
-   * @private
-   */
-  this.zoom_ = null;
-
-  /**
    * Camera heading in radians
    * @type {number}
    * @private
@@ -130,9 +123,8 @@ we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
   this.latitude_ = goog.math.clamp(latitude, -1.57, 1.57);
   this.longitude_ = we.utils.standardLongitudeRadians(longitude);
 
-  this.zoom_ = null;
   this.dispatchEvent(new we.scene.CameraEvent(
-      we.scene.Camera.EventType.ZOOMCHANGED));
+      we.scene.Camera.EventType.POSITIONCHANGED));
 };
 
 
@@ -254,12 +246,8 @@ we.scene.Camera.prototype.validateAltitude = function(altitude) {
 we.scene.Camera.prototype.setAltitude = function(altitude) {
   this.altitude_ = this.validateAltitude(altitude);
 
-  this.zoom_ = null; //invalidate cached zoom
-
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.ALTITUDECHANGED));
-  this.dispatchEvent(new we.scene.CameraEvent(
-      we.scene.Camera.EventType.ZOOMCHANGED));
 };
 
 
@@ -272,39 +260,6 @@ we.scene.Camera.prototype.getAltitude = function() {
 
 
 /**
- * Sets zoom level and calculates other appropriate cached variables
- * @param {number} zoom New zoom level.
- */
-we.scene.Camera.prototype.setZoom = function(zoom) {
-  this.zoom_ = goog.math.clamp(zoom, this.scene_.getMinZoom(),
-                               this.scene_.getMaxZoom());
-
-  //recalc altitude
-  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
-  var thisPosDeformation = o / Math.pow(2, this.zoom_);
-  var sizeIWannaSee = thisPosDeformation * this.scene_.tilesVertically;
-  this.altitude_ = (1 / Math.tan(this.scene_.context.fov / 2)) *
-      (sizeIWannaSee / 2) * we.scene.EARTH_RADIUS;
-
-  this.dispatchEvent(new we.scene.CameraEvent(
-      we.scene.Camera.EventType.ZOOMCHANGED));
-  this.dispatchEvent(new we.scene.CameraEvent(
-      we.scene.Camera.EventType.ALTITUDECHANGED));
-};
-
-
-/**
- * @return {number} Zoom level.
- */
-we.scene.Camera.prototype.getZoom = function() {
-  if (goog.isNull(this.zoom_)) {
-    this.calcZoom_();
-  }
-  return /** @type {number} */(this.zoom_);
-};
-
-
-/**
  * Returns latlon of the place the camera is currently looking at
  * @return {?Array.<number>} Array [lat, lon] in radians or null.
  */
@@ -313,22 +268,6 @@ we.scene.Camera.prototype.getTarget = function() {
   return this.scene_.getLatLongForXY(this.scene_.context.viewportWidth / 2,
                                      this.scene_.context.viewportHeight / 2,
                                      true);
-};
-
-
-/**
- * Calculates zoom from altitude
- * @private
- */
-we.scene.Camera.prototype.calcZoom_ = function() {
-  var sizeISee = 2 * (this.altitude_ / we.scene.EARTH_RADIUS) *
-                 Math.tan(this.scene_.context.fov / 2);
-  var sizeOfOneTile = sizeISee / this.scene_.tilesVertically;
-  var o = Math.cos(Math.abs(this.latitude_)) * 2 * Math.PI;
-
-  this.zoom_ = goog.math.clamp(Math.log(o / sizeOfOneTile) / Math.LN2,
-                               this.scene_.getMinZoom(),
-                               this.scene_.getMaxZoom());
 };
 
 
@@ -385,7 +324,7 @@ we.scene.Camera.prototype.getRoll = function() {
  * @enum {string}
  */
 we.scene.Camera.EventType = {
-  ZOOMCHANGED: 'zoomchanged',
+  POSITIONCHANGED: 'poschanged',
   ALTITUDECHANGED: 'altchanged'
 };
 

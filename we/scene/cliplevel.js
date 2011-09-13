@@ -369,12 +369,11 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
 
     this.metaBuffer[y][x] = 1;
   } catch (DOMException) {
-    if (this.context_.proxyHost.length > 0 &&
-        this.tileProvider_.proxyHost != this.context_.proxyHost) {
-      this.tileProvider_.proxyHost = this.context_.proxyHost;
+    if (this.tileProvider_.canUseProxy() &&
+        (this.tileProvider_.setProxyHost(this.context_.proxyHost) ||
+        !tile.usedProxy(this.context_.proxyHost))) {
       this.needTile_(tile.x, tile.y, tile.requestTime);
     } else {
-      //TODO: warn
       //TODO: solve duplicity with ClipLevelN::ClipLevelN
       this.context_.onCorsError();
     }

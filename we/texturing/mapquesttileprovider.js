@@ -29,31 +29,24 @@
 
 goog.provide('we.texturing.MapQuestTileProvider');
 
-goog.require('goog.math');
-goog.require('goog.string.StringBuffer');
-
-goog.require('we.texturing.OSMTileProvider');
+goog.require('we.texturing.GenericTileProvider');
 
 
 
 /**
- * Tile provider for MapQuest OSM tiles.
+ * Tile provider for MapQuest OSM
+ * @param {string=} opt_name Optional name override.
  * @constructor
- * @extends {we.texturing.OSMTileProvider}
+ * @extends {we.texturing.GenericTileProvider}
  * @inheritDoc
  */
-we.texturing.MapQuestTileProvider = function() {
-  goog.base(this, 'MapQuest OSM');
+we.texturing.MapQuestTileProvider = function(opt_name) {
+  goog.base(this, opt_name || 'MapQuest OSM',
+            'http://otile{sub}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+            0, 18, 256, false, ['1', '2', '3', '4']);
 };
-goog.inherits(we.texturing.MapQuestTileProvider, we.texturing.OSMTileProvider);
-
-
-/** @inheritDoc */
-we.texturing.MapQuestTileProvider.prototype.getTileURL = function(zoom, x, y) {
-  return new goog.string.StringBuffer('http://otile',
-      1 + goog.math.randomInt(3),
-      '.mqcdn.com/tiles/1.0.0/osm/', zoom, '/', x, '/', y, '.png').toString();
-};
+goog.inherits(we.texturing.MapQuestTileProvider,
+              we.texturing.GenericTileProvider);
 
 
 /** @inheritDoc */

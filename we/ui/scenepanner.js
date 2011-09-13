@@ -207,7 +207,7 @@ we.ui.ScenePanner.prototype.scenePixelMove_ = function(xDiff, yDiff) {
   //PI * (How much is 1px on the screen?) * (How much is visible?)
   var factor = Math.PI * (1 / this.scene_.context.canvas.height) *
       (this.scene_.tilesVertically /
-      Math.pow(2, this.scene_.camera.getZoom()));
+      Math.pow(2, this.scene_.earth.calcZoom(true)));
 
   this.scene_.camera.moveRelative(yDiff * factor, -2 * xDiff * factor);
 };

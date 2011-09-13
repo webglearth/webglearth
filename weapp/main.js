@@ -130,7 +130,8 @@ weapp.App = function(canvas) {
     this.context.onCorsError = function() {
       if (!corsErrorOccurred) {
         corsErrorOccurred = true;
-        window.location = 'http://www.webglearth.com/corserror.html';
+        //Redirect to the compatibility version on data hosting
+        window.location = 'http://data.webglearth.com/';
       }
     };
 
@@ -232,6 +233,9 @@ weapp.App = function(canvas) {
       var markerBR = new we.ui.markers.BasicMarker(bounds[1], bounds[3]);
       this.markerManager_.addMarker(null, markerBR);*/
 
+      var lat = goog.math.toRadians(parseFloat(item['lat']));
+      var lon = goog.math.toRadians(parseFloat(item['lon']));
+
       var altitude = we.math.geo.calcDistanceToViewBounds(
           goog.math.toRadians(parseFloat(bounds[0])),
           goog.math.toRadians(parseFloat(bounds[1])),
@@ -239,9 +243,11 @@ weapp.App = function(canvas) {
           goog.math.toRadians(parseFloat(bounds[3])),
           this.context.aspectRatio, this.context.fov);
 
-      this.animator_.flyTo(goog.math.toRadians(parseFloat(item['lat'])),
-                           goog.math.toRadians(parseFloat(item['lon'])),
-                           altitude);
+      var minalt = this.context.scene.earth.calcAltitudeForZoom(
+          this.context.scene.getMaxZoom() + 0.1, lat);
+
+      this.animator_.flyTo(lat, lon, Math.max(altitude, minalt));
+
       nominMarker.enable(true);
       nominMarker.lat = item['lat'];
       nominMarker.lon = item['lon'];
@@ -289,7 +295,7 @@ weapp.App = function(canvas) {
 
       var zoom = getValue('zoom') || getValue('z');
       if (!isNaN(zoom))
-        this.context.scene.camera.setZoom(zoom);
+        this.context.scene.earth.setZoom(zoom);
 
       var altitude = getValue('alt');
       if (!isNaN(altitude))

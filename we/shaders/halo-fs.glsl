@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2011 Klokan Technologies GmbH (info@klokantech.com)
  *
- * The JavaScript code in this page is free software: you can
+ * The code in this file is free software: you can
  * redistribute it and/or modify it under the terms of the GNU
  * General Public License (GNU GPL) as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option)
@@ -18,42 +18,21 @@
  * section 4, provided you include this license notice and a URL
  * through which recipients can access the Corresponding Source.
  *
- */
-
-/**
- * @fileoverview Tile provider for OpenStreetMaps.
- *
  * @author petr.sloup@klokantech.com (Petr Sloup)
- *
  */
 
-goog.provide('we.texturing.OSMTileProvider');
+precision lowp float;
 
-goog.require('we.texturing.GenericTileProvider');
+uniform sampler2D uGradient;
 
+varying vec2 vCoords;
 
-
-/**
- * Tile provider for OpenStreetMaps
- * @param {string=} opt_name Optional name override.
- * @constructor
- * @extends {we.texturing.GenericTileProvider}
- * @inheritDoc
- */
-we.texturing.OSMTileProvider = function(opt_name) {
-  goog.base(this, opt_name || 'OpenStreetMaps',
-            'http://{sub}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            0, 18, 256, false, ['a', 'b', 'c']);
-};
-goog.inherits(we.texturing.OSMTileProvider, we.texturing.GenericTileProvider);
-
-
-/** @inheritDoc */
-we.texturing.OSMTileProvider.prototype.appendCopyrightContent =
-    function(element) {
-  goog.dom.append(element, '© ',
-      goog.dom.createDom('a',
-      {href: 'http://www.openstreetmap.org/'},
-      'OpenStreetMap'),
-      ' contributors, CC-BY-SA');
-};
+void main(){
+  //TODO: Optimize
+  float distance = vCoords.x*vCoords.x+vCoords.y*vCoords.y;
+  if (distance < 0.98) {
+    discard;
+  } else {
+    gl_FragColor = texture2D(uGradient,vec2((sqrt(distance)-1.0)/0.1, 0.5));
+  }
+}

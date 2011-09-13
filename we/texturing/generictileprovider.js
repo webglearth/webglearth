@@ -48,10 +48,11 @@ goog.require('we.utils');
  * @param {boolean=} opt_flipY Flip Y axis.
  * @param {Array.<string>=} opt_subdomains Array of subdomains
  *                                          to be used for {sub} replacement.
+ * @param {string=} opt_copyright String with copyright information.
  */
 we.texturing.GenericTileProvider = function(name, url, minZoom, maxZoom,
                                             tileSize, opt_flipY,
-                                            opt_subdomains) {
+                                            opt_subdomains, opt_copyright) {
   goog.base(this, name);
 
   /**
@@ -83,6 +84,11 @@ we.texturing.GenericTileProvider = function(name, url, minZoom, maxZoom,
    * @type {Array.<string>}
    */
   this.subdomains = opt_subdomains || [];
+
+  /**
+   * @type {string}
+   */
+  this.copyright = opt_copyright || '';
 };
 goog.inherits(we.texturing.GenericTileProvider, we.texturing.URLTileProvider);
 
@@ -112,8 +118,17 @@ we.texturing.GenericTileProvider.prototype.getTileURL = function(zoom, x, y) {
   url = url.replace('{x}', x.toFixed(0));
   url = url.replace('{y}', (this.flipY ? ((1 << zoom) - y - 1) : y).toFixed(0));
   if (this.subdomains.length > 0) {
-    url = url.replace('{sub}',
-        /** @type {string} */ (we.utils.randomElement(this.subdomains)));
+    var subid = goog.math.modulo(x + y + zoom, this.subdomains.length);
+    url = url.replace('{sub}', this.subdomains[subid]);
   }
   return url;
+};
+
+
+/** @inheritDoc */
+we.texturing.GenericTileProvider.prototype.appendCopyrightContent =
+    function(element) {
+  if (this.copyright.length > 0) {
+    goog.dom.append(element, this.copyright);
+  }
 };

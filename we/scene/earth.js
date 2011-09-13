@@ -146,7 +146,7 @@ we.scene.Earth = function(scene, opt_tileProvider) {
 
   /**
    * @type {number}
-   * This equals 1 << this.scene.getZoom() !
+   * This equals 1 << this.getZoom() !
    */
   this.tileCount = 1;
 
@@ -176,6 +176,17 @@ we.scene.Earth = function(scene, opt_tileProvider) {
    * @type {!we.scene.LocatedProgram}
    */
   this.locatedProgramOverlay = this.createLocatedProgram(true);
+
+  /**
+   * Cached zoom
+   * @type {?number}
+   * @private
+   */
+  this.zoom_ = null;
+
+  goog.events.listen(this.scene.camera,
+                     we.scene.Camera.EventType.ALTITUDECHANGED,
+                     this.zoomChanged_, false, this);
 };
 
 
@@ -246,7 +257,7 @@ we.scene.Earth.prototype.changeTileProvider = function(tileprovider,
     this.scene.recalcTilesVertically();
     this.scene.updateCopyrights();
 
-    this.scene.camera.setZoom(this.scene.camera.getZoom()); //revalidate
+    this.setZoom(this.getZoom()); //revalidate
   }
 };
 
@@ -266,7 +277,7 @@ we.scene.Earth.prototype.getCurrentTileProvider = function(opt_B) {
  * @private
  */
 we.scene.Earth.prototype.updateTiles_ = function() {
-  this.tileCount = 1 << this.scene.camera.getZoom();
+  this.tileCount = 1 << this.getZoom();
 
   var needsCover = this.scene.camera.getPosition();
   var mostDetails = this.scene.camera.getTarget() || needsCover;
@@ -278,17 +289,17 @@ we.scene.Earth.prototype.updateTiles_ = function() {
 
   this.clipStackA_.moveCenter(mostDetails[0], mostDetails[1],
                               needsCover[0], needsCover[1],
-                              Math.floor(this.scene.camera.getZoom()));
+                              Math.floor(this.getZoom()));
 
   if (this.clipStackB_) {
     this.clipStackB_.moveCenter(mostDetails[0], mostDetails[1],
                                 needsCover[0], needsCover[1],
-                                Math.floor(this.scene.camera.getZoom()));
+                                Math.floor(this.getZoom()));
   }
   if (this.terrain) {
     this.clipStackT_.moveCenter(mostDetails[0], mostDetails[1],
                                 needsCover[0], needsCover[1],
-                                Math.floor(this.scene.camera.getZoom()) -
+                                Math.floor(this.getZoom()) -
                                 we.scene.TERRAIN_ZOOM_DIFFERENCE);
   }
 };
@@ -302,7 +313,7 @@ we.scene.Earth.prototype.draw = function() {
 
   this.updateTiles_();
 
-  var zoom = Math.floor(this.scene.camera.getZoom());
+  var zoom = Math.floor(this.getZoom());
 
   this.tileCount = 1 << zoom;
 
@@ -469,6 +480,86 @@ we.scene.Earth.prototype.createLocatedProgram = function(overlayVersion) {
 
   return new we.scene.LocatedProgram(shaderProgram, this.context,
                                      overlayVersion, this.terrain);
+};
+
+
+/**
+ * Sets zoom level and calculates other appropriate cached variables
+ * @param {number} zoom New zoom level.
+ */
+we.scene.Earth.prototype.setZoom = function(zoom) {
+  this.zoom_ = goog.math.clamp(zoom,
+                               this.currentTileProviderA_.getMinZoomLevel(),
+                               this.currentTileProviderA_.getMaxZoomLevel());
+
+  var altitude = this.calcAltitudeForZoom(this.zoom_,
+                                          this.scene.camera.getLatitude());
+
+  this.scene.camera.setAltitude(altitude);
+};
+
+
+/**
+ * @private
+ */
+we.scene.Earth.prototype.zoomChanged_ = function() {
+  this.zoom_ = null;
+};
+
+
+/**
+ * @return {number} Zoom level.
+ */
+we.scene.Earth.prototype.getZoom = function() {
+  if (goog.isNull(this.zoom_)) {
+    this.calcZoom();
+  }
+  return /** @type {number} */(this.zoom_);
+};
+
+
+/**
+ * Calculates zoom from altitude
+ * @param {boolean=} opt_dontClampAndSet If true, don't clamp and
+ *                                       save the resulting value.
+ * @return {number} Calculated zoom.
+ */
+we.scene.Earth.prototype.calcZoom = function(opt_dontClampAndSet) {
+  var cam = this.scene.camera;
+
+  var sizeISee = 2 * (cam.getAltitude() / we.scene.EARTH_RADIUS) *
+                 Math.tan(this.context.fov / 2);
+  var sizeOfOneTile = sizeISee / this.scene.tilesVertically;
+  var o = Math.cos(Math.abs(cam.getLatitude())) * 2 * Math.PI;
+
+  var desiredZoom = Math.log(o / sizeOfOneTile) / Math.LN2;
+
+  if (opt_dontClampAndSet) {
+    return desiredZoom;
+  } else {
+    this.zoom_ = goog.math.clamp(desiredZoom,
+                                 this.currentTileProviderA_.getMinZoomLevel(),
+                                 this.currentTileProviderA_.getMaxZoomLevel());
+    return this.zoom_;
+  }
+  //if (desiredZoom != this.zoom_) {
+  //  this.setZoom(this.zoom_);
+  //}
+};
+
+
+/**
+ * Calculates zoom from altitude
+ * @param {number} zoom Zoom.
+ * @param {number} latitude Latitude.
+ * @return {number} Calculated zoom.
+ */
+we.scene.Earth.prototype.calcAltitudeForZoom = function(zoom, latitude) {
+  var o = Math.cos(Math.abs(latitude)) * 2 * Math.PI;
+  var thisPosDeformation = o / Math.pow(2, zoom);
+  var sizeIWannaSee = thisPosDeformation * this.scene.tilesVertically;
+  return (1 / Math.tan(this.context.fov / 2)) * (sizeIWannaSee / 2) *
+             we.scene.EARTH_RADIUS;
 };
 
 

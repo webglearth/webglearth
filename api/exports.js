@@ -57,7 +57,7 @@ goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
 goog.exportSymbol('WebGLEarth.prototype.setPosition', function(lat, lon, zoom) {
   this.animator_.cancel();
   this.context.scene.camera.setPositionDegrees(lat, lon);
-  if (goog.isDefAndNotNull(zoom)) this.context.scene.camera.setZoom(zoom);
+  if (goog.isDefAndNotNull(zoom)) this.context.scene.earth.setZoom(zoom);
 });
 goog.exportSymbol('WebGLEarth.prototype.getPosition', function() {
   return this.context.scene.camera.getPositionDegrees();
@@ -103,11 +103,11 @@ goog.exportSymbol('WebGLEarth.prototype.getRoll', function() {
 //Zoom
 goog.exportSymbol('WebGLEarth.prototype.setZoom', function(zoom) {
   this.animator_.cancel();
-  this.context.scene.camera.setZoom(zoom);
+  this.context.scene.earth.setZoom(zoom);
 });
 
 goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
-  return this.context.scene.camera.getZoom();
+  return this.context.scene.earth.getZoom();
 });
 
 goog.exportSymbol('WebGLEarth.prototype.flyTo', function(latitude, longitude,

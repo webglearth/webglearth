@@ -138,7 +138,7 @@ weapi.App = function(divid, opt_options) {
 
   //Parsing options
   if (goog.isDef(opt_options) && 'zoom' in opt_options) {
-    this.context.scene.camera.setZoom(opt_options['zoom']);
+    this.context.scene.earth.setZoom(opt_options['zoom']);
   }
 
   if (goog.isDef(opt_options) && 'center' in opt_options) {

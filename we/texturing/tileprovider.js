@@ -171,6 +171,23 @@ we.texturing.TileProvider.prototype.getTileSize = goog.abstractMethod;
 
 
 /**
+ * Set URL of the proxy to use for loading tiles
+ * @return {boolean} Returns whether the TileProvider can use proxy or not.
+ */
+we.texturing.TileProvider.prototype.canUseProxy = function() {return false;};
+
+
+/**
+ * Set URL of the proxy to use for loading tiles
+ * @param {string} url URL of the proxy to use.
+ * @return {boolean} true if anything changed, false otherwise.
+ */
+we.texturing.TileProvider.prototype.setProxyHost = function(url) {
+  return false;
+};
+
+
+/**
  * When overriding this method, you have to call ".gotReady()" at some point.
  * @return {boolean} Returns whether the TileProvider is ready.
  */
