@@ -119,7 +119,7 @@ we.ui.ScenePanner = function(scene, opt_animator) {
  * @private
  */
 we.ui.ScenePanner.prototype.onMouseDown_ = function(e) {
-  if (!e.isButton(goog.events.BrowserEvent.MouseButton.RIGHT) &&
+  if (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
       !e.ctrlKey && !e.altKey) {
 
     if (goog.isDefAndNotNull(this.animator_)) this.animator_.cancel();
