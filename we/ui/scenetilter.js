@@ -111,6 +111,9 @@ we.ui.SceneTilter.prototype.onMouseDown_ = function(e) {
 
     if (goog.isDefAndNotNull(this.animator_)) this.animator_.cancel();
 
+    this.oldX_ = e.screenX;
+    this.oldY_ = e.screenY;
+
     if (e.isButton(goog.events.BrowserEvent.MouseButton.MIDDLE) ||
         (e.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
         e.shiftKey)) {
