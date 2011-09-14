@@ -229,3 +229,63 @@ weapi.App.prototype.setOverlayMap = function(map) {
   this.context.scene.earth.changeTileProvider(
       goog.isDefAndNotNull(map) ? map.tp : null, false, true);
 };
+
+
+/**
+ * Wraps the listener function with a wrapper function
+ * that adds some extended event info.
+ * @param {function(Event)} listener Original listener function.
+ * @return {function(Event)} Wrapper listener.
+ * @private
+ */
+weapi.App.prototype.wrapListener_ = function(listener) {
+  return goog.bind(function(e) {
+    var coords = this.context.scene.getLatLongForXY(e.offsetX, e.offsetY);
+
+    e.target = this;
+    e['latitude'] = goog.isDefAndNotNull(coords) ? coords[0] : null;
+    e['longitude'] = goog.isDefAndNotNull(coords) ? coords[1] : null;
+
+    listener(e);
+  }, this);
+};
+
+
+/**
+ * Register event listener.
+ * @param {string} type Event type.
+ * @param {function(Event)} listener Function to call back.
+ * @return {number?} listenKey.
+ */
+weapi.App.prototype.on = function(type, listener) {
+  var key = goog.events.listen(this.context.canvas, type,
+                               this.wrapListener_(listener));
+
+  listener['___eventKey_' + type] = key;
+
+  return key;
+};
+
+
+/**
+ * Unregister event listener.
+ * @param {string|number|null} typeOrKey Event type or listenKey.
+ * @param {function(Event)} listener Function that was used to register.
+ */
+weapi.App.prototype.off = function(typeOrKey, listener) {
+  if (goog.isDefAndNotNull(listener)) {
+    var key = listener['___eventKey_' + typeOrKey];
+    if (goog.isDefAndNotNull(key)) goog.events.unlistenByKey(key);
+  } else if (!goog.isString(typeOrKey)) {
+    goog.events.unlistenByKey(typeOrKey);
+  }
+};
+
+
+/**
+ * Unregister all event listeners of certain type.
+ * @param {string} type Event type.
+ */
+weapi.App.prototype.offAll = function(type) {
+  goog.events.removeAll(this.context.canvas, type);
+};

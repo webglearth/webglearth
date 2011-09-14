@@ -158,6 +158,9 @@ goog.exportSymbol('WebGLEarth.prototype.setBaseMap',
                   weapi.App.prototype.setBaseMap);
 goog.exportSymbol('WebGLEarth.prototype.setOverlayMap',
                   weapi.App.prototype.setOverlayMap);
+goog.exportSymbol('WebGLEarth.prototype.on', weapi.App.prototype.on);
+goog.exportSymbol('WebGLEarth.prototype.off', weapi.App.prototype.off);
+goog.exportSymbol('WebGLEarth.prototype.offAll', weapi.App.prototype.offAll);
 
 
 goog.exportSymbol('WebGLEarth.Map', weapi.exports.Map);

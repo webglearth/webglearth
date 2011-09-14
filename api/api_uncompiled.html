@@ -39,12 +39,21 @@
       
       app.setBaseMap(mapG);
       app.setOverlayMap(mapBR);
+      
+      var showme = function(e) {
+        document.getElementById('infodiv').innerHTML = (e.latitude + ', ' + e.longitude);
+      };
+      
+      var key = app.on('click', showme);
+      
+      //setTimeout(function() {app.off(key);}, 15000);
     }
   </script>
   
  </head>
  <body onload="javascript:startWE()">
    <div id="webglearthdiv" style="width:600px;height:400px;"></div>
+   <div id="infodiv" style="width:600px;height:20px;"></div>
    <input type="button" value="Zoom to level 9.1" onclick="javascript:app.setZoom(9.1);"/>
    <input type="button" value="What's current zoom level?" onclick="javascript:alert(app.getZoom());"/>
    <input type="button" value="Set altitude to 5000km" onclick="javascript:app.setAltitude(5000000);"/>
