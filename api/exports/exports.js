@@ -152,10 +152,6 @@ goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
   return this.context.resize();
 });
 
-// CORS bypass
-goog.exportSymbol('WebGLEarth.prototype.setProxyHost', function(url) {
-  this.context.proxyHost = url;
-});
 
 goog.exportSymbol('WebGLEarth.AppOptions', weapi.exports.AppOptions);
 
