@@ -41,7 +41,6 @@ goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.ScenePanner');
 goog.require('we.ui.SceneTilter');
 
-goog.require('weapi.exports.AppOptions');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
 
@@ -54,7 +53,7 @@ goog.addDependency('',
 
 /**
  * @param {string} divid Div element ID.
- * @param {weapi.exports.AppOptions=} opt_options Application options.
+ * @param {Object=} opt_options Application options.
  * @constructor
  */
 weapi.App = function(divid, opt_options) {
@@ -131,36 +130,34 @@ weapi.App = function(divid, opt_options) {
       undefined, //infobox
       mapcopyrightEl,
       maplogoEl,
-      (goog.isDefAndNotNull(options.map)) ?
-          weapi.maps.getMap(options.map).tp : undefined,
+      (goog.isDefAndNotNull(options['map'])) ?
+          weapi.maps.getMap(options['map']).tp : undefined,
       goog.dom.createDom('p', null, 'Powered by ',
       goog.dom.createDom('a',
           {href: 'http://www.webglearth.org/', style: 'color:#00f'},
           'WebGL Earth'),
       '.'),
-      options.atmosphere === false
+      options['atmosphere'] === false
       );
 
   /* Parsing options */
   /* Some options are parsed somewhere else: map, atmosphere */
-  if (goog.isDefAndNotNull(options.position) &&
-      options.position.length > 1) {
-    this.context.scene.camera.setPositionDegrees(options.position[0],
-                                                 options.position[1]);
-  } else if (goog.isDefAndNotNull(options.center) &&
-             options.center.length > 1) {
-    this.context.scene.camera.setPositionDegrees(options.center[0],
-                                                 options.center[1]);
+  var pos = options['position'];
+  var center = options['center'];
+  if (goog.isDefAndNotNull(pos) && pos.length > 1) {
+    this.context.scene.camera.setPositionDegrees(pos[0], pos[1]);
+  } else if (goog.isDefAndNotNull(center) && center.length > 1) {
+    this.context.scene.camera.setPositionDegrees(center[0], center[1]);
   }
 
-  if (goog.isDefAndNotNull(options.zoom))
-    this.context.scene.earth.setZoom(options.zoom);
+  var zoom = options['zoom'];
+  if (goog.isDefAndNotNull(zoom)) this.context.scene.earth.setZoom(zoom);
 
-  if (goog.isDefAndNotNull(options.altitude))
-    this.context.scene.camera.setAltitude(options.altitude);
+  var alt = options['altitude'];
+  if (goog.isDefAndNotNull(alt)) this.context.scene.camera.setAltitude(alt);
 
-  if (goog.isDefAndNotNull(options.proxyHost))
-    this.context.proxyHost = options.proxyHost;
+  var proxy = options['proxyHost'];
+  if (goog.isString(proxy)) this.context.proxyHost = proxy;
 
   /**
    * @type {!we.scene.CameraAnimator}
@@ -174,7 +171,7 @@ weapi.App = function(divid, opt_options) {
    */
   this.panner_ = null;
 
-  if (options.panning !== false) {
+  if (options['panning'] !== false) {
     this.panner_ = new we.ui.ScenePanner(this.context.scene, this.animator_);
   }
 
@@ -184,7 +181,7 @@ weapi.App = function(divid, opt_options) {
    */
   this.tilter_ = null;
 
-  if (options.tilting !== false) {
+  if (options['tilting'] !== false) {
     this.tilter_ = new we.ui.SceneTilter(this.context.scene, this.animator_);
   }
 
@@ -194,7 +191,7 @@ weapi.App = function(divid, opt_options) {
    */
   this.zoomer_ = null;
 
-  if (options.zooming !== false) {
+  if (options['zooming'] !== false) {
     this.zoomer_ = new we.ui.MouseZoomer(this.context.scene);
   }
 

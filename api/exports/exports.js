@@ -34,7 +34,6 @@ goog.require('goog.math');
 goog.require('we.math.geo');
 goog.require('we.scene.Scene');
 goog.require('weapi.App');
-goog.require('weapi.exports.AppOptions');
 goog.require('weapi.exports.Map');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
@@ -151,10 +150,6 @@ goog.exportSymbol('WebGLEarth.prototype.flyToFitBounds', function(minlat,
 goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
   return this.context.resize();
 });
-
-
-goog.exportSymbol('WebGLEarth.AppOptions', weapi.exports.AppOptions);
-
 
 goog.exportSymbol('WebGLEarth.Maps', weapi.maps.MapType);
 goog.exportSymbol('WebGLEarth.prototype.initMap', weapi.maps.initMap);
