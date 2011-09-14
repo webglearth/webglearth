@@ -78,28 +78,28 @@ goog.exportSymbol('WebGLEarth.prototype.getAltitude', function() {
 //Heading
 goog.exportSymbol('WebGLEarth.prototype.setHeading', function(heading) {
   this.animator_.cancel();
-  this.context.scene.camera.setHeading(heading);
+  this.context.scene.camera.setHeading(goog.math.toRadians(heading));
 });
 goog.exportSymbol('WebGLEarth.prototype.getHeading', function() {
-  return this.context.scene.camera.getHeading();
+  return goog.math.toDegrees(this.context.scene.camera.getHeading());
 });
 
 //Tilt
 goog.exportSymbol('WebGLEarth.prototype.setTilt', function(tilt) {
   this.animator_.cancel();
-  this.context.scene.camera.setTilt(tilt);
+  this.context.scene.camera.setTilt(goog.math.toRadians(tilt));
 });
 goog.exportSymbol('WebGLEarth.prototype.getTilt', function() {
-  return this.context.scene.camera.getTilt();
+  return goog.math.toDegrees(this.context.scene.camera.getTilt());
 });
 
 //Roll
 goog.exportSymbol('WebGLEarth.prototype.setRoll', function(roll) {
   this.animator_.cancel();
-  this.context.scene.camera.setRoll(roll);
+  this.context.scene.camera.setRoll(goog.math.toRadians(roll));
 });
 goog.exportSymbol('WebGLEarth.prototype.getRoll', function() {
-  return this.context.scene.camera.getRoll();
+  return goog.math.toDegrees(this.context.scene.camera.getRoll());
 });
 
 /* Extended functions */
