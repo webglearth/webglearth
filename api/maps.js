@@ -34,6 +34,7 @@ goog.require('goog.structs.Map');
 
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
+goog.require('we.texturing.GoogleTileProvider');
 goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.WMSTileProvider');
@@ -50,6 +51,7 @@ weapi.maps.MapType = {
   'OSM': 'osm',
   'BING': 'bing',
   'WMS': 'wms',
+  'GOOGLE': 'gooogle',
   'CUSTOM': 'custom'
 };
 
@@ -87,6 +89,9 @@ weapi.maps.initMap = function(type, var_args) {
     case weapi.maps.MapType.WMS:
       tileProviderCtor = we.texturing.WMSTileProvider;
       break;
+    case weapi.maps.MapType.GOOGLE:
+      tileProviderCtor = we.texturing.GoogleTileProvider;
+      break;
     case weapi.maps.MapType.CUSTOM:
       tileProviderCtor = we.texturing.GenericTileProvider;
       break;
@@ -114,16 +119,18 @@ weapi.maps.initMap = function(type, var_args) {
 
   var tileProvider = construct(tileProviderCtor, var_args);
 
-  weapi.maps.mapMap.set(key, tileProvider);
+  var map = new weapi.exports.Map(tileProvider);
 
-  return new weapi.exports.Map(tileProvider);
+  weapi.maps.mapMap.set(key, map);
+
+  return map;
 };
 
 
 /**
  * @param {!weapi.maps.MapType} type Type of the map.
  * @param {string=} opt_subtype Optional subtype of the map.
- * @return {we.texturing.TileProvider} TileProvider.
+ * @return {weapi.exports.Map} TileProvider.
  */
 weapi.maps.getMap = function(type, opt_subtype) {
   /** @type {string} */
@@ -131,7 +138,7 @@ weapi.maps.getMap = function(type, opt_subtype) {
   if (goog.isDefAndNotNull(opt_subtype))
     key += opt_subtype;
 
-  return /** @type {we.texturing.TileProvider} */ (weapi.maps.mapMap.get(key));
+  return /** @type {weapi.exports.Map} */ (weapi.maps.mapMap.get(key));
 };
 
 

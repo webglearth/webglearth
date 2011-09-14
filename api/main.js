@@ -132,7 +132,7 @@ weapi.App = function(divid, opt_options) {
       mapcopyrightEl,
       maplogoEl,
       (goog.isDefAndNotNull(options.map)) ?
-          weapi.maps.getMap(options.map) : undefined,
+          weapi.maps.getMap(options.map).tp : undefined,
       goog.dom.createDom('p', null, 'Powered by ',
       goog.dom.createDom('a',
           {href: 'http://www.webglearth.org/', style: 'color:#00f'},
@@ -209,10 +209,10 @@ weapi.App = function(divid, opt_options) {
  * @param {string=} opt_subtype Optional subtype of the map.
  */
 weapi.App.prototype.setMap = function(type, opt_subtype) {
-  var tileProvider = weapi.maps.getMap(type, opt_subtype);
+  var map = weapi.maps.getMap(type, opt_subtype);
 
-  if (goog.isDefAndNotNull(tileProvider)) {
-    this.context.scene.earth.changeTileProvider(tileProvider);
+  if (goog.isDefAndNotNull(map)) {
+    this.context.scene.earth.changeTileProvider(map.tp);
   }
 };
 
@@ -226,8 +226,9 @@ weapi.App.prototype.setBaseMap = function(map) {
 
 
 /**
- * @param {!weapi.exports.Map} map Map.
+ * @param {weapi.exports.Map} map Map.
  */
 weapi.App.prototype.setOverlayMap = function(map) {
-  this.context.scene.earth.changeTileProvider(map.tp, false, true);
+  this.context.scene.earth.changeTileProvider(
+      goog.isDefAndNotNull(map) ? map.tp : null, false, true);
 };
