@@ -348,7 +348,7 @@ weapp.App = function(canvas) {
 
         var popup = new we.ui.markers.Popup('<h2>Title</h2><br/><b>aa</b>bb');
 
-        marker.bindPopup(popup);
+        marker.attachPopup(popup);
 
         marker.showPopup(true);
 

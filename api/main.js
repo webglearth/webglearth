@@ -33,16 +33,18 @@ goog.provide('weapi.App');
 goog.require('goog.Timer');
 goog.require('goog.dom');
 goog.require('goog.events');
-
 goog.require('we.gl.Context');
 goog.require('we.scene.CameraAnimator');
 goog.require('we.scene.Scene');
 goog.require('we.ui.MouseZoomer');
 goog.require('we.ui.ScenePanner');
 goog.require('we.ui.SceneTilter');
-
+goog.require('we.ui.markers.MarkerManager');
+goog.require('we.ui.markers.PrettyMarker');
 goog.require('weapi.maps');
 goog.require('weapi.maps.MapType');
+
+
 
 
 //Dummy dependencies
@@ -109,7 +111,10 @@ weapi.App = function(divid, opt_options) {
   goog.events.listen(
       this.loopTimer,
       goog.Timer.TICK,
-      goog.bind(function() {this.context.renderFrame();}, this)
+      goog.bind(function() {
+        this.context.renderFrame();
+        this.markerManager_.updateMarkers();
+      }, this)
   );
 
 
@@ -140,6 +145,12 @@ weapi.App = function(divid, opt_options) {
       options['atmosphere'] === false
       );
 
+  /**
+   * @type {!we.ui.markers.MarkerManager}
+   * @private
+   */
+  this.markerManager_ = new we.ui.markers.MarkerManager(this.context.scene,
+                                                        wrapperEl);
   /* Parsing options */
   /* Some options are parsed somewhere else: map, atmosphere */
   var pos = options['position'];
@@ -261,7 +272,7 @@ weapi.App.prototype.on = function(type, listener) {
   var key = goog.events.listen(this.context.canvas, type,
                                this.wrapListener_(listener));
 
-  listener['___eventKey_' + type] = key;
+  listener[goog.getUid(this) + '___eventKey_' + type] = key;
 
   return key;
 };
@@ -274,7 +285,7 @@ weapi.App.prototype.on = function(type, listener) {
  */
 weapi.App.prototype.off = function(typeOrKey, listener) {
   if (goog.isDefAndNotNull(listener)) {
-    var key = listener['___eventKey_' + typeOrKey];
+    var key = listener[goog.getUid(this) + '___eventKey_' + typeOrKey];
     if (goog.isDefAndNotNull(key)) goog.events.unlistenByKey(key);
   } else if (!goog.isString(typeOrKey)) {
     goog.events.unlistenByKey(typeOrKey);
@@ -288,4 +299,23 @@ weapi.App.prototype.off = function(typeOrKey, listener) {
  */
 weapi.App.prototype.offAll = function(type) {
   goog.events.removeAll(this.context.canvas, type);
+};
+
+
+/**
+ * @param {number} lat Latitude.
+ * @param {number} lon Longitude.
+ * @param {string=} opt_iconUrl URL of the icon to use instead of the default.
+ * @param {number=} opt_width Width of the icon.
+ * @param {number=} opt_height Height of the icon.
+ * @return {!we.ui.markers.PrettyMarker} New marker.
+ */
+weapi.App.prototype.initMarker = function(lat, lon,
+                                          opt_iconUrl, opt_width, opt_height) {
+  var mark = new we.ui.markers.PrettyMarker(lat, lon,
+                                            opt_iconUrl, opt_width, opt_height);
+
+  this.markerManager_.addMarker(null, mark);
+
+  return mark;
 };

@@ -33,6 +33,8 @@ goog.require('goog.math');
 
 goog.require('we.math.geo');
 goog.require('we.scene.Scene');
+goog.require('we.ui.markers.Popup');
+goog.require('we.ui.markers.PrettyMarker');
 goog.require('weapi.App');
 goog.require('weapi.exports.Map');
 goog.require('weapi.maps');
@@ -161,6 +163,8 @@ goog.exportSymbol('WebGLEarth.prototype.setOverlayMap',
 goog.exportSymbol('WebGLEarth.prototype.on', weapi.App.prototype.on);
 goog.exportSymbol('WebGLEarth.prototype.off', weapi.App.prototype.off);
 goog.exportSymbol('WebGLEarth.prototype.offAll', weapi.App.prototype.offAll);
+goog.exportSymbol('WebGLEarth.prototype.initMarker',
+                  weapi.App.prototype.initMarker);
 
 
 goog.exportSymbol('WebGLEarth.Map', weapi.exports.Map);
@@ -170,3 +174,60 @@ goog.exportSymbol('WebGLEarth.Map.prototype.setOpacity',
                   weapi.exports.Map.prototype.setOpacity);
 goog.exportSymbol('WebGLEarth.Map.prototype.getOpacity',
                   weapi.exports.Map.prototype.getOpacity);
+
+
+/* MARKERS */
+//TODO: Create separate file ?
+
+goog.exportSymbol('WebGLEarth.Marker', we.ui.markers.PrettyMarker);
+goog.exportSymbol('WebGLEarth.Marker.prototype.setPosition', function(lat,
+                                                                      lon) {
+      this.lat = lat;
+      this.lon = lon;
+    });
+
+goog.exportSymbol('WebGLEarth.Marker.prototype.bindPopup', function(content,
+                                                                    maxWidth,
+                                                                    closeBtn) {
+      this.attachPopup(new we.ui.markers.Popup(content, maxWidth, closeBtn));
+      return this;
+    });
+
+goog.exportSymbol('WebGLEarth.Marker.prototype.openPopup', function() {
+  this.showPopup(true);
+});
+
+goog.exportSymbol('WebGLEarth.Marker.prototype.closePopup', function() {
+  this.showPopup(false);
+});
+
+
+/**
+ * Wraps the listener function with a wrapper function
+ * that adds some extended event info.
+ * @param {function(Event)} listener Original listener function.
+ * @return {function(Event)} Wrapper listener.
+ * @private
+ */
+we.ui.markers.PrettyMarker.prototype.wrapListener_ = function(listener) {
+  return goog.bind(function(e) {
+    e.target = this;
+    e['latitude'] = this.lat;
+    e['longitude'] = this.lon;
+
+    listener(e);
+  }, this);
+};
+
+goog.exportSymbol('WebGLEarth.Marker.prototype.on', function(type, listener) {
+  var key = goog.events.listen(this.element, type,
+                               this.wrapListener_(listener));
+
+  listener[goog.getUid(this) + '___eventKey_' + type] = key;
+
+  return key;
+});
+goog.exportSymbol('WebGLEarth.Marker.prototype.off', weapi.App.prototype.off);
+goog.exportSymbol('WebGLEarth.Marker.prototype.offAll', function(type) {
+  goog.events.removeAll(this.element, type);
+});

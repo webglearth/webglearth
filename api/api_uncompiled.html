@@ -40,11 +40,15 @@
       app.setBaseMap(mapG);
       app.setOverlayMap(mapBR);
       
+      var marker = app.initMarker(20, 0);
+      
+      marker.bindPopup('test', 140).openPopup();
+      
       var showme = function(e) {
         document.getElementById('infodiv').innerHTML = (e.latitude + ', ' + e.longitude);
       };
       
-      var key = app.on('click', showme);
+      var key = marker.on('click', showme);
       
       //setTimeout(function() {app.off(key);}, 15000);
     }

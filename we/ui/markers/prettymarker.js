@@ -86,7 +86,7 @@ goog.inherits(we.ui.markers.PrettyMarker, we.ui.markers.AbstractMarker);
  * Bind the popup to this marker.
  * @param {!we.ui.markers.Popup} popup Popup to bind.
  */
-we.ui.markers.PrettyMarker.prototype.bindPopup = function(popup) {
+we.ui.markers.PrettyMarker.prototype.attachPopup = function(popup) {
   if (this.popup_) goog.dom.removeNode(this.popup_.getElement());
 
   this.popup_ = popup;
