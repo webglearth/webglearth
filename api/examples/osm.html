@@ -5,9 +5,8 @@
 <script>
   var earth;
   function initialize() {
-    var options = { zoom: 3, map:WebGLEarth.Maps.OSM };
+    var options = { zoom: 3, map: WebGLEarth.Maps.OSM, proxyHost: 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=' };
     earth = new WebGLEarth('earth_div', options);
-    earth.setProxyHost('http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=');
   }
 </script>
 </head>
