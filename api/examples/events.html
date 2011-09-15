@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script>
+<script>
+  function initialize() {
+    var options = { altitude: 6000000, position: [47.19537,8.524404], proxyHost: 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=' };
+    var earth = new WebGLEarth('earth_div', options);
+    
+    //Print coordinates of the mouse
+    var printCoords = function(e) {
+      document.getElementById('coordsbox').innerHTML = (e.latitude + ', ' + e.longitude) + '<br/>' +
+                                                       (e.offsetX + ', ' + e.offsetY);
+    };
+    earth.on('mousemove', printCoords);
+
+    //Show coordinates on click, then unregister the listener
+    var listenKey;
+    var alertCoords = function(e) {
+      alert(e.latitude + ', ' + e.longitude);
+      earth.off(listenKey);
+    };
+    listenKey = earth.on('click', alertCoords);
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Hello World</h1>
+  <div id="earth_div" style="width:600px;height:400px;border:1px solid gray; padding:2px;"></div>
+  <div id="coordsbox" style="width:600px;height:20px;"></div>
+</body>
+</html>
