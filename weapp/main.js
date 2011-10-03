@@ -48,9 +48,11 @@ goog.require('we.texturing.MapQuestTileProvider');
 goog.require('we.texturing.OSMTileProvider');
 goog.require('we.texturing.TileProvider');
 goog.require('we.ui.MouseZoomer');
-goog.require('we.ui.SceneDragger');
+goog.require('we.ui.ScenePanner');
+goog.require('we.ui.SceneTilter');
 goog.require('we.ui.markers.BasicMarker');
 goog.require('we.ui.markers.MarkerManager');
+goog.require('we.ui.markers.Popup');
 goog.require('we.ui.markers.PrettyMarker');
 goog.require('weapp.ui.Nominatim');
 //goog.require('weapp.ui.OpacitySlider');
@@ -148,10 +150,16 @@ weapp.App = function(canvas) {
     this.animator_ = new we.scene.CameraAnimator(this.context.scene.camera);
 
     /**
-     * @type {!we.ui.SceneDragger}
+     * @type {!we.ui.ScenePanner}
      * @private
      */
-    this.dragger_ = new we.ui.SceneDragger(this.context.scene, this.animator_);
+    this.panner_ = new we.ui.ScenePanner(this.context.scene, this.animator_);
+
+    /**
+     * @type {!we.ui.SceneTilter}
+     * @private
+     */
+    this.tilter_ = new we.ui.SceneTilter(this.context.scene, this.animator_);
 
     /**
      * @type {!we.ui.MouseZoomer}
@@ -336,21 +344,14 @@ weapp.App = function(canvas) {
     var addMarker = function(e) {
       if (e.ctrlKey) {
         var coords = this.context.scene.getLatLongForXY(e.offsetX, e.offsetY);
-        var marker = new we.ui.markers.PrettyMarker(coords[0], coords[1],
-            'Title', /** @type {!HTMLElement} */ (goog.dom.createDom('span', {},
-            'This is an example of new PrettyMarker.' +
-            ' You can easily customize this popup and ' +
-            'even add links and other objects: ',
-            goog.dom.createDom('br'), goog.dom.createDom('br'),
-            goog.dom.createDom('a',
-            {target: 'blank', href: 'http://www.klokantech.com/'},
-            'Klokan Technologies'),
-            goog.dom.createDom('br'), goog.dom.createDom('br')/*,
-            goog.dom.createDom('iframe',
-            {'width': 240, 'height': 210,
-              'src': 'http://www.youtube.com/embed/xn8Y3wzLrXo',
-              'frameborder': 0}
-            )*/)));
+        var marker = new we.ui.markers.PrettyMarker(coords[0], coords[1]);
+
+        var popup = new we.ui.markers.Popup('<h2>Title</h2><br/><b>aa</b>bb');
+
+        marker.attachPopup(popup);
+
+        marker.showPopup(true);
+
         this.markerManager_.addMarker(null, marker);
         e.preventDefault();
       }

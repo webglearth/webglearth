@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script>
+<script>
+  function initialize() {
+    var options = { altitude: 6000000, position: [47.19537,8.524404], proxyHost: 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=' };
+    var earth = new WebGLEarth('earth_div', options);
+    
+    var londonM = earth.initMarker(51.507222, -0.1275);
+    var denverM = earth.initMarker(39.739167, -104.984722);
+    var cairoM = earth.initMarker(30.058056, 31.228889);
+    
+    londonM.bindPopup('<h2>London</h2>This marker is already opened.', 250).openPopup();
+    denverM.bindPopup('<h2>Denver</h2>You can\'t see this marker without rotating the Earth.');
+
+    cairoM.bindPopup('<h2>Cairo</h2>Click on me to close London\'s marker.').openPopup();
+
+    var closeLondon = function(e) {
+      londonM.closePopup();
+    };
+
+    cairoM.on('click', closeLondon);
+  }
+</script>
+</head>
+<body onload="initialize()">
+  <h1>WebGL Earth API: Hello World</h1>
+  <div id="earth_div" style="width:600px;height:400px;border:1px solid gray; padding:2px;"></div>
+</body>
+</html>

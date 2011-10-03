@@ -75,3 +75,19 @@ we.utils.standardLongitudeRadians = function(lon) {
   var standard = goog.math.modulo(lon, 2 * Math.PI);
   return standard > Math.PI ? standard - 2 * Math.PI : standard;
 };
+
+
+/**
+ * Appends given text to document's stylesheet.
+ * @param {string} cssCode CSS code to append to head.
+ */
+we.utils.addCss = function(cssCode) {
+  var styleEl = goog.dom.createElement('style');
+  styleEl.type = 'text/css';
+  if (styleEl.styleSheet) {
+    styleEl.styleSheet.cssText = cssCode;
+  } else {
+    styleEl.appendChild(document.createTextNode(cssCode));
+  }
+  goog.dom.getElementsByTagNameAndClass('head')[0].appendChild(styleEl);
+};

@@ -68,3 +68,26 @@ we.math.geo.calcDistanceToViewBounds = function(minlat, maxlat, minlon, maxlon,
 
   return lookAtRange;
 };
+
+
+/**
+ * Calculates center of given bounds.
+ * @param {number} minlat ..
+ * @param {number} maxlat ..
+ * @param {number} minlon ..
+ * @param {number} maxlon ..
+ * @return {Array.<number>} [lat, lon].
+ */
+we.math.geo.calcBoundsCenter = function(minlat, maxlat, minlon, maxlon) {
+  minlon = goog.math.modulo(minlon, 2 * Math.PI);
+  maxlon = goog.math.modulo(maxlon, 2 * Math.PI);
+
+  var lonDiff = minlon - maxlon;
+  if (lonDiff < -Math.PI) {
+    minlon += 2 * Math.PI;
+  } else if (lonDiff > Math.PI) {
+    maxlon += 2 * Math.PI;
+  }
+
+  return [(minlat + maxlat) / 2, (minlon + maxlon) / 2];
+};
