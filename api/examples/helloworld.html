@@ -4,7 +4,7 @@
 <script src="http://www.webglearth.com/api.js"></script>
 <script>
   function initialize() {
-    var options = { zoom: 3, center: [47.19537,8.524404] };
+    var options = { zoom: 3, position: [47.19537,8.524404], proxyHost: 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=' };
     var earth = new WebGLEarth('earth_div', options);
   }
 </script>

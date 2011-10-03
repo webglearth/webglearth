@@ -126,7 +126,7 @@ we.texturing.GoogleTileProvider = function(mapTypeId,
     }
   }
 
-  if (goog.isDefAndNotNull(goog.global.google) &&
+  if (goog.isDefAndNotNull(goog.global['google']) &&
       google.maps &&
       google.maps.Map) {
     //Main script loaded

@@ -14,19 +14,20 @@
   var earth1;
   var earth2;
   var zoom = 2;
-  var center = [45.0, 6.0];
+  var pos = [45.0, 6.0];
 
   function antipode(coord) {
     return [-1*coord[0], coord[1]-180];
   }
 
   function update() {
-    if (center[0] == earth1.getCenter()[0] && center[1] == earth1.getCenter()[1]) {
-      center = antipode( earth2.getCenter() );
-      earth1.setCenter( center );
+    if (pos[0] == earth1.getPosition()[0] && pos[1] == earth1.getPosition()[1]) {
+      pos = antipode( earth2.getPosition() );
+      earth1.setPosition( pos[0], pos[1] );
     } else {
-      center = earth1.getCenter();
-      earth2.setCenter( antipode( earth1.getCenter() ) );
+      pos = earth1.getPosition();
+      var antip = antipode( earth1.getPosition() );
+      earth2.setPosition( antip[0], antip[1] );
     }
     if (earth1.getZoom() != zoom) {
       zoom = earth1.getZoom();
@@ -38,8 +39,10 @@
   }
 
   function initialize() {
-    earth1 = new WebGLEarth( 'earth_div1', { zoom:zoom, center:center } );
-    earth2 = new WebGLEarth( 'earth_div2', { zoom:zoom, center:antipode(center) } );
+    var proxyUrl = 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url=';
+    earth1 = new WebGLEarth( 'earth_div1', { zoom:zoom, position:pos, proxyHost:proxyUrl } );
+    earth2 = new WebGLEarth( 'earth_div2', { zoom:zoom, position:antipode(pos), proxyHost:proxyUrl } );
+    
     // Recalculate positions whenever any of the two globes moves
     setInterval('update()', 50);
   }

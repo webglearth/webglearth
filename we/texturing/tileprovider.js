@@ -95,6 +95,11 @@ we.texturing.TileProvider = function(name) {
    * @private
    */
   this.boundingBoxCache_ = [];
+
+  /**
+   * @type {number}
+   */
+  this.opacity = 1.0;
 };
 
 
