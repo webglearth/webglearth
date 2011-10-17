@@ -389,6 +389,66 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
 
 
 /**
+ * Calculates approximate bounding box of visible area.
+ * @return {Array.<number>} Array [minlat, maxlat, minlon, maxlon].
+ */
+we.scene.Scene.prototype.getGeoBounds = function() {
+  var w = this.context.viewportWidth;
+  var h = this.context.viewportHeight;
+
+  //center of the screen
+  var center = this.getLatLongForXY(w / 2, h / 2, true);
+
+  //canvas corners and edge centers
+  var coords = [];
+  coords.push(this.getLatLongForXY(0, 0, true));
+  coords.push(this.getLatLongForXY(w / 2, 0, true));
+  coords.push(this.getLatLongForXY(w, 0, true));
+  coords.push(this.getLatLongForXY(w, h / 2, true));
+  coords.push(this.getLatLongForXY(w, h, true));
+  coords.push(this.getLatLongForXY(w / 2, h, true));
+  coords.push(this.getLatLongForXY(0, h, true));
+  coords.push(this.getLatLongForXY(0, h / 2, true));
+
+  //if anything is null, return whole Earth
+  //(not optimal - we should find additional points to add to coords array!)
+  if (goog.array.contains(coords, null)) {
+    return [-Math.PI / 2, Math.PI / 2, -Math.PI, Math.PI];
+  }
+
+  var positify = function(angle) {
+    return goog.math.modulo(angle, 2 * Math.PI);
+  }
+
+  var latReducer = function(comp) {
+    return function(r, v, i, arr) {
+      return comp(v[0], r) ? v[0] : r;
+    }
+  }
+
+  var lonReducer = function(comp) {
+    return function(r, v, i, arr) {
+      var val = positify(v[1]);
+      return comp(val, positify(center[1])) && comp(val, r) ? val : r;
+    }
+  }
+
+  var minlat = goog.array.reduce(coords,
+      latReducer(function(a, b) {return a < b;}), coords[0][0]);
+  var maxlat = goog.array.reduce(coords,
+      latReducer(function(a, b) {return a > b;}), coords[0][0]);
+  var minlon = we.utils.standardLongitudeRadians(goog.array.reduce(coords,
+      lonReducer(function(a, b) {return a < b;}),
+      positify(coords[1][1])));
+  var maxlon = we.utils.standardLongitudeRadians(goog.array.reduce(coords,
+      lonReducer(function(a, b) {return a > b;}),
+      positify(coords[1][1])));
+
+  return [minlat, maxlat, minlon, maxlon];
+};
+
+
+/**
  * Project latitude from Unprojected to Mercator
  * @param {number} latitude Unprojected latitude in radians.
  * @return {number} Latitude projected to Mercator in radians.
