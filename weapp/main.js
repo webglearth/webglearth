@@ -426,8 +426,8 @@ weapp.run = function() {
       new we.texturing.GoogleTileProvider(
           we.texturing.GoogleTileProvider.MapTypes.TERRAIN));*/
 
-  app.addTileProvider(new we.texturing.MapQuestTileProvider());
   app.addTileProvider(new we.texturing.OSMTileProvider());
+  app.addTileProvider(new we.texturing.MapQuestTileProvider());
 
   app.addTileProvider(
       new we.texturing.BingTileProvider('Aerial', weapp.BING_KEY));
