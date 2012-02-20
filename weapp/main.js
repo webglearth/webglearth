@@ -414,7 +414,7 @@ weapp.run = function() {
             0, 5, 256, true));
   }
 
-  app.addTileProvider(
+  /*app.addTileProvider(
       new we.texturing.GoogleTileProvider(
           we.texturing.GoogleTileProvider.MapTypes.SATELLITE));
 
@@ -424,7 +424,7 @@ weapp.run = function() {
 
   app.addTileProvider(
       new we.texturing.GoogleTileProvider(
-          we.texturing.GoogleTileProvider.MapTypes.TERRAIN));
+          we.texturing.GoogleTileProvider.MapTypes.TERRAIN));*/
 
   app.addTileProvider(new we.texturing.MapQuestTileProvider());
   app.addTileProvider(new we.texturing.OSMTileProvider());
