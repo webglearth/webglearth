@@ -39,6 +39,8 @@ goog.require('we.utils');
 
 /**
  * @inheritDoc
+ * @param {number} lat .
+ * @param {number} lon .
  * @param {string=} opt_iconUrl URL of the icon to use instead of the default.
  * @param {number=} opt_width Width of the icon.
  * @param {number=} opt_height Height of the icon.

@@ -213,7 +213,7 @@ weapp.App = function(canvas) {
      * @private
      */
     this.markerManager_ = new we.ui.markers.MarkerManager(this.context.scene,
-                                                          canvas.parentNode);
+        /** @type {!Element} */(canvas.parentNode));
 
     var nominMarker = new we.ui.markers.BasicMarker(0, 0);
     nominMarker.enable(false);

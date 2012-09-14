@@ -311,6 +311,7 @@ we.scene.ClipLevel.prototype.processTiles = function(tilesToBuffer,
   this.tileCache_.processLoadRequests(tilesToBeLoading);
 
   if (we.scene.TRILINEAR_FILTERING && buffered > 0) {
+    this.context_.gl.activeTexture(this.context_.gl.TEXTURE0);
     this.context_.gl.bindTexture(this.context_.gl.TEXTURE_2D,
                                  this.buffer.texture);
     this.context_.gl.generateMipmap(this.context_.gl.TEXTURE_2D);

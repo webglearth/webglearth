@@ -1,0 +1,14 @@
+{
+  "id": "api_debug",
+  "inherits": "api.json",
+
+  "define": {
+    //"we.shaderbank.USE_COMPILED_SHADERS": false,
+    "goog.DEBUG": true
+  },
+
+  "mode": "SIMPLE",
+  
+  "pretty-print": true,
+  "debug": true
+}

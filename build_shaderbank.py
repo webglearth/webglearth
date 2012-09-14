@@ -27,7 +27,7 @@
 import os
 import string
 
-output = open('./shaderbank_codes.js', 'w')
+output = open('./we/shaderbank_codes.js', 'w')
 
 output.write("""/*
  * Copyright (C) 2011 Klokan Technologies GmbH (info@klokantech.com)
@@ -62,7 +62,7 @@ output.write("""/*
 
 goog.provide('we.shaderbank.codes');\n""")
 
-shaderDir = './shaders/'
+shaderDir = './we/shaders/'
 
 # Following operators serve as token delimiters,
 # so we can safely remove any whitespace around them.
