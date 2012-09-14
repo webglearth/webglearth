@@ -437,12 +437,14 @@ we.scene.Scene.prototype.getGeoBounds = function() {
       latReducer(function(a, b) {return a < b;}), coords[0][0]);
   var maxlat = goog.array.reduce(coords,
       latReducer(function(a, b) {return a > b;}), coords[0][0]);
-  var minlon = we.utils.standardLongitudeRadians(goog.array.reduce(coords,
+  var minlon = we.utils.standardLongitudeRadians(
+      /** @type {number} */(goog.array.reduce(coords,
       lonReducer(function(a, b) {return a < b;}),
-      positify(coords[1][1])));
-  var maxlon = we.utils.standardLongitudeRadians(goog.array.reduce(coords,
+      positify(coords[1][1]))));
+  var maxlon = we.utils.standardLongitudeRadians(
+      /** @type {number} */(goog.array.reduce(coords,
       lonReducer(function(a, b) {return a > b;}),
-      positify(coords[1][1])));
+      positify(coords[1][1]))));
 
   return [minlat, maxlat, minlon, maxlon];
 };

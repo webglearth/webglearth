@@ -236,7 +236,8 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
     this.frameTimeSinceLastFpsCalc_ = 0;
   }
 
-  goog.events.listen(goog.global,
+  //TODO: ViewportSizeMonitor
+  goog.events.listen(window,
       goog.events.EventType.RESIZE,
       this.resize, false, this);
 
