@@ -1,6 +1,27 @@
-//Copyright (c) 2009 The Chromium Authors. All rights reserved.
-//Use of this source code is governed by a BSD-style license that can be
-//found in the LICENSE file.
+/*
+** Copyright (c) 2012 The Khronos Group Inc.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a
+** copy of this software and/or associated documentation files (the
+** "Materials"), to deal in the Materials without restriction, including
+** without limitation the rights to use, copy, modify, merge, publish,
+** distribute, sublicense, and/or sell copies of the Materials, and to
+** permit persons to whom the Materials are furnished to do so, subject to
+** the following conditions:
+**
+** The above copyright notice and this permission notice shall be included
+** in all copies or substantial portions of the Materials.
+**
+** THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+** IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+** CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+*/
+
+// Various functions for helping debug WebGL apps.
 
 /**
  * @fileoverview Various functions for helping debug WebGL apps.
@@ -22,8 +43,20 @@ WebGLDebugUtils = function() {
   };
 
   /**
-   * Which arguments are enums.
-   * @type {!Object}
+   * Wrapped error logging function.
+   * @param {string} msg Message to log.
+   */
+  var error = function(msg) {
+    if (window.console && window.console.error) {
+      window.console.error(msg);
+    } else {
+      log(msg);
+    }
+  };
+
+  /**
+   * Which arguements are enums.
+   * @type {!Object.<string, !Object.<number, boolean>>}
    */
   var glValidEnumContexts = {
 
@@ -175,7 +208,56 @@ WebGLDebugUtils = function() {
         return glEnumToString(value);
       }
     }
-    return value.toString();
+    if (value === null) {
+      return 'null';
+    } else if (value === undefined) {
+      return 'undefined';
+    } else {
+      return value.toString();
+    }
+  }
+
+  /**
+   * Converts the arguments of a WebGL function to a string.
+   * Attempts to convert enum arguments to strings.
+   *
+   * @param {string} functionName the name of the WebGL function.
+   * @param {number} args The arguments.
+   * @return {string} The arguments as a string.
+   */
+  function glFunctionArgsToString(functionName, args) {
+    // apparently we can't do args.join(",");
+    var argStr = '';
+    for (var ii = 0; ii < args.length; ++ii) {
+      argStr += ((ii == 0) ? '' : ', ') +
+          glFunctionArgToString(functionName, ii, args[ii]);
+    }
+    return argStr;
+  };
+
+
+  function makePropertyWrapper(wrapper, original, propertyName) {
+    //log("wrap prop: " + propertyName);
+    wrapper.__defineGetter__(propertyName, function() {
+      return original[propertyName];
+    });
+    // TODO(gmane): this needs to handle properties that take more than
+    // one value?
+    wrapper.__defineSetter__(propertyName, function(value) {
+      //log("set: " + propertyName);
+      original[propertyName] = value;
+    });
+  }
+
+  // Makes a function that calls a function on another object.
+  function makeFunctionWrapper(original, functionName) {
+    //log("wrap fn: " + functionName);
+    var f = original[functionName];
+    return function() {
+      //log("call: " + functionName);
+      var result = f.apply(original, arguments);
+      return result;
+    };
   }
 
   /**
@@ -189,9 +271,12 @@ WebGLDebugUtils = function() {
    *        The function to call when gl.getError returns an
    *        error. If not specified the default function calls
    *        console.log with a message.
-   * @return {!WebGLRenderingContext} Wrapper context.
+   * @param {!function(string, Object): void=} opt_onFunc The
+   *        function to call when each webgl function is called.
+   *        You can use this to log all calls for example.
+   * @return {!WebGLRenderingContext} .
    */
-  function makeDebugContext(ctx, opt_onErrorFunc) {
+  function makeDebugContext(ctx, opt_onErrorFunc, opt_onFunc) {
     init(ctx);
     opt_onErrorFunc = opt_onErrorFunc || function(err, functionName, args) {
       // apparently we can't do args.join(",");
@@ -200,8 +285,8 @@ WebGLDebugUtils = function() {
         argStr += ((ii == 0) ? '' : ', ') +
             glFunctionArgToString(functionName, ii, args[ii]);
       }
-      log('WebGL error ' + glEnumToString(err) + ' in ' + functionName +
-          '(' + argStr + ')');
+      error('WebGL error ' + glEnumToString(err) + ' in ' + functionName +
+              '(' + argStr + ')');
     };
 
     // Holds booleans for each GL error so after we get the error ourselves
@@ -211,6 +296,9 @@ WebGLDebugUtils = function() {
     // Makes a function that calls a WebGL function and then calls getError.
     function makeErrorWrapper(ctx, functionName) {
       return function() {
+        if (opt_onFunc) {
+          opt_onFunc(functionName, arguments);
+        }
         var result = ctx[functionName].apply(ctx, arguments);
         var err = ctx.getError();
         if (err != 0) {
@@ -228,22 +316,458 @@ WebGLDebugUtils = function() {
       if (typeof ctx[propertyName] == 'function') {
         wrapper[propertyName] = makeErrorWrapper(ctx, propertyName);
       } else {
-        wrapper[propertyName] = ctx[propertyName];
+        makePropertyWrapper(wrapper, ctx, propertyName);
       }
     }
 
     // Override the getError function with one that returns our saved results.
     wrapper.getError = function() {
       for (var err in glErrorShadow) {
-        if (glErrorShadow[err]) {
-          glErrorShadow[err] = false;
-          return err;
+        if (glErrorShadow.hasOwnProperty(err)) {
+          if (glErrorShadow[err]) {
+            glErrorShadow[err] = false;
+            return err;
+          }
         }
       }
       return ctx.NO_ERROR;
     };
 
-    return /** @type {!WebGLRenderingContext} */ (wrapper);
+    return /** @type {!WebGLRenderingContext} */(wrapper);
+  }
+
+  function resetToInitialState(ctx) {
+    var numAttribs = ctx.getParameter(ctx.MAX_VERTEX_ATTRIBS);
+    var tmp = ctx.createBuffer();
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, tmp);
+    for (var ii = 0; ii < numAttribs; ++ii) {
+      ctx.disableVertexAttribArray(ii);
+      ctx.vertexAttribPointer(ii, 4, ctx.FLOAT, false, 0, 0);
+      ctx.vertexAttrib1f(ii, 0);
+    }
+    ctx.deleteBuffer(tmp);
+
+    var numTextureUnits = ctx.getParameter(ctx.MAX_TEXTURE_IMAGE_UNITS);
+    for (var ii = 0; ii < numTextureUnits; ++ii) {
+      ctx.activeTexture(ctx.TEXTURE0 + ii);
+      ctx.bindTexture(ctx.TEXTURE_CUBE_MAP, null);
+      ctx.bindTexture(ctx.TEXTURE_2D, null);
+    }
+
+    ctx.activeTexture(ctx.TEXTURE0);
+    ctx.useProgram(null);
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, null);
+    ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, null);
+    ctx.bindFramebuffer(ctx.FRAMEBUFFER, null);
+    ctx.bindRenderbuffer(ctx.RENDERBUFFER, null);
+    ctx.disable(ctx.BLEND);
+    ctx.disable(ctx.CULL_FACE);
+    ctx.disable(ctx.DEPTH_TEST);
+    ctx.disable(ctx.DITHER);
+    ctx.disable(ctx.SCISSOR_TEST);
+    ctx.blendColor(0, 0, 0, 0);
+    ctx.blendEquation(ctx.FUNC_ADD);
+    ctx.blendFunc(ctx.ONE, ctx.ZERO);
+    ctx.clearColor(0, 0, 0, 0);
+    ctx.clearDepth(1);
+    ctx.clearStencil(-1);
+    ctx.colorMask(true, true, true, true);
+    ctx.cullFace(ctx.BACK);
+    ctx.depthFunc(ctx.LESS);
+    ctx.depthMask(true);
+    ctx.depthRange(0, 1);
+    ctx.frontFace(ctx.CCW);
+    ctx.hint(ctx.GENERATE_MIPMAP_HINT, ctx.DONT_CARE);
+    ctx.lineWidth(1);
+    ctx.pixelStorei(ctx.PACK_ALIGNMENT, 4);
+    ctx.pixelStorei(ctx.UNPACK_ALIGNMENT, 4);
+    ctx.pixelStorei(ctx.UNPACK_FLIP_Y_WEBGL, false);
+    ctx.pixelStorei(ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    // TODO: Delete this IF.
+    //if (ctx.UNPACK_COLORSPACE_CONVERSION_WEBGL) {
+    //TODO delete comment !
+    //ctx.pixelStorei(ctx.UNPACK_COLORSPACE_CONVERSION_WEBGL,
+    //                ctx.BROWSER_DEFAULT_WEBGL);
+    //}
+    ctx.polygonOffset(0, 0);
+    ctx.sampleCoverage(1, false);
+    ctx.scissor(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.stencilFunc(ctx.ALWAYS, 0, 0xFFFFFFFF);
+    ctx.stencilMask(0xFFFFFFFF);
+    ctx.stencilOp(ctx.KEEP, ctx.KEEP, ctx.KEEP);
+    ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.clear(ctx.COLOR_BUFFER_BIT |
+              ctx.DEPTH_BUFFER_BIT |
+              ctx.STENCIL_BUFFER_BIT);
+
+    // TODO: This should NOT be needed but Firefox fails with 'hint'
+    while (ctx.getError()) {}
+  }
+
+  function makeLostContextSimulatingCanvas(canvas) {
+    var unwrappedContext_;
+    var onLost_ = [];
+    var onRestored_ = [];
+    var wrappedContext_ = {};
+    var contextId_ = 1;
+    var contextLost_ = false;
+    var resourceId_ = 0;
+    var resourceDb_ = [];
+    var numCallsToLoseContext_ = 0;
+    var numCalls_ = 0;
+    var canRestore_ = false;
+    var restoreTimeout_ = 0;
+
+    // Holds booleans for each GL error so can simulate errors.
+    var glErrorShadow_ = { };
+
+    canvas.getContext = function(f) {
+      return function() {
+        var ctx = f.apply(canvas, arguments);
+        // Did we get a context and is it a WebGL context?
+        if (ctx instanceof WebGLRenderingContext) {
+          if (ctx != unwrappedContext_) {
+            if (unwrappedContext_) {
+              throw 'got different context';
+            }
+            unwrappedContext_ = ctx;
+            wrappedContext_ =
+                makeLostContextSimulatingContext(unwrappedContext_);
+          }
+          return wrappedContext_;
+        }
+        return ctx;
+      }
+    }(canvas.getContext);
+
+    function wrapEvent(listener) {
+      if (typeof(listener) == 'function') {
+        return listener;
+      } else {
+        return function(info) {
+          listener.handleEvent(info);
+        }
+      }
+    }
+
+    var addOnContextLostListener = function(listener) {
+      onLost_.push(wrapEvent(listener));
+    };
+
+    var addOnContextRestoredListener = function(listener) {
+      onRestored_.push(wrapEvent(listener));
+    };
+
+
+    function wrapAddEventListener(canvas) {
+      var f = canvas.addEventListener;
+      canvas.addEventListener = function(type, listener, bubble) {
+        switch (type) {
+          case 'webglcontextlost':
+            addOnContextLostListener(listener);
+            break;
+          case 'webglcontextrestored':
+            addOnContextRestoredListener(listener);
+            break;
+          default:
+            f.apply(canvas, arguments);
+        }
+      };
+    }
+
+    wrapAddEventListener(canvas);
+
+    canvas.loseContext = function() {
+      if (!contextLost_) {
+        contextLost_ = true;
+        numCallsToLoseContext_ = 0;
+        ++contextId_;
+        while (unwrappedContext_.getError()) {}
+        clearErrors();
+        //TODO remove comment
+        //glErrorShadow_[unwrappedContext_.CONTEXT_LOST_WEBGL] = true;
+        var event = makeWebGLContextEvent('context lost');
+        var callbacks = onLost_.slice();
+        setTimeout(function() {
+          //log("numCallbacks:" + callbacks.length);
+          for (var ii = 0; ii < callbacks.length; ++ii) {
+            //log("calling callback:" + ii);
+            callbacks[ii](event);
+          }
+          if (restoreTimeout_ >= 0) {
+            setTimeout(function() {
+              canvas.restoreContext();
+            }, restoreTimeout_);
+          }
+        }, 0);
+      }
+    };
+
+    canvas.restoreContext = function() {
+      if (contextLost_) {
+        if (onRestored_.length) {
+          setTimeout(function() {
+            if (!canRestore_) {
+              throw 'can not restore. webglcontestlost' +
+                  'listener did not call event.preventDefault';
+            }
+            freeResources();
+            resetToInitialState(unwrappedContext_);
+            contextLost_ = false;
+            numCalls_ = 0;
+            canRestore_ = false;
+            var callbacks = onRestored_.slice();
+            var event = makeWebGLContextEvent('context restored');
+            for (var ii = 0; ii < callbacks.length; ++ii) {
+              callbacks[ii](event);
+            }
+          }, 0);
+        }
+      }
+    };
+
+    canvas.loseContextInNCalls = function(numCalls) {
+      if (contextLost_) {
+        throw 'You can not ask a lost contet to be lost';
+      }
+      numCallsToLoseContext_ = numCalls_ + numCalls;
+    };
+
+    canvas.getNumCalls = function() {
+      return numCalls_;
+    };
+
+    canvas.setRestoreTimeout = function(timeout) {
+      restoreTimeout_ = timeout;
+    };
+
+    function isWebGLObject(obj) {
+      //return false;
+      return (obj instanceof WebGLBuffer ||
+          obj instanceof WebGLFramebuffer ||
+          obj instanceof WebGLProgram ||
+          obj instanceof WebGLRenderbuffer ||
+          obj instanceof WebGLShader ||
+          obj instanceof WebGLTexture);
+    }
+
+    function checkResources(args) {
+      for (var ii = 0; ii < args.length; ++ii) {
+        var arg = args[ii];
+        if (isWebGLObject(arg)) {
+          return arg.__webglDebugContextLostId__ == contextId_;
+        }
+      }
+      return true;
+    }
+
+    function clearErrors() {
+      var k = Object.keys(glErrorShadow_);
+      for (var ii = 0; ii < k.length; ++ii) {
+        delete glErrorShadow_[k];
+      }
+    }
+
+    function loseContextIfTime() {
+      ++numCalls_;
+      if (!contextLost_) {
+        if (numCallsToLoseContext_ == numCalls_) {
+          canvas.loseContext();
+        }
+      }
+    }
+
+    // Makes a function that simulates WebGL when out of context.
+    function makeLostContextFunctionWrapper(ctx, functionName) {
+      var f = ctx[functionName];
+      return function() {
+        // log("calling:" + functionName);
+        // Only call the functions if the context is not lost.
+        loseContextIfTime();
+        if (!contextLost_) {
+          //if (!checkResources(arguments)) {
+          //  glErrorShadow_[wrappedContext_.INVALID_OPERATION] = true;
+          //  return;
+          //}
+          var result = f.apply(ctx, arguments);
+          return result;
+        }
+      };
+    }
+
+    function freeResources() {
+      for (var ii = 0; ii < resourceDb_.length; ++ii) {
+        var resource = resourceDb_[ii];
+        if (resource instanceof WebGLBuffer) {
+          unwrappedContext_.deleteBuffer(resource);
+        } else if (resource instanceof WebGLFramebuffer) {
+          unwrappedContext_.deleteFramebuffer(resource);
+        } else if (resource instanceof WebGLProgram) {
+          unwrappedContext_.deleteProgram(resource);
+        } else if (resource instanceof WebGLRenderbuffer) {
+          unwrappedContext_.deleteRenderbuffer(resource);
+        } else if (resource instanceof WebGLShader) {
+          unwrappedContext_.deleteShader(resource);
+        } else if (resource instanceof WebGLTexture) {
+          unwrappedContext_.deleteTexture(resource);
+        }
+      }
+    }
+
+    function makeWebGLContextEvent(statusMessage) {
+      return {
+        statusMessage: statusMessage,
+        preventDefault: function() {
+          canRestore_ = true;
+        }
+      };
+    }
+
+    return canvas;
+
+    function makeLostContextSimulatingContext(ctx) {
+      // copy all functions and properties to wrapper
+      for (var propertyName in ctx) {
+        if (typeof ctx[propertyName] == 'function') {
+          wrappedContext_[propertyName] = makeLostContextFunctionWrapper(
+              ctx, propertyName);
+        } else {
+          makePropertyWrapper(wrappedContext_, ctx, propertyName);
+        }
+      }
+
+      // Wrap a few functions specially.
+      wrappedContext_.getError = function() {
+        loseContextIfTime();
+        if (!contextLost_) {
+          var err;
+          while (err = unwrappedContext_.getError()) {
+            glErrorShadow_[err] = true;
+          }
+        }
+        for (var err in glErrorShadow_) {
+          if (glErrorShadow_[err]) {
+            delete glErrorShadow_[err];
+            return err;
+          }
+        }
+        return wrappedContext_.NO_ERROR;
+      };
+
+      var creationFunctions = [
+        'createBuffer',
+        'createFramebuffer',
+        'createProgram',
+        'createRenderbuffer',
+        'createShader',
+        'createTexture'
+      ];
+      for (var ii = 0; ii < creationFunctions.length; ++ii) {
+        var functionName = creationFunctions[ii];
+        wrappedContext_[functionName] = function(f) {
+          return function() {
+            loseContextIfTime();
+            if (contextLost_) {
+              return null;
+            }
+            var obj = f.apply(ctx, arguments);
+            obj.__webglDebugContextLostId__ = contextId_;
+            resourceDb_.push(obj);
+            return obj;
+          };
+        }(ctx[functionName]);
+      }
+
+      var functionsThatShouldReturnNull = [
+        'getActiveAttrib',
+        'getActiveUniform',
+        'getBufferParameter',
+        'getContextAttributes',
+        'getAttachedShaders',
+        'getFramebufferAttachmentParameter',
+        'getParameter',
+        'getProgramParameter',
+        'getProgramInfoLog',
+        'getRenderbufferParameter',
+        'getShaderParameter',
+        'getShaderInfoLog',
+        'getShaderSource',
+        'getTexParameter',
+        'getUniform',
+        'getUniformLocation',
+        'getVertexAttrib'
+      ];
+      for (var ii = 0; ii < functionsThatShouldReturnNull.length; ++ii) {
+        var functionName = functionsThatShouldReturnNull[ii];
+        wrappedContext_[functionName] = function(f) {
+          return function() {
+            loseContextIfTime();
+            if (contextLost_) {
+              return null;
+            }
+            return f.apply(ctx, arguments);
+          }
+        }(wrappedContext_[functionName]);
+      }
+
+      var isFunctions = [
+        'isBuffer',
+        'isEnabled',
+        'isFramebuffer',
+        'isProgram',
+        'isRenderbuffer',
+        'isShader',
+        'isTexture'
+      ];
+      for (var ii = 0; ii < isFunctions.length; ++ii) {
+        var functionName = isFunctions[ii];
+        wrappedContext_[functionName] = function(f) {
+          return function() {
+            loseContextIfTime();
+            if (contextLost_) {
+              return false;
+            }
+            return f.apply(ctx, arguments);
+          }
+        }(wrappedContext_[functionName]);
+      }
+
+      wrappedContext_.checkFramebufferStatus = function(f) {
+        return function() {
+          loseContextIfTime();
+          if (contextLost_) {
+            return wrappedContext_.FRAMEBUFFER_UNSUPPORTED;
+          }
+          return f.apply(ctx, arguments);
+        };
+      }(wrappedContext_.checkFramebufferStatus);
+
+      wrappedContext_.getAttribLocation = function(f) {
+        return function() {
+          loseContextIfTime();
+          if (contextLost_) {
+            return -1;
+          }
+          return f.apply(ctx, arguments);
+        };
+      }(wrappedContext_.getAttribLocation);
+
+      wrappedContext_.getVertexAttribOffset = function(f) {
+        return function() {
+          loseContextIfTime();
+          if (contextLost_) {
+            return 0;
+          }
+          return f.apply(ctx, arguments);
+        };
+      }(wrappedContext_.getVertexAttribOffset);
+
+      wrappedContext_.isContextLost = function() {
+        return contextLost_;
+      };
+
+      return wrappedContext_;
+    }
   }
 
   return {
@@ -293,6 +817,16 @@ WebGLDebugUtils = function() {
     glFunctionArgToString: glFunctionArgToString,
 
     /**
+     * Converts the arguments of a WebGL function to a string.
+     * Attempts to convert enum arguments to strings.
+     *
+     * @param {string} functionName the name of the WebGL function.
+     * @param {number} args The arguments.
+     * @return {string} The arguments as a string.
+     */
+    glFunctionArgsToString: glFunctionArgsToString,
+
+    /**
      * Given a WebGL context returns a wrapped context that calls
      * gl.getError after every command and calls a function if the
      * result is not NO_ERROR.
@@ -302,7 +836,7 @@ WebGLDebugUtils = function() {
      *
      *    function throwOnGLError(err, funcName, args) {
      *      throw WebGLDebugUtils.glEnumToString(err) +
-     *            " was caused by call to" + funcName;
+     *            " was caused by call to " + funcName;
      *    };
      *
      *    ctx = WebGLDebugUtils.makeDebugContext(
@@ -312,8 +846,43 @@ WebGLDebugUtils = function() {
      * @param {!function(number, string, Arguments): void=} opt_onErrorFunc
      *         The function to call when gl.getError returns an error. If not
      *         specified the default function calls console.log with a message.
+     * @param {!function(string, Object): void=} opt_onFunc The
+     *     function to call when each webgl function is called. You
+     *     can use this to log all calls for example.
      */
-    makeDebugContext: makeDebugContext
+    makeDebugContext: makeDebugContext,
+
+    /**
+     * Given a canvas element returns a wrapped canvas element that will
+     * simulate lost context. The canvas returned adds the following functions.
+     *
+     * loseContext:
+     *   simulates a lost context event.
+     *
+     * restoreContext:
+     *   simulates the context being restored.
+     *
+     * lostContextInNCalls:
+     *   loses the context after N gl calls.
+     *
+     * getNumCalls:
+     *   tells you how many gl calls there have been so far.
+     *
+     * setRestoreTimeout:
+     *   sets the number of milliseconds until the context is restored
+     *   after it has been lost. Defaults to 0. Pass -1 to prevent
+     *   automatic restoring.
+     *
+     * @param {!HTMLCanvasElement} canvas The canvas element to wrap.
+     */
+    makeLostContextSimulatingCanvas: makeLostContextSimulatingCanvas,
+
+    /**
+     * Resets a context to the initial state.
+     * @param {!WebGLRenderingContext} ctx The webgl context to
+     *     reset.
+     */
+    resetToInitialState: resetToInitialState
   };
 
 }();
