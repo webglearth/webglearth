@@ -34,6 +34,12 @@ goog.require('we.utils');
 
 
 /**
+ * @define {boolean} Whether to use the compiled shaders from the shaderbank.
+ */
+we.shaderbank.USE_COMPILED_SHADERS = COMPILED;
+
+
+/**
  * @define {string} Path to shaders scripts. Useful if the shaders are
  * in different location than _webpage_ running this javascript file(s).
  */
@@ -46,7 +52,7 @@ we.shaderbank.PATH_TO_SHADERS = '../we/shaders/';
  * @return {string} Shader code.
  */
 we.shaderbank.getShaderCode = function(name) {
-  if (COMPILED && name in we.shaderbank.codes) {
+  if (we.shaderbank.USE_COMPILED_SHADERS && name in we.shaderbank.codes) {
     return we.shaderbank.codes[name];
   } else {
     return we.utils.getFile(we.shaderbank.PATH_TO_SHADERS + name);

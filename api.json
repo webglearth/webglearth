@@ -1,0 +1,39 @@
+{
+  "id": "api",
+
+  "inputs": ["api/exports/exports.js"],
+  "paths": ['api','we'],
+
+  "externs": [
+    "//google_maps_api_v3.js"
+  ],
+
+  "define": {
+    // "goog.dom.ASSUME_STANDARDS_MODE": true,
+    "goog.DEBUG": false
+  },
+
+  "mode": "ADVANCED",
+  "level": "VERBOSE",
+  
+  // "pretty-print": true,
+  // "debug": true,
+  
+  "checks": {
+    // Unfortunately, the Closure Library violates these in many places.
+    // "accessControls": "ERROR",
+    // "visibility": "ERROR"
+
+    "checkTypes": "ERROR",
+    "checkRegExp": "ERROR",
+    "checkVars": "ERROR",
+    "deprecated": "ERROR",
+    "fileoverviewTags": "ERROR",
+    "invalidCasts": "ERROR",
+    "missingProperties": "ERROR",
+    "nonStandardJsDocs": "ERROR",
+    "undefinedVars": "ERROR"
+  },
+
+  "jsdoc-html-output-path": "."
+}

@@ -1,2 +1,4 @@
 /closure-library
-/compiler.jar
+/plovr.jar
+/deploy/index.js
+/deploy/api.js
