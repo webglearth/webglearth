@@ -79,6 +79,7 @@ we.scene.Halo = function(scene) {
                                      25, 67, 178, 30,
                                      13, 53, 161, 0]);
 
+  gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, this.gradient_);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 8, 1, 0,
                 gl.RGBA, gl.UNSIGNED_BYTE, gradientData);
@@ -116,7 +117,6 @@ we.scene.Halo = function(scene) {
    */
   this.vertexPositionAttribute =
       this.gl.getAttribLocation(this.program_, 'aVertexPosition');
-  this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
 
   /**
    * @type {WebGLUniformLocation}
@@ -141,10 +141,6 @@ we.scene.Halo = function(scene) {
 we.scene.Halo.prototype.draw = function() {
   this.gl.useProgram(this.program_);
 
-  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer_);
-  this.gl.vertexAttribPointer(this.vertexPositionAttribute, 2, this.gl.FLOAT,
-                              false, 0, 0);
-
   this.gl.activeTexture(this.gl.TEXTURE0);
   this.gl.bindTexture(this.gl.TEXTURE_2D, this.gradient_);
   this.gl.uniform1i(this.gradientUniform, 0);
@@ -159,5 +155,13 @@ we.scene.Halo.prototype.draw = function() {
   this.gl.uniformMatrix4fv(this.mvMatrixUniform, false, mvm);
   this.gl.uniformMatrix4fv(this.pMatrixUniform, false, pm);
 
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer_);
+  this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
+  this.gl.vertexAttribPointer(this.vertexPositionAttribute, 2, this.gl.FLOAT,
+                              false, 0, 0);
+  this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
+
   this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+
+  this.gl.disableVertexAttribArray(this.vertexPositionAttribute);
 };

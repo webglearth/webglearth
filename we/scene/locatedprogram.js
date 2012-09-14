@@ -52,14 +52,12 @@ we.scene.LocatedProgram = function(program, context, overlay, terrain) {
    */
   this.vertexPositionAttribute =
       gl.getAttribLocation(this.program, 'aVertexPosition');
-  gl.enableVertexAttribArray(this.vertexPositionAttribute);
 
   /**
    * @type {number}
    */
   this.textureCoordAttribute =
       gl.getAttribLocation(this.program, 'aTextureCoord');
-  gl.enableVertexAttribArray(this.textureCoordAttribute);
 
   /**
    * @type {WebGLUniformLocation}

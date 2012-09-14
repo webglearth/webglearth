@@ -409,11 +409,13 @@ we.scene.Earth.prototype.draw = function() {
   gl.vertexAttribPointer(program.vertexPositionAttribute,
       plane.vertexBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(program.vertexPositionAttribute);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, plane.texCoordBuffer);
   gl.vertexAttribPointer(program.textureCoordAttribute,
       plane.texCoordBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(program.textureCoordAttribute);
 
   gl.uniformMatrix4fv(program.mvpMatrixUniform, false, mvpm);
   gl.uniform1f(program.tileCountUniform, this.tileCount);
@@ -425,6 +427,10 @@ we.scene.Earth.prototype.draw = function() {
   gl.drawElements(gl.TRIANGLES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
   //else
   //  gl.drawElements(gl.LINES, plane.numIndices, gl.UNSIGNED_SHORT, 0);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+  gl.disableVertexAttribArray(program.vertexPositionAttribute);
+  gl.disableVertexAttribArray(program.textureCoordAttribute);
 };
 
 
