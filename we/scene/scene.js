@@ -131,6 +131,10 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    */
   this.halo_ = opt_nohalo === true ? null : new we.scene.Halo(this);
 
+  /**
+   * @type {!Array.<!we.scene.Drawable>}
+   */
+  this.additionalDrawables = [];
 
   /**
    * This says how many tiles should be visible vertically.
@@ -258,6 +262,10 @@ we.scene.Scene.prototype.draw = function() {
   this.context.modelViewMatrix.rotate010(-this.camera.getLongitude());
 
   this.earth.draw();
+
+  goog.array.forEach(this.additionalDrawables, function(el, i, arr) {
+    el.draw();
+  });
 
 };
 
