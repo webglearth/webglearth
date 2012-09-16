@@ -53,10 +53,8 @@ we.ui.markers.PolyDragger = function(lat, lon, scene, update) {
 
   this.show(false);
 
-  this.dragListenKey_ = null;
-
   goog.events.listen(marker, goog.events.EventType.MOUSEDOWN, function(e) {
-    this.dragListenKey_ = goog.events.listen(scene.context.canvas,
+    goog.events.listen(scene.context.canvas,
         goog.events.EventType.MOUSEMOVE, function(e) {
           var coords = scene.getLatLongForXY(e.offsetX, e.offsetY);
           this.lat = coords[0];
@@ -69,8 +67,8 @@ we.ui.markers.PolyDragger = function(lat, lon, scene, update) {
   }, false, this);
 
   goog.events.listen(marker, goog.events.EventType.MOUSEUP, function(e) {
-    goog.events.unlistenByKey(this.dragListenKey_);
-    this.dragListenKey_ = null;
+    goog.events.removeAll(scene.context.canvas,
+                          goog.events.EventType.MOUSEMOVE);
   }, false, this);
 };
 goog.inherits(we.ui.markers.PolyDragger, we.ui.markers.AbstractMarker);
