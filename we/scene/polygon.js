@@ -162,8 +162,7 @@ we.scene.Polygon.DEBUG_LINES = true;
  * @return {number} Fixed ID of the new point.
  */
 we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
-  var vert = new we.scene.Polygon.Node(lng / 180 * Math.PI,
-                                       lat / 180 * Math.PI);
+  var vert = new we.scene.Polygon.Node(lat, lng);
   if (this.vertices_.length == 0) {
     this.head_ = vert;
     vert.next = vert;
@@ -203,8 +202,7 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
 we.scene.Polygon.prototype.movePoint = function(fixedId, lat, lng) {
   var vert = this.vertices_[fixedId];
 
-  vert.x = lng / 180 * Math.PI;
-  vert.y = lat / 180 * Math.PI;
+  vert.setLatLng(lat, lng);
 
   this.rebufferPoints_();
   this.solveTriangles_();
@@ -216,11 +214,12 @@ we.scene.Polygon.prototype.movePoint = function(fixedId, lat, lng) {
  * @private
  */
 we.scene.Polygon.prototype.rebufferPoints_ = function() {
-  var vertices = new Array(2 * this.vertices_.length);
+  var vertices = new Array(3 * this.vertices_.length);
 
   goog.array.forEach(this.vertices_, function(el, i, arr) {
-    vertices[2 * el.tmpId + 0] = el.x;
-    vertices[2 * el.tmpId + 1] = el.y;
+    vertices[3 * el.tmpId + 0] = el.projX;
+    vertices[3 * el.tmpId + 1] = el.projY;
+    vertices[3 * el.tmpId + 2] = el.projZ;
   });
 
   var gl = this.gl;
@@ -236,7 +235,6 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   // Triangulation
   //   based on http://www.sinc.sunysb.edu/Stu/nwellcom/ams345/triangulate.html
   var triangles = [];
-  var lines = [];
 
   var n = this.vertices_.length;
 
@@ -318,9 +316,6 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
           v0 = v1._prev;
           //triangles.push([v1.tmpId, v2.tmpId, v3.tmpId]);
           triangles.push([v3.tmpId, v2.tmpId, v1.tmpId]);
-          lines.push([v3.tmpId, v2.tmpId],
-                     [v2.tmpId, v1.tmpId],
-                     [v1.tmpId, v3.tmpId]);
           v1._ear = Diagonal(v0, v3);
           v3._ear = Diagonal(v1, v4);
           v1._next = v3;
@@ -336,9 +331,6 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
     //if (v1 && v3 && v4) triangles.push([v1.tmpId, v3.tmpId, v4.tmpId]);
     if (v1 && v3 && v4) {
       triangles.push([v4.tmpId, v3.tmpId, v1.tmpId]);
-      lines.push([v4.tmpId, v3.tmpId],
-                 [v3.tmpId, v1.tmpId],
-                 [v1.tmpId, v4.tmpId]);
     }
   }
 
@@ -351,9 +343,14 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(ids), gl.STATIC_DRAW);
 
   if (we.scene.Polygon.DEBUG_LINES) {
-    ids = goog.array.flatten(lines);
+    var lines = [];
+    goog.array.forEach(triangles, function(el, i, arr) {
+      lines.push(el[0], el[1],
+                 el[1], el[2],
+                 el[2], el[0]);
+    });
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBufferLines_);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(ids),
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(lines),
                   gl.STATIC_DRAW);
   }
 };
@@ -376,7 +373,7 @@ we.scene.Polygon.prototype.draw = function() {
   gl.uniformMatrix4fv(this.uMVPMatrix_, false, mvpm);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-  gl.vertexAttribPointer(this.aVertexCoords_, 2, gl.FLOAT, false, 0, 0);
+  gl.vertexAttribPointer(this.aVertexCoords_, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(this.aVertexCoords_);
 
   gl.uniform4fv(this.uColor_, this.fillColor_);
@@ -401,17 +398,26 @@ we.scene.Polygon.prototype.draw = function() {
 
 
 /**
- * @param {number} x .
- * @param {number} y .
+ * @param {number} lat .
+ * @param {number} lng .
  * @param {we.scene.Polygon.Node=} opt_next .
  * @param {we.scene.Polygon.Node=} opt_prev .
  * @constructor
  */
-we.scene.Polygon.Node = function(x, y, opt_next, opt_prev) {
+we.scene.Polygon.Node = function(lat, lng, opt_next, opt_prev) {
   /** @type {number} */
-  this.x = x;
+  this.x = 0;
   /** @type {number} */
-  this.y = y;
+  this.y = 0;
+
+  /** @type {number} */
+  this.projX = 0;
+  /** @type {number} */
+  this.projY = 0;
+  /** @type {number} */
+  this.projZ = 0;
+
+  this.setLatLng(lat, lng);
 
   /** @type {?we.scene.Polygon.Node} */
   this.next = opt_next || null;
@@ -429,4 +435,19 @@ we.scene.Polygon.Node = function(x, y, opt_next, opt_prev) {
   this._next = this.next;
   /** @type {?we.scene.Polygon.Node} */
   this._prev = this.prev;
+};
+
+
+/**
+ * @param {number} lat .
+ * @param {number} lng .
+ */
+we.scene.Polygon.Node.prototype.setLatLng = function(lat, lng) {
+  this.x = lng / 180 * Math.PI;
+  this.y = lat / 180 * Math.PI;
+
+  var cosy = Math.cos(this.y);
+  this.projX = Math.sin(this.x) * cosy;
+  this.projY = Math.sin(this.y);
+  this.projZ = Math.cos(this.x) * cosy;
 };

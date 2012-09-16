@@ -23,13 +23,10 @@
 
 precision highp float;
 
-attribute vec2 aVertexCoords;
+attribute vec3 aVertexCoords;
 
 uniform mat4 uMVPMatrix;
 
 void main(){
-  //bend the polygon points
-  float cosy = cos(aVertexCoords.y);
-  gl_Position=uMVPMatrix*vec4(sin(aVertexCoords.x)*cosy, sin(aVertexCoords.y),
-                              cos(aVertexCoords.x)*cosy, 1.0);
+  gl_Position=uMVPMatrix*vec4(aVertexCoords, 1.0);
 }
