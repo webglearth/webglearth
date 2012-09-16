@@ -76,7 +76,7 @@ we.ui.EditablePolygon = function(scene, markermanager) {
       function(e) {
         goog.events.listen(scene.context.canvas, goog.events.EventType.MOUSEUP,
             function(e_) {
-              if (this.clickToAddMode_) {
+              if (e_.button == 0 && this.clickToAddMode_) {
                 if (Math.max(Math.abs(e.offsetX - e_.offsetX),
                     Math.abs(e.offsetY - e_.offsetY)) <= 3) {
                   var coords = scene.getLatLongForXY(e_.offsetX, e_.offsetY);
