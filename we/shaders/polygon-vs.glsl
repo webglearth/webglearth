@@ -30,6 +30,6 @@ uniform mat4 uMVPMatrix;
 void main(){
   //bend the polygon points
   float cosy = cos(aVertexCoords.y);
-  vec3 pos=vec3(sin(aVertexCoords.x)*cosy, sin(aVertexCoords.y), cos(aVertexCoords.x)*cosy);
-  gl_Position=uMVPMatrix*vec4(pos,1.0);
+  gl_Position=uMVPMatrix*vec4(sin(aVertexCoords.x)*cosy, sin(aVertexCoords.y),
+                              cos(aVertexCoords.x)*cosy, 1.0);
 }
