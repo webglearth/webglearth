@@ -31,8 +31,6 @@
 
 goog.provide('we.scene.Polygon');
 
-goog.require('goog.structs.LinkedMap');
-
 goog.require('we.gl.Shader');
 goog.require('we.scene.Drawable');
 goog.require('we.shaderbank');
@@ -79,6 +77,14 @@ we.scene.Polygon = function(context) {
    * @private
    */
   this.indexBuffer_ = /** @type {!WebGLBuffer} */(gl.createBuffer());
+
+  if (we.scene.Polygon.DEBUG_LINES) {
+    /**
+     * @type {!WebGLBuffer}
+     * @private
+     */
+    this.indexBufferLines_ = /** @type {!WebGLBuffer} */(gl.createBuffer());
+  }
 
   /**
    * @type {number}
@@ -144,25 +150,61 @@ we.scene.Polygon = function(context) {
 
 
 /**
+ * @define {boolean} Draw the triangulation debugging lines?
+ */
+we.scene.Polygon.DEBUG_LINES = true;
+
+
+/**
  * @param {number} lat .
  * @param {number} lng .
- * @param {we.scene.Polygon.Node=} opt_parent Defaults to the last point.
+ * @param {number=} opt_parent Defaults to the last point.
+ * @return {number} Fixed ID of the new point.
  */
 we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
-  var vert = new we.scene.Polygon.Node(lng, lat);
+  var vert = new we.scene.Polygon.Node(lng / 180 * Math.PI,
+                                       lat / 180 * Math.PI);
   if (this.vertices_.length == 0) {
     this.head_ = vert;
     vert.next = vert;
     vert.prev = vert;
   } else {
-    var parent = opt_parent || this.vertices_[this.vertices_.length - 1];
+    var parent = this.vertices_[
+        goog.math.clamp(opt_parent || Number.MAX_VALUE,
+                        0, this.vertices_.length - 1)];
     vert.next = parent.next;
     parent.next = vert;
     vert.prev = parent;
     vert.next.prev = vert;
   }
   this.vertices_.push(vert);
-  vert.id = this.vertices_.length - 1;
+  vert.fixedId = this.vertices_.length - 1;
+
+  // recalc temporary ids
+  var vrt = this.head_;
+  var nextId = 0;
+  do {
+    vrt.tmpId = nextId++;
+    vrt = vrt.next;
+  } while (vrt != this.head_);
+
+  this.rebufferPoints_();
+  this.solveTriangles_();
+
+  return vert.fixedId;
+};
+
+
+/**
+ * @param {number} fixedId .
+ * @param {number} lat .
+ * @param {number} lng .
+ */
+we.scene.Polygon.prototype.movePoint = function(fixedId, lat, lng) {
+  var vert = this.vertices_[fixedId];
+
+  vert.x = lng / 180 * Math.PI;
+  vert.y = lat / 180 * Math.PI;
 
   this.rebufferPoints_();
   this.solveTriangles_();
@@ -177,8 +219,8 @@ we.scene.Polygon.prototype.rebufferPoints_ = function() {
   var vertices = new Array(2 * this.vertices_.length);
 
   goog.array.forEach(this.vertices_, function(el, i, arr) {
-    vertices[2 * el.id + 0] = el.x;
-    vertices[2 * el.id + 1] = el.y;
+    vertices[2 * el.tmpId + 0] = el.x;
+    vertices[2 * el.tmpId + 1] = el.y;
   });
 
   var gl = this.gl;
@@ -194,6 +236,7 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   // Triangulation
   //   based on http://www.sinc.sunysb.edu/Stu/nwellcom/ams345/triangulate.html
   var triangles = [];
+  var lines = [];
 
   var n = this.vertices_.length;
 
@@ -252,13 +295,13 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
       el._prev = el.prev;
     });
 
-    v1 = this.vertices_[0];
+    v1 = this.head_;
     do {
       v2 = v1._next;
       v0 = v1._prev;
       v1._ear = Diagonal(v0, v2);
       v1 = v1._next;
-    } while (v1 != this.vertices_[0]);
+    } while (v1 != this.head_);
 
     var z = 99;
     while (z > 0 && n > 3) {
@@ -273,8 +316,11 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
           v4 = v3._next;
           v1 = v2._prev;
           v0 = v1._prev;
-          //triangles.push([v1.id, v2.id, v3.id]);
-          triangles.push([v3.id, v2.id, v1.id]);
+          //triangles.push([v1.tmpId, v2.tmpId, v3.tmpId]);
+          triangles.push([v3.tmpId, v2.tmpId, v1.tmpId]);
+          lines.push([v3.tmpId, v2.tmpId],
+                     [v2.tmpId, v1.tmpId],
+                     [v1.tmpId, v3.tmpId]);
           v1._ear = Diagonal(v0, v3);
           v3._ear = Diagonal(v1, v4);
           v1._next = v3;
@@ -287,8 +333,13 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
         y--;
       } while (y > 0 && !broke && v2 != head);
     }
-    //if (v1 && v3 && v4) triangles.push([v1.id, v3.id, v4.id]);
-    if (v1 && v3 && v4) triangles.push([v4.id, v3.id, v1.id]);
+    //if (v1 && v3 && v4) triangles.push([v1.tmpId, v3.tmpId, v4.tmpId]);
+    if (v1 && v3 && v4) {
+      triangles.push([v4.tmpId, v3.tmpId, v1.tmpId]);
+      lines.push([v4.tmpId, v3.tmpId],
+                 [v3.tmpId, v1.tmpId],
+                 [v1.tmpId, v4.tmpId]);
+    }
   }
 
   var ids = goog.array.flatten(triangles);
@@ -298,6 +349,13 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   var gl = this.gl;
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(ids), gl.STATIC_DRAW);
+
+  if (we.scene.Polygon.DEBUG_LINES) {
+    ids = goog.array.flatten(lines);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBufferLines_);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(ids),
+                  gl.STATIC_DRAW);
+  }
 };
 
 
@@ -325,6 +383,12 @@ we.scene.Polygon.prototype.draw = function() {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
   gl.drawElements(gl.TRIANGLES, this.numIndices_, gl.UNSIGNED_SHORT, 0);
 
+  if (we.scene.Polygon.DEBUG_LINES) {
+    gl.uniform4fv(this.uColor_, [0, 0, 1, 1]);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBufferLines_);
+    gl.drawElements(gl.LINES, 2 * this.numIndices_, gl.UNSIGNED_SHORT, 0);
+  }
+
   gl.uniform4fv(this.uColor_, this.strokeColor_);
   gl.drawArrays(gl.LINE_LOOP, 0, this.vertices_.length);
 
@@ -344,13 +408,25 @@ we.scene.Polygon.prototype.draw = function() {
  * @constructor
  */
 we.scene.Polygon.Node = function(x, y, opt_next, opt_prev) {
-  this.x = x / 180 * Math.PI;
-  this.y = y / 180 * Math.PI;
-  this.next = opt_next || null;
-  this.prev = opt_prev || null;
-  this.id = -1;
+  /** @type {number} */
+  this.x = x;
+  /** @type {number} */
+  this.y = y;
 
+  /** @type {?we.scene.Polygon.Node} */
+  this.next = opt_next || null;
+  /** @type {?we.scene.Polygon.Node} */
+  this.prev = opt_prev || null;
+
+  /** @type {number} */
+  this.fixedId = -1;
+  /** @type {number} */
+  this.tmpId = -1;
+
+  /** @type {boolean} */
   this._ear = false;
+  /** @type {?we.scene.Polygon.Node} */
   this._next = this.next;
+  /** @type {?we.scene.Polygon.Node} */
   this._prev = this.prev;
 };
