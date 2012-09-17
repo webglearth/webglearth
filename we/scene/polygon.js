@@ -146,6 +146,12 @@ we.scene.Polygon = function(context) {
    * @private
    */
   this.strokeColor_ = [0, 0, 0, 1];
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.roughArea_ = 0;
 };
 
 
@@ -234,14 +240,33 @@ we.scene.Polygon.prototype.rebufferPoints_ = function() {
 we.scene.Polygon.prototype.solveTriangles_ = function() {
   // Triangulation
   //   based on http://www.sinc.sunysb.edu/Stu/nwellcom/ams345/triangulate.html
+  //
+  //TODO: solve CW/CCW issue + self-intersecting polygons
+
   var triangles = [];
+  this.roughArea_ = 0;
+  var addTriangle = goog.bind(function(v1, v2, v3) {
+    triangles.push([v1.tmpId, v2.tmpId, v3.tmpId]);
+
+    // Calculate triangle area using Heron's formula
+    var len = function(u, v) {
+      var x_ = u.projX - v.projX;
+      var y_ = u.projY - v.projY;
+      var z_ = u.projZ - v.projZ;
+      return Math.sqrt(x_ * x_ + y_ * y_ + z_ * z_);
+    };
+    var a = len(v1, v2), b = len(v2, v3), c = len(v3, v1);
+    var s = (a + b + c) / 2;
+    var T = Math.sqrt(s * (s - a) * (s - b) * (s - c));
+    this.roughArea_ += T;
+  }, this);
 
   var n = this.vertices_.length;
 
   if (n < 3) {
-    triangles = [];
+  //triangles = [];
   } else if (n == 3) {
-    triangles = [[0, 1, 2], [2, 1, 0]]; //TODO: solve CW/CCW issue
+    addTriangle(this.vertices_[2], this.vertices_[1], this.vertices_[0]);
   } else {
     var head = this.head_;
 
@@ -314,8 +339,7 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
           v4 = v3._next;
           v1 = v2._prev;
           v0 = v1._prev;
-          //triangles.push([v1.tmpId, v2.tmpId, v3.tmpId]);
-          triangles.push([v3.tmpId, v2.tmpId, v1.tmpId]);
+          addTriangle(v3, v2, v1);
           v1._ear = Diagonal(v0, v3);
           v3._ear = Diagonal(v1, v4);
           v1._next = v3;
@@ -328,9 +352,8 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
         y--;
       } while (y > 0 && !broke && v2 != head);
     }
-    //if (v1 && v3 && v4) triangles.push([v1.tmpId, v3.tmpId, v4.tmpId]);
     if (v1 && v3 && v4) {
-      triangles.push([v4.tmpId, v3.tmpId, v1.tmpId]);
+      addTriangle(v4, v3, v1);
     }
   }
 
@@ -353,6 +376,9 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(lines),
                   gl.STATIC_DRAW);
   }
+
+  window.document['title'] =
+      this.roughArea_ * we.scene.EARTH_RADIUS * we.scene.EARTH_RADIUS + 'm2';
 };
 
 
