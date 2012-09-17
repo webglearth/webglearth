@@ -152,6 +152,12 @@ we.scene.Polygon = function(context) {
    * @private
    */
   this.roughArea_ = 0;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.valid_ = true;
 };
 
 
@@ -185,14 +191,6 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
   this.vertices_.push(vert);
   vert.fixedId = this.vertices_.length - 1;
 
-  // recalc temporary ids
-  var vrt = this.head_;
-  var nextId = 0;
-  do {
-    vrt.tmpId = nextId++;
-    vrt = vrt.next;
-  } while (vrt != this.head_);
-
   this.rebufferPoints_();
   this.solveTriangles_();
 
@@ -222,6 +220,14 @@ we.scene.Polygon.prototype.movePoint = function(fixedId, lat, lng) {
 we.scene.Polygon.prototype.rebufferPoints_ = function() {
   var vertices = new Array(3 * this.vertices_.length);
 
+  // recalc temporary ids
+  var vrt = this.head_;
+  var nextId = 0;
+  do {
+    vrt.tmpId = nextId++;
+    vrt = vrt.next;
+  } while (vrt != this.head_);
+
   goog.array.forEach(this.vertices_, function(el, i, arr) {
     vertices[3 * el.tmpId + 0] = el.projX;
     vertices[3 * el.tmpId + 1] = el.projY;
@@ -238,13 +244,58 @@ we.scene.Polygon.prototype.rebufferPoints_ = function() {
  * @private
  */
 we.scene.Polygon.prototype.solveTriangles_ = function() {
-  // Triangulation
-  //   based on http://www.sinc.sunysb.edu/Stu/nwellcom/ams345/triangulate.html
-  //
-  //TODO: solve CW/CCW issue + self-intersecting polygons
+  var n = this.vertices_.length;
+  this.roughArea_ = 0;
+
+  //test intersection of segments
+  if (n > 0) {
+    this.valid_ = true;
+    var a = this.head_;
+    do {
+      var b = a.next;
+      var c = this.head_;
+      do {
+        var d = c.next;
+        //test ab<->cd intersection
+        var denom = (d.y - c.y) * (b.x - a.x) - (d.x - c.x) * (b.y - a.y);
+        var p = ((d.x - c.x) * (a.y - c.y) - (d.y - c.y) * (a.x - c.x)) / denom;
+        var t = ((b.x - a.x) * (a.y - c.y) - (b.y - a.y) * (a.x - c.x)) / denom;
+
+        if (p > 0 && p < 1 && t > 0 && t < 1) {
+          this.valid_ = false;
+        }
+
+        c = d;
+      } while (this.valid_ && c != this.head_);
+      a = b;
+    } while (this.valid_ && a != this.head_);
+  }
+
+  if (!this.valid_) return;
+
+  var signedArea = 0;
+  if (n > 0) {
+    var a = this.head_;
+    do {
+      var b = a.next;
+      signedArea += a.x * b.y - a.y * b.x;
+      a = b;
+    } while (a != this.head_);
+  }
+
+  //NOTE: this area is wrong, but the sign is correct
+  if (signedArea > 0) {
+    //CCW ! reverse the points
+    for (var i = 0; i < n; ++i) {
+      var v = this.vertices_[i];
+      var tmp = v.next;
+      v.next = v.prev;
+      v.prev = tmp;
+    }
+    this.rebufferPoints_();
+  }
 
   var triangles = [];
-  this.roughArea_ = 0;
   var addTriangle = goog.bind(function(v1, v2, v3) {
     triangles.push([v1.tmpId, v2.tmpId, v3.tmpId]);
 
@@ -261,12 +312,11 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
     this.roughArea_ += T;
   }, this);
 
-  var n = this.vertices_.length;
-
+  // Triangulation -- ear clipping method
   if (n < 3) {
   //triangles = [];
   } else if (n == 3) {
-    addTriangle(this.vertices_[2], this.vertices_[1], this.vertices_[0]);
+    addTriangle(this.head_, this.head_.prev, this.head_.next);
   } else {
     var head = this.head_;
 
@@ -402,14 +452,16 @@ we.scene.Polygon.prototype.draw = function() {
   gl.vertexAttribPointer(this.aVertexCoords_, 3, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(this.aVertexCoords_);
 
-  gl.uniform4fv(this.uColor_, this.fillColor_);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
-  gl.drawElements(gl.TRIANGLES, this.numIndices_, gl.UNSIGNED_SHORT, 0);
+  if (this.valid_) {
+    gl.uniform4fv(this.uColor_, this.fillColor_);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
+    gl.drawElements(gl.TRIANGLES, this.numIndices_, gl.UNSIGNED_SHORT, 0);
 
-  if (we.scene.Polygon.DEBUG_LINES) {
-    gl.uniform4fv(this.uColor_, [0, 0, 1, 1]);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBufferLines_);
-    gl.drawElements(gl.LINES, 2 * this.numIndices_, gl.UNSIGNED_SHORT, 0);
+    if (we.scene.Polygon.DEBUG_LINES) {
+      gl.uniform4fv(this.uColor_, [0, 0, 1, 1]);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBufferLines_);
+      gl.drawElements(gl.LINES, 2 * this.numIndices_, gl.UNSIGNED_SHORT, 0);
+    }
   }
 
   gl.uniform4fv(this.uColor_, this.strokeColor_);
