@@ -57,11 +57,13 @@ we.ui.markers.PolyDragger = function(lat, lon, scene, update) {
     goog.events.listen(scene.context.canvas,
         goog.events.EventType.MOUSEMOVE, function(e) {
           var coords = scene.getLatLongForXY(e.offsetX, e.offsetY);
-          this.lat = coords[0];
-          this.lon = coords[1];
-          this.setXY(e.offsetX, e.offsetY); //for smoother dragging
-          update(this.lat, this.lon);
-          e.preventDefault();
+          if (coords) {
+            this.lat = coords[0];
+            this.lon = coords[1];
+            this.setXY(e.offsetX, e.offsetY); //for smoother dragging
+            update(this.lat, this.lon);
+            e.preventDefault();
+          }
         }, false, this);
     e.preventDefault();
   }, false, this);

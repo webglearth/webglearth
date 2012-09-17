@@ -80,8 +80,10 @@ we.ui.EditablePolygon = function(scene, markermanager) {
                 if (Math.max(Math.abs(e.offsetX - e_.offsetX),
                     Math.abs(e.offsetY - e_.offsetY)) <= 3) {
                   var coords = scene.getLatLongForXY(e_.offsetX, e_.offsetY);
-                  this.addPoint(coords[0], coords[1]);
-                  e_.preventDefault();
+                  if (coords) {
+                    this.addPoint(coords[0], coords[1]);
+                    e_.preventDefault();
+                  }
                 }
               }
             }, false, this);
