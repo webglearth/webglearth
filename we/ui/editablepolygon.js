@@ -30,6 +30,7 @@
 goog.provide('we.ui.EditablePolygon');
 
 goog.require('we.ui.markers.PolyDragger');
+goog.require('we.ui.markers.PolyIcon');
 
 
 
@@ -101,6 +102,31 @@ we.ui.EditablePolygon = function(scene, markermanager) {
   this.addPoint(5.5, -7.5);
   this.addPoint(3.0, -2.5);//*/
 
+  /**
+   * @type {!we.ui.markers.PolyIcon}
+   * @private
+   */
+  this.icon_ = new we.ui.markers.PolyIcon(0, 0, scene);
+  this.icon_.setImage('47.png', 100);
+  this.markermanager_.addMarker(null, this.icon_);
+};
+
+
+/**
+ * @private
+ */
+we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
+  var avgLat = 0, avgLng = 0;
+  goog.array.forEach(this.draggers_, function(el, i, arr) {
+    avgLat += el.lat;
+    avgLng += el.lon;
+  }, this);
+  avgLat /= this.draggers_.length;
+  avgLng /= this.draggers_.length;
+
+  this.icon_.lat = avgLat;
+  this.icon_.lon = avgLng;
+  this.icon_.enable(this.polygon_.isValid());
 };
 
 
@@ -112,7 +138,11 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng) {
   var fixedId = this.polygon_.addPoint(lat, lng);
   var move = goog.bind(function(lat_, lng_) {
     this.polygon_.movePoint(fixedId, lat_, lng_);
+    this.repositionIcon_();
   }, this);
   var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_, move);
   this.markermanager_.addMarker(null, dragger);
+  this.draggers_.push(dragger);
+
+  this.repositionIcon_();
 };

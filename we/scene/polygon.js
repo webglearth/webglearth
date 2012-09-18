@@ -168,6 +168,14 @@ we.scene.Polygon.DEBUG_LINES = true;
 
 
 /**
+ * @return {boolean} True if the polygon is valid (non self-intersecting).
+ */
+we.scene.Polygon.prototype.isValid = function() {
+  return this.valid_;
+};
+
+
+/**
  * @param {number} lat .
  * @param {number} lng .
  * @param {number=} opt_parent Defaults to the last point.

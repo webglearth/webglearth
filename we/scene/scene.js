@@ -341,9 +341,10 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y, opt_radians) {
  * Calculates screen-space coordinates for given geo-space coordinates.
  * @param {number} lat Latitude in degrees.
  * @param {number} lon Longitude in degrees.
+ * @param {number=} opt_elev Elevation of the point in meters.
  * @return {?Array.<number>} Array [x, y, visibility] or null.
  */
-we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
+we.scene.Scene.prototype.getXYForLatLon = function(lat, lon, opt_elev) {
   lat = goog.math.toRadians(lat);
   lon = goog.math.toRadians(lon);
 
@@ -351,6 +352,10 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
   var point = new goog.math.Vec3(Math.sin(lon) * cosy,
                                  Math.sin(lat),
                                  Math.cos(lon) * cosy);
+
+  if (opt_elev > 0) {
+    point = point.scale(1 + opt_elev / we.scene.EARTH_RADIUS);
+  }
 
   var result = this.context.mvpm.multiply(new goog.math.Matrix([[point.x],
                                                                 [point.y],
