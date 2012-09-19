@@ -29,6 +29,9 @@
 
 goog.provide('we.ui.EditablePolygon');
 
+goog.require('goog.color');
+
+goog.require('we.scene.Polygon');
 goog.require('we.ui.markers.PolyDragger');
 goog.require('we.ui.markers.PolyIcon');
 
@@ -73,20 +76,41 @@ we.ui.EditablePolygon = function(scene, markermanager) {
   this.neighborMids_ = {};
 
   /**
-   * @type {boolean}
+   * @type {?number}
    * @private
    */
-  this.clickToAddMode_ = true;
+  this.clickListenKey_ = null;
 
+  /**
+   * @type {!we.ui.markers.PolyIcon}
+   * @private
+   */
+  this.icon_ = new we.ui.markers.PolyIcon(0, 0, scene);
+  //this.icon_.setImage('47.png', 100);
+  this.markermanager_.addMarker(null, this.icon_);
+  this.icon_.enable(false);
+
+  /**
+   * @type {!function()}
+   * @private
+   */
+  this.onchange_ = goog.nullFunction;
+};
+
+
+/**
+ */
+we.ui.EditablePolygon.prototype.enableClickToAdd = function() {
   // when mouse is down, wait for mouseup and check, if it wasn't a dragging..
-  goog.events.listen(scene.context.canvas, goog.events.EventType.MOUSEDOWN,
-      function(e) {
-        goog.events.listen(scene.context.canvas, goog.events.EventType.MOUSEUP,
-            function(e_) {
-              if (e_.button == 0 && this.clickToAddMode_) {
+  this.clickListenKey_ = goog.events.listen(this.scene_.context.canvas,
+      goog.events.EventType.MOUSEDOWN, function(e) {
+        goog.events.listen(this.scene_.context.canvas,
+            goog.events.EventType.MOUSEUP, function(e_) {
+              if (e_.button == 0 && !goog.isNull(this.clickListenKey_)) {
                 if (Math.max(Math.abs(e.offsetX - e_.offsetX),
                     Math.abs(e.offsetY - e_.offsetY)) <= 3) {
-                  var coords = scene.getLatLongForXY(e_.offsetX, e_.offsetY);
+                  var coords = this.scene_.getLatLongForXY(e_.offsetX,
+                                                           e_.offsetY);
                   if (coords) {
                     this.addPoint(coords[0], coords[1]);
                     e_.preventDefault();
@@ -95,27 +119,77 @@ we.ui.EditablePolygon = function(scene, markermanager) {
               }
             }, false, this);
       }, false, this);
+};
 
-  /*this.polygon_.addPoint(40, 40);
-  this.polygon_.addPoint(40, 50);
-  this.polygon_.addPoint(30, 50);
-  this.polygon_.addPoint(30, 40);
-  this.polygon_.addPoint(35, 40);//*/
-  /*this.addPoint(9.0, 9.0);
-  this.addPoint(5.0, 5.0);
-  this.addPoint(-10.0, 5.0);
-  this.addPoint(-5.0, 3.5);
-  this.addPoint(5.5, -7.5);
-  this.addPoint(3.0, -2.5);//*/
 
-  /**
-   * @type {!we.ui.markers.PolyIcon}
-   * @private
-   */
-  this.icon_ = new we.ui.markers.PolyIcon(0, 0, scene);
-  this.icon_.setImage('47.png', 100);
-  this.markermanager_.addMarker(null, this.icon_);
-  this.icon_.enable(false);
+/**
+ */
+we.ui.EditablePolygon.prototype.disableClickToAdd = function() {
+  goog.events.unlistenByKey(this.clickListenKey_);
+};
+
+
+/**
+ * @param {string} hexColor #rrggbb.
+ * @param {number=} opt_a [0-1], defaults to 1.
+ */
+we.ui.EditablePolygon.prototype.setFillColor = function(hexColor, opt_a) {
+  hexColor = goog.color.normalizeHex(hexColor);
+  var r = parseInt(hexColor.substr(1, 2), 16) / 255;
+  var g = parseInt(hexColor.substr(3, 2), 16) / 255;
+  var b = parseInt(hexColor.substr(5, 2), 16) / 255;
+
+  this.polygon_.fillColor =
+      [r, g, b, goog.isDefAndNotNull(opt_a) ? opt_a : 1];
+};
+
+
+/**
+ * @param {string} hexColor #rrggbb.
+ * @param {number=} opt_a [0-1], defaults to 1.
+ */
+we.ui.EditablePolygon.prototype.setStrokeColor = function(hexColor, opt_a) {
+  hexColor = goog.color.normalizeHex(hexColor);
+  var r = parseInt(hexColor.substr(1, 2), 16) / 255;
+  var g = parseInt(hexColor.substr(3, 2), 16) / 255;
+  var b = parseInt(hexColor.substr(5, 2), 16) / 255;
+
+  this.polygon_.strokeColor =
+      [r, g, b, goog.isDefAndNotNull(opt_a) ? opt_a : 1];
+};
+
+
+/**
+ * @param {string} src URL of the image to use.
+ * @param {number} height Height of the image in meters (0 for no resizing).
+ * @param {number=} opt_minHeight Minimal height of the image in pixels.
+ */
+we.ui.EditablePolygon.prototype.setIcon = function(src, height, opt_minHeight) {
+  this.icon_.setImage(src, height, opt_minHeight);
+};
+
+
+/**
+ * @param {!function()} onchange Function to be called whenever polygon changes.
+ */
+we.ui.EditablePolygon.prototype.setOnChange = function(onchange) {
+  this.onchange_ = onchange;
+};
+
+
+/**
+ * @return {boolean} Is the polygon valid (non self-intersecting,...) ?
+ */
+we.ui.EditablePolygon.prototype.isValid = function() {
+  return this.polygon_.isValid();
+};
+
+
+/**
+ * @return {number} Rough area of the polygon in m^2.
+ */
+we.ui.EditablePolygon.prototype.getRoughArea = function() {
+  return this.polygon_.getRoughArea();
 };
 
 
@@ -173,6 +247,8 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng) {
   this.neighborMids_[fixedId][1] = newMid;
   */
 
+  this.onchange_();
+
   return fixedId;
 };
 
@@ -186,6 +262,8 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng) {
 we.ui.EditablePolygon.prototype.movePoint_ = function(fixedId, lat, lng) {
   this.polygon_.movePoint(fixedId, lat, lng);
   this.repositionIcon_();
+
+  this.onchange_();
 };
 
 
@@ -200,4 +278,6 @@ we.ui.EditablePolygon.prototype.removePoint_ = function(fixedId) {
     this.markermanager_.removeMarker(this.draggers_[fixedId]);
     delete this.draggers_[fixedId];
   }
+
+  this.onchange_();
 };

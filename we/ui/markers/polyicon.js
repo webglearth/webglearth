@@ -65,6 +65,12 @@ we.ui.markers.PolyIcon = function(lat, lon, scene) {
    * @type {number}
    * @private
    */
+  this.minHeight_ = 0;
+
+  /**
+   * @type {number}
+   * @private
+   */
   this.aspectRatio_ = 1;
 
   /**
@@ -89,24 +95,29 @@ we.ui.markers.PolyIcon.prototype.setXY = function(x, y) {
   var pos = this.scene_.getXYForLatLon(this.lat, this.lon, this.height_);
   var height =
       Math.sqrt((pos[0] - x) * (pos[0] - x) + (pos[1] - y) * (pos[1] - y));
-  height = Math.max(this.image_.naturalHeight / 5, height);
+  height = Math.max(this.minHeight_, height);
 
   this.image_.height = height;
   this.image_.width = height * this.aspectRatio_;
   this.image_.style.marginLeft = '-' + (this.image_.width / 2) + 'px';
   this.image_.style.marginTop = '-' + (this.image_.height / 2) + 'px';
+  this.image_.style.display = 'block';
 };
 
 
 /**
  * @param {string} src URL of the image to use.
  * @param {number} height Height of the image in meters (0 for no resizing).
+ * @param {number=} opt_minHeight Minimal height of the image in pixels.
  */
-we.ui.markers.PolyIcon.prototype.setImage = function(src, height) {
+we.ui.markers.PolyIcon.prototype.setImage = function(src, height,
+                                                     opt_minHeight) {
   this.image_.onload = goog.bind(function() {
     this.aspectRatio_ = this.image_.naturalWidth / this.image_.naturalHeight;
   }, this);
+  this.image_.style.display = 'none';
   this.image_.src = src;
 
   this.height_ = height;
+  this.minHeight_ = opt_minHeight || 0;
 };

@@ -143,15 +143,13 @@ we.scene.Polygon = function(context) {
 
   /**
    * @type {!Array.<number>}
-   * @private
    */
-  this.fillColor_ = [1, 0, 0, 0.8];
+  this.fillColor = [1, 0, 0, 0.8];
 
   /**
    * @type {!Array.<number>}
-   * @private
    */
-  this.strokeColor_ = [0, 0, 0, 1];
+  this.strokeColor = [0, 0, 0, 1];
 
   /**
    * @type {number}
@@ -170,7 +168,7 @@ we.scene.Polygon = function(context) {
 /**
  * @define {boolean} Draw the triangulation debugging lines?
  */
-we.scene.Polygon.DEBUG_LINES = true;
+we.scene.Polygon.DEBUG_LINES = false;
 
 
 /**
@@ -178,6 +176,14 @@ we.scene.Polygon.DEBUG_LINES = true;
  */
 we.scene.Polygon.prototype.isValid = function() {
   return this.valid_;
+};
+
+
+/**
+ * @return {number} Rough area of the polygon in m^2.
+ */
+we.scene.Polygon.prototype.getRoughArea = function() {
+  return this.roughArea_;
 };
 
 
@@ -516,8 +522,8 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
                   gl.STATIC_DRAW);
   }
 
-  window.document['title'] =
-      this.roughArea_ * we.scene.EARTH_RADIUS * we.scene.EARTH_RADIUS + 'm2';
+  this.roughArea_ *= we.scene.EARTH_RADIUS * we.scene.EARTH_RADIUS;
+  //window.document['title'] = this.roughArea_;
 };
 
 
@@ -542,7 +548,7 @@ we.scene.Polygon.prototype.draw = function() {
   gl.enableVertexAttribArray(this.aVertexCoords_);
 
   if (this.valid_) {
-    gl.uniform4fv(this.uColor_, this.fillColor_);
+    gl.uniform4fv(this.uColor_, this.fillColor);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
     gl.drawElements(gl.TRIANGLES, this.numIndices_, gl.UNSIGNED_SHORT, 0);
 
@@ -553,7 +559,7 @@ we.scene.Polygon.prototype.draw = function() {
     }
   }
 
-  gl.uniform4fv(this.uColor_, this.strokeColor_);
+  gl.uniform4fv(this.uColor_, this.strokeColor);
   gl.drawArrays(gl.LINE_LOOP, 0, this.numVertices_);
 
   gl.disableVertexAttribArray(this.aVertexCoords_);
