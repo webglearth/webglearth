@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="robots" content="index, all" />
+  <title>WebGL Earth API - Polygon Example</title>
+
+  <script src="http://localhost:9811/compile?id=api_debug"></script>
+
+  <script>    
+    var app, poly;
+    function startWE() {
+    
+      var options = {
+        altitude: 360,
+        position: [47.192, 8.524],
+        map: WebGLEarth.Maps.OSM,
+        proxyHost: 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url='
+      };
+
+      app = new WebGLEarth('webglearthdiv', options);
+      app.setTilt(45);
+    }
+
+    function startPoly() {
+      poly = new WebGLEarth.Polygon(app);
+      poly.enableClickToAdd();
+      poly.setOnChange(onchange);
+      setBorder('#000000', 0.9);
+      poly.setFillColor('#ee9a00', 0.6);
+      document.getElementById('infodiv').innerHTML = 'Create polygon by clicking on the ground, Alt-click on polygon node to remove it.';
+      document.getElementById('start').disabled = true;
+      document.getElementById('close').disabled = false;
+    }
+
+    function closePoly() {
+      poly.disableClickToAdd();
+      poly = null;
+      document.getElementById('infodiv').innerHTML = '';
+      document.getElementById('info2div').innerHTML = '';
+      document.getElementById('start').disabled = false;
+      document.getElementById('close').disabled = true;
+    }
+    
+    var borderHex, borderAlpha; //remember the color so we can visualize invalid polygons
+    function onchange() {
+      if (poly) {
+        document.getElementById('info2div').innerHTML =
+            poly.isValid() ? poly.getRoughArea().toFixed(2) + ' m2' :
+            'Invalid polygon (self-intersecting or  < 3 vertices)';
+        if (poly.isValid()) {
+          poly.setStrokeColor(borderHex, borderAlpha);
+        } else {
+          poly.setStrokeColor('#ff0000', 1);
+        }
+      }
+    }
+
+    function setBorder(hex, opt_a) {
+      if (poly) {
+        borderHex = hex;
+        borderAlpha = opt_a;
+        poly.setStrokeColor(hex, opt_a);
+      }
+    }
+    
+    function randomIcon() {
+      if (poly) {
+        var icons = [1, 10, 14, 15, 17, 20, 23, 25, 26, 31, 34, 36, 40, 42, 43, 45, 47, 48, 49, 50, 52, 53, 54];
+        var random = icons[Math.floor(Math.random() * icons.length)];
+        
+        // (src, billboard height in meters, minimal height in pixels)
+        poly.setIcon('icons/' + random + '.png', 150, 30);
+      }
+    }
+  </script>
+  
+ </head>
+ <body onload="javascript:startWE()">
+   <div id="webglearthdiv" style="width:600px;height:400px;"></div>
+   <div id="infodiv" style="width:600px;height:20px;"></div>
+   <div id="info2div" style="width:600px;height:20px;"></div>
+   <br />
+   <input type="button" id="start" value="Start new polygon" onclick="javascript:startPoly()"/>
+   <input type="button" id="close" value="Close polygon" onclick="javascript:closePoly()" disabled="true"/>
+   <br />
+   <input type="button" value="Make green" onclick="javascript:if(poly)poly.setFillColor('#00aa00', 0.7);"/>
+   <input type="button" value="Make blue" onclick="javascript:if(poly)poly.setFillColor('#0000ff', 0.4);"/>
+   <input type="button" value="Yellow border" onclick="javascript:setBorder('#ffff00');"/>
+   <input type="button" value="Black border" onclick="javascript:setBorder('#000000', 0.8);"/>
+   <br />
+   Change fill color: 
+   <select onchange="javascript:if(poly)poly.setFillColor(this.value, 0.7);">
+     <option value="#7bfffb">#7bfffb</option>
+     <option value="#f8ff7d">#f8ff7d</option>
+     <option value="#5aff5a">#5aff5a</option>
+     <option value="#fc7361">#fc7361</option>
+     <option value="#ee84fc">#ee84fc</option>
+     <option value="#bab3b8">#bab3b8</option>
+   </select>
+   Change border color: 
+   <select onchange="javascript:setBorder(this.value);">
+     <option value="#7ad3ff">#7ad3ff</option>
+     <option value="#ffdb74">#ffdb74</option>
+     <option value="#fc2009">#fc2009</option>
+     <option value="#fc7361">#fc7361</option>
+     <option value="#f225fc">#f225fc</option>
+     <option value="#7b7679">#7b7679</option>
+   </select>
+   <br />
+   <input type="button" value="Assign random icon" onclick="javascript:randomIcon();"/>
+
+ </body>
+</html>

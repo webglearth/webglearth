@@ -1,7 +1,7 @@
 {
   "id": "api",
 
-  "inputs": ["api/exports/exports.js"],
+  "inputs": ["api/exports/exports.js", "api/exports/polygon.js"],
   "paths": ['api','we'],
 
   "externs": [
