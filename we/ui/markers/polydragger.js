@@ -42,30 +42,49 @@ goog.require('we.utils');
  * @param {number} lat .
  * @param {number} lon .
  * @param {!we.scene.Scene} scene .
- * @param {!function(number, number)} update .
+ * @param {?number} fixedId .
+ * @param {!function(number, number, number)} updateFunc .
+ * @param {!function(number)} deleteFunc .
+ * @param {(function(number, number) : number)=} opt_createFunc .
  * @extends {we.ui.markers.AbstractMarker}
  * @constructor
  */
-we.ui.markers.PolyDragger = function(lat, lon, scene, update) {
-  var marker = goog.dom.createDom('div', {'class': 'we-polydragger-a'});
+we.ui.markers.PolyDragger = function(lat, lon, scene, fixedId,
+                                     updateFunc, deleteFunc, opt_createFunc) {
+  var marker = goog.dom.createDom('div', {'class':
+        'we-polydragger-' + (goog.isDefAndNotNull(fixedId) ? 'a' : 'b')});
 
   goog.base(this, lat, lon, /** @type {!HTMLElement} */ (marker));
 
   this.show(false);
 
-  goog.events.listen(marker, goog.events.EventType.MOUSEDOWN, function(e) {
-    goog.events.listen(scene.context.canvas,
-        goog.events.EventType.MOUSEMOVE, function(e) {
-          var coords = scene.getLatLongForXY(e.offsetX, e.offsetY);
-          if (coords) {
-            this.lat = coords[0];
-            this.lon = coords[1];
-            this.setXY(e.offsetX, e.offsetY); //for smoother dragging
-            update(this.lat, this.lon);
-            e.preventDefault();
-          }
-        }, false, this);
-    e.preventDefault();
+  goog.events.listen(marker, goog.events.EventType.MOUSEDOWN, function(e_) {
+    if (e_.button == 0) {
+      goog.events.listen(scene.context.canvas,
+          goog.events.EventType.MOUSEMOVE, function(e) {
+            var coords = scene.getLatLongForXY(e.offsetX, e.offsetY);
+            if (coords) {
+              this.lat = coords[0];
+              this.lon = coords[1];
+              this.setXY(e.offsetX, e.offsetY); //for smoother dragging
+              if (goog.isDefAndNotNull(fixedId)) {
+                updateFunc(fixedId, this.lat, this.lon);
+              } else if (opt_createFunc) {
+                fixedId = opt_createFunc(this.lat, this.lon);
+                marker.className = 'we-polydragger-a';
+              }
+              e.preventDefault();
+            }
+          }, false, this);
+      e_.preventDefault();
+    }
+  }, false, this);
+
+  goog.events.listen(marker, goog.events.EventType.CLICK, function(e) {
+    if (e.altKey && goog.isDefAndNotNull(fixedId)) {
+      deleteFunc(fixedId);
+      e.preventDefault();
+    }
   }, false, this);
 
   goog.events.listen(marker, goog.events.EventType.MOUSEUP, function(e) {

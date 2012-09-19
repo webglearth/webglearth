@@ -67,6 +67,12 @@ we.scene.Polygon = function(context) {
   this.vertices_ = [];
 
   /**
+   * @type {number}
+   * @private
+   */
+  this.numVertices_ = 0;
+
+  /**
    * @type {!WebGLBuffer}
    * @private
    */
@@ -157,7 +163,7 @@ we.scene.Polygon = function(context) {
    * @type {boolean}
    * @private
    */
-  this.valid_ = true;
+  this.valid_ = false;
 };
 
 
@@ -183,7 +189,7 @@ we.scene.Polygon.prototype.isValid = function() {
  */
 we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
   var vert = new we.scene.Polygon.Node(lat, lng);
-  if (this.vertices_.length == 0) {
+  if (this.numVertices_ == 0) {
     this.head_ = vert;
     vert.next = vert;
     vert.prev = vert;
@@ -191,6 +197,9 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
     var parent = this.vertices_[
         goog.math.clamp(opt_parent || Number.MAX_VALUE,
                         0, this.vertices_.length - 1)];
+    if (!parent) {
+      parent = this.head_.prev;
+    }
     vert.next = parent.next;
     parent.next = vert;
     vert.prev = parent;
@@ -198,6 +207,7 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
   }
   this.vertices_.push(vert);
   vert.fixedId = this.vertices_.length - 1;
+  this.numVertices_++;
 
   this.rebufferPoints_();
   this.solveTriangles_();
@@ -213,6 +223,7 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
  */
 we.scene.Polygon.prototype.movePoint = function(fixedId, lat, lng) {
   var vert = this.vertices_[fixedId];
+  if (!vert) return;
 
   vert.setLatLng(lat, lng);
 
@@ -222,12 +233,51 @@ we.scene.Polygon.prototype.movePoint = function(fixedId, lat, lng) {
 
 
 /**
+ * @param {number} fixedId .
+ */
+we.scene.Polygon.prototype.removePoint = function(fixedId) {
+  var vert = this.vertices_[fixedId];
+  if (vert) {
+    if (this.head_ == vert) {
+      this.head_ = (vert == vert.next) ? null : vert.next;
+    }
+    vert.next.prev = vert.prev;
+    vert.prev.next = vert.next;
+    delete this.vertices_[fixedId];
+    this.numVertices_--;
+
+    this.rebufferPoints_();
+    this.solveTriangles_();
+  }
+};
+
+
+/**
+ * @return {!Array.<number>} Coords of the average of the nodes.
+ */
+we.scene.Polygon.prototype.calcAverage = function() {
+  if (!this.head_) return [0, 0];
+  var x = 0, y = 0, i = 0;
+  var vrt = this.head_;
+  do {
+    x += vrt.x;
+    y += vrt.y;
+    i++;
+    vrt = vrt.next;
+  } while (vrt != this.head_);
+  i = i / 180 * Math.PI;
+  return [x/i, y/i];
+};
+
+
+/**
  * Buffers the points into GPU buffer.
  * @private
  */
 we.scene.Polygon.prototype.rebufferPoints_ = function() {
-  var vertices = new Array(3 * this.vertices_.length);
+  var vertices = new Array();
 
+  if (!this.head_) return;
   // recalc temporary ids
   var vrt = this.head_;
   var nextId = 0;
@@ -237,6 +287,7 @@ we.scene.Polygon.prototype.rebufferPoints_ = function() {
   } while (vrt != this.head_);
 
   goog.array.forEach(this.vertices_, function(el, i, arr) {
+    if (!el) return;
     vertices[3 * el.tmpId + 0] = el.projX;
     vertices[3 * el.tmpId + 1] = el.projY;
     vertices[3 * el.tmpId + 2] = el.projZ;
@@ -252,11 +303,12 @@ we.scene.Polygon.prototype.rebufferPoints_ = function() {
  * @private
  */
 we.scene.Polygon.prototype.solveTriangles_ = function() {
-  var n = this.vertices_.length;
+  var n = this.numVertices_;
   this.roughArea_ = 0;
 
+  this.valid_ = false;
   //test intersection of segments
-  if (n > 0) {
+  if (n > 2) {
     this.valid_ = true;
     var a = this.head_;
     do {
@@ -294,11 +346,13 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   //NOTE: this area is wrong, but the sign is correct
   if (signedArea > 0) {
     //CCW ! reverse the points
-    for (var i = 0; i < n; ++i) {
+    for (var i = 0; i < this.vertices_.length; ++i) {
       var v = this.vertices_[i];
-      var tmp = v.next;
-      v.next = v.prev;
-      v.prev = tmp;
+      if (v) {
+        var tmp = v.next;
+        v.next = v.prev;
+        v.prev = tmp;
+      }
     }
     this.rebufferPoints_();
   }
@@ -372,8 +426,10 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
     var v0, v1, v2, v3, v4;
 
     goog.array.forEach(this.vertices_, function(el, i, arr) {
-      el._next = el.next;
-      el._prev = el.prev;
+      if (el) {
+        el._next = el.next;
+        el._prev = el.prev;
+      }
     });
 
     v1 = this.head_;
@@ -473,7 +529,7 @@ we.scene.Polygon.prototype.draw = function() {
   }
 
   gl.uniform4fv(this.uColor_, this.strokeColor_);
-  gl.drawArrays(gl.LINE_LOOP, 0, this.vertices_.length);
+  gl.drawArrays(gl.LINE_LOOP, 0, this.numVertices_);
 
   gl.disableVertexAttribArray(this.aVertexCoords_);
 

@@ -61,10 +61,10 @@ we.ui.EditablePolygon = function(scene, markermanager) {
   scene.additionalDrawables.push(this.polygon_);
 
   /**
-   * @type {!Array.<!we.ui.markers.PolyDragger>}
+   * @type {!Object.<string, !we.ui.markers.PolyDragger>}
    * @private
    */
-  this.draggers_ = [];
+  this.draggers_ = {};
 
   /**
    * @type {boolean}
@@ -109,6 +109,7 @@ we.ui.EditablePolygon = function(scene, markermanager) {
   this.icon_ = new we.ui.markers.PolyIcon(0, 0, scene);
   this.icon_.setImage('47.png', 100);
   this.markermanager_.addMarker(null, this.icon_);
+  this.icon_.enable(false);
 };
 
 
@@ -116,16 +117,10 @@ we.ui.EditablePolygon = function(scene, markermanager) {
  * @private
  */
 we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
-  var avgLat = 0, avgLng = 0;
-  goog.array.forEach(this.draggers_, function(el, i, arr) {
-    avgLat += el.lat;
-    avgLng += el.lon;
-  }, this);
-  avgLat /= this.draggers_.length;
-  avgLng /= this.draggers_.length;
+  var avg = this.polygon_.calcAverage();
 
-  this.icon_.lat = avgLat;
-  this.icon_.lon = avgLng;
+  this.icon_.lat = avg[1];
+  this.icon_.lon = avg[0];
   this.icon_.enable(this.polygon_.isValid());
 };
 
@@ -136,13 +131,23 @@ we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
  */
 we.ui.EditablePolygon.prototype.addPoint = function(lat, lng) {
   var fixedId = this.polygon_.addPoint(lat, lng);
-  var move = goog.bind(function(lat_, lng_) {
-    this.polygon_.movePoint(fixedId, lat_, lng_);
+  var move = goog.bind(function(fixedId_, lat_, lng_) {
+    this.polygon_.movePoint(fixedId_, lat_, lng_);
     this.repositionIcon_();
   }, this);
-  var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_, move);
-  this.markermanager_.addMarker(null, dragger);
-  this.draggers_.push(dragger);
+  var key = null;
+  var remove = goog.bind(function(fixedId_) {
+    this.polygon_.removePoint(fixedId_);
+    this.repositionIcon_();
+    if (goog.isDefAndNotNull(key)) {
+      this.markermanager_.removeMarker(key);
+      delete this.draggers_[key];
+    }
+  }, this);
+  var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_,
+                                              fixedId, move, remove);
+  key = this.markermanager_.addMarker(null, dragger);
+  this.draggers_[key] = dragger;
 
   this.repositionIcon_();
 };
