@@ -218,6 +218,31 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
 
 /**
  * @param {number} fixedId .
+ * @return {!Array.<number>} .
+ */
+we.scene.Polygon.prototype.getNeighbors = function(fixedId) {
+  var vert = this.vertices_[fixedId];
+  if (!vert) return [];
+
+  return [vert.prev.fixedId, vert.next.fixedId];
+};
+
+
+/**
+ * @param {number} fixedId .
+ * @return {!Array.<number>} .
+ */
+we.scene.Polygon.prototype.getCoords = function(fixedId) {
+  var vert = this.vertices_[fixedId];
+  if (!vert) return [];
+
+  var mod = Math.PI * 180;
+  return [vert.x / mod, vert.y / mod];
+};
+
+
+/**
+ * @param {number} fixedId .
  * @param {number} lat .
  * @param {number} lng .
  */
