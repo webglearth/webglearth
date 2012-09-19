@@ -61,10 +61,16 @@ we.ui.EditablePolygon = function(scene, markermanager) {
   scene.additionalDrawables.push(this.polygon_);
 
   /**
-   * @type {!Object.<string, !we.ui.markers.PolyDragger>}
+   * @type {!Object.<number, string>}
    * @private
    */
   this.draggers_ = {};
+
+  /**
+   * @type {!Object.<number, !Array.<we.ui.markers.PolyDragger>>}
+   * @private
+   */
+  this.neighborMids_ = {};
 
   /**
    * @type {boolean}
@@ -128,26 +134,70 @@ we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
 /**
  * @param {number} lat .
  * @param {number} lng .
+ * @return {number} fixedId.
  */
 we.ui.EditablePolygon.prototype.addPoint = function(lat, lng) {
   var fixedId = this.polygon_.addPoint(lat, lng);
-  var move = goog.bind(function(fixedId_, lat_, lng_) {
-    this.polygon_.movePoint(fixedId_, lat_, lng_);
-    this.repositionIcon_();
-  }, this);
-  var key = null;
-  var remove = goog.bind(function(fixedId_) {
-    this.polygon_.removePoint(fixedId_);
-    this.repositionIcon_();
-    if (goog.isDefAndNotNull(key)) {
-      this.markermanager_.removeMarker(key);
-      delete this.draggers_[key];
-    }
-  }, this);
-  var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_,
-                                              fixedId, move, remove);
-  key = this.markermanager_.addMarker(null, dragger);
-  this.draggers_[key] = dragger;
+
+  var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_, fixedId,
+                                              goog.bind(this.movePoint_, this),
+                                              goog.bind(this.removePoint_, this)
+      );
+  this.draggers_[fixedId] = this.markermanager_.addMarker(null, dragger);
 
   this.repositionIcon_();
+
+  /*
+  var neighs = this.polygon_.getNeighbors(fixedId);
+  var oldMid;
+  var newMid = new we.ui.markers.PolyDragger(lat, lng, this.scene_, null,
+                                             goog.bind(this.movePoint_, this),
+                                             goog.bind(this.removePoint_, this),
+                                             goog.bind(this.addPoint_, this));
+  if (neighs.length == 0) {
+    oldMid = new we.ui.markers.PolyDragger(lat, lng, this.scene_, null,
+                                           goog.bind(this.movePoint_, this),
+                                           goog.bind(this.removePoint_, this),
+                                           goog.bind(this.addPoint_, this));
+  } else {
+    if (this.neighborMids_[neighs[0]][1] == this.neighborMids_[neighs[1]][0]) {
+      oldMid = this.neighborMids_[neighs[0]][1];
+      this.neighborMids_[neighs[1]][0] = newMid;
+    } else if (
+        this.neighborMids_[neighs[0]][0] == this.neighborMids_[neighs[1]][1]) {
+      oldMid = this.neighborMids_[neighs[0]][0];
+      this.neighborMids_[neighs[1]][1] = newMid;
+    }
+  }
+  this.neighborMids_[fixedId][0] = oldMid;
+  this.neighborMids_[fixedId][1] = newMid;
+  */
+
+  return fixedId;
+};
+
+
+/**
+ * @param {number} fixedId .
+ * @param {number} lat .
+ * @param {number} lng .
+ * @private
+ */
+we.ui.EditablePolygon.prototype.movePoint_ = function(fixedId, lat, lng) {
+  this.polygon_.movePoint(fixedId, lat, lng);
+  this.repositionIcon_();
+};
+
+
+/**
+ * @param {number} fixedId .
+ * @private
+ */
+we.ui.EditablePolygon.prototype.removePoint_ = function(fixedId) {
+  this.polygon_.removePoint(fixedId);
+  this.repositionIcon_();
+  if (goog.isDefAndNotNull(this.draggers_[fixedId])) {
+    this.markermanager_.removeMarker(this.draggers_[fixedId]);
+    delete this.draggers_[fixedId];
+  }
 };
