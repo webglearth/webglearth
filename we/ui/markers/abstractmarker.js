@@ -152,3 +152,11 @@ we.ui.markers.AbstractMarker.prototype.setXY = function(x, y) {
   if (this.enabled)
     this.show(true);
 };
+
+
+/**
+ * Override this method, if you want your marker
+ * to be renderable onto 2d canvas for screenshot purposes.
+ * @param {!CanvasRenderingContext2D} ctx .
+ */
+we.ui.markers.AbstractMarker.prototype.draw2D = goog.nullFunction;

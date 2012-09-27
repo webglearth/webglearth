@@ -121,3 +121,15 @@ we.ui.markers.PolyIcon.prototype.setImage = function(src, height,
   this.height_ = height;
   this.minHeight_ = opt_minHeight || 0;
 };
+
+
+/**
+ * @inheritDoc
+ */
+we.ui.markers.PolyIcon.prototype.draw2D = function(ctx) {
+  if (!this.isVisible()) return;
+  ctx.drawImage(this.image_,
+                parseInt(this.image_.style.left, 10) - this.image_.width / 2,
+                parseInt(this.image_.style.top, 10) - this.image_.height / 2,
+                this.image_.width, this.image_.height);
+};
