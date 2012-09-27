@@ -16,4 +16,4 @@ lint:
 	fixjsstyle --strict -r we/ -r weapp/ -r api/ -x we/shaderbank_codes.js
 	gjslint --strict -r we/ -r weapp/ -r api/ -x we/shaderbank_codes.js
 soyweb:
-	java -jar ./plovr.jar soyweb --dir .
+	java -jar ./plovr.jar soyweb -p 9812 --dir .

@@ -16,7 +16,7 @@
     we.shaderbank.PATH_TO_SHADERS = '../we/shaders/';
     
     var app;
-    var mapG, mapBR, mapBA, mapM;
+    var mapBR, mapBA, mapM;
     function startWE() {
     
       var options = {
@@ -28,15 +28,13 @@
     
       app = new WebGLEarth('webglearthdiv', options);
       
-      
-      mapG = app.initMap(WebGLEarth.Maps.GOOGLE, ['Satellite']);
       mapBR = app.initMap(WebGLEarth.Maps.BING, ['Road', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
       mapBA = app.initMap(WebGLEarth.Maps.BING, ['Aerial', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
       mapM = app.initMap(WebGLEarth.Maps.MAPQUEST);
       
       mapBR.setOpacity(0.5);
       
-      app.setBaseMap(mapG);
+      app.setBaseMap(mapM);
       app.setOverlayMap(mapBR);
       
       var marker = app.initMarker(20, 0);
@@ -66,6 +64,7 @@
    <input type="button" value="What's current position?" onclick="javascript:alert(app.getPosition());"/>
    <br /><br />
    <input type="button" value="Make the app bigger!" onclick="javascript:document.getElementById('webglearthdiv').style.width='800px';app.handleResize();this.disabled=true;"/>
+   <input type="button" value="Download as PNG" onclick="javascript:app.saveScreenshot('screenshot.png')"/>
    <br /><br />
    <input type="button" value="Switch to MapQuest" onclick="javascript:app.setBaseMap(mapM)"/>
    <input type="button" value="Switch to Bing - Aerial" onclick="javascript:app.setBaseMap(mapBA)"/>
