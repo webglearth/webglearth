@@ -31,6 +31,7 @@ goog.provide('weapi.exports');
 
 goog.require('goog.math');
 
+goog.require('we.canvas2image');
 goog.require('we.math.geo');
 goog.require('we.scene.Scene');
 goog.require('we.ui.markers.Popup');
@@ -151,6 +152,12 @@ goog.exportSymbol('WebGLEarth.prototype.flyToFitBounds', function(minlat,
 // Handle canvas resizing - this is necessary to prevent weird deformations
 goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
   return this.context.resize();
+});
+
+goog.exportSymbol('WebGLEarth.prototype.saveScreenshot', function(name) {
+  this.context.afterFrameOnce = goog.bind(function() {
+    we.canvas2image.saveCanvasAsPNG(this.context.canvas, name);
+  }, this);
 });
 
 goog.exportSymbol('WebGLEarth.Maps', weapi.maps.MapType);
