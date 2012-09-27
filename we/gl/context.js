@@ -62,7 +62,7 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
    */
   var tryGetContext = function(canvas, type) {
     try {
-      var context = canvas.getContext(type);
+      var context = canvas.getContext(type, {'premultipliedAlpha': false});
       if (goog.isDefAndNotNull(context)) {
         if (goog.DEBUG)
           we.gl.Context.logger.info('got WebGL context of type ' + type);
