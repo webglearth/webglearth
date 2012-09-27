@@ -64,6 +64,7 @@
    <input type="button" value="What's current position?" onclick="javascript:alert(app.getPosition());"/>
    <br /><br />
    <input type="button" value="Make the app bigger!" onclick="javascript:document.getElementById('webglearthdiv').style.width='800px';app.handleResize();this.disabled=true;"/>
+   <input type="button" value="Download as PNG" onclick="javascript:app.saveScreenshot('screenshot.png')"/>
    <br /><br />
    <input type="button" value="Switch to MapQuest" onclick="javascript:app.setBaseMap(mapM)"/>
    <input type="button" value="Switch to Bing - Aerial" onclick="javascript:app.setBaseMap(mapBA)"/>
