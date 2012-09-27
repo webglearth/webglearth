@@ -242,6 +242,11 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
       this.resize, false, this);
 
 
+  /**
+   * @type {function()|null}
+   */
+  this.afterFrameOnce = null;
+
   if (goog.DEBUG)
     we.gl.Context.logger.info('Created');
 };
@@ -391,6 +396,10 @@ we.gl.Context.prototype.renderFrame = function() {
     this.frameTimeSinceLastFpsCalc_ += goog.now() - time;
   }
 
+  if (this.afterFrameOnce) {
+    this.afterFrameOnce();
+    this.afterFrameOnce = null;
+  }
 };
 
 
