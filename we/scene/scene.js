@@ -41,6 +41,7 @@ goog.require('we.gl.utils');
 goog.require('we.scene.Camera');
 goog.require('we.scene.Earth');
 goog.require('we.scene.Halo');
+goog.require('we.scene.MiniGlobe');
 
 
 /**
@@ -124,6 +125,11 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
    * @type {!we.scene.Earth}
    */
   this.earth = new we.scene.Earth(this, opt_tileProvider);
+
+  /**
+   * @type {?we.scene.MiniGlobe}
+   */
+  this.miniGlobe = null;
 
   /**
    * @type {we.scene.Halo}
@@ -267,6 +273,7 @@ we.scene.Scene.prototype.draw = function() {
     el.draw();
   });
 
+  if (this.miniGlobe) this.miniGlobe.draw();
 };
 
 

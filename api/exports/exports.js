@@ -156,8 +156,7 @@ goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
 
 goog.exportSymbol('WebGLEarth.prototype.saveScreenshot', function(name) {
   this.context.afterFrameOnce = goog.bind(function() {
-    we.canvas2image.saveCanvasAsPNG(this.context.canvas, name,
-                                    this.markerManager);
+    we.canvas2image.saveCanvasAsPNG(this.context.canvas, name);
   }, this);
 });
 
