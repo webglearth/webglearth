@@ -29,6 +29,8 @@
 
 goog.provide('we.scene.MiniGlobe');
 
+goog.require('goog.dom');
+
 goog.require('we.gl.Shader');
 goog.require('we.shaderbank');
 
@@ -49,16 +51,28 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
   this.scene_ = scene;
 
   /**
-   * @type {!we.gl.Context}
+   * @type {!HTMLCanvasElement}
    */
-  this.context = scene.context;
+  this.canvas =
+      /** @type {!HTMLCanvasElement} */(goog.dom.createElement('canvas'));
+
+  var par = this.scene_.context.canvas.parentElement || window.document;
+  goog.dom.append(par, this.canvas);
+
+  var opts = {'depth': false};
 
   /**
-   * WebGL context
-   * @type {!WebGLRenderingContext}
+   * @type {?WebGLRenderingContext}
    */
-  this.gl = scene.context.gl;
+  this.gl = /** @type {?WebGLRenderingContext} */
+      (this.canvas.getContext('webgl', opts) ||
+       this.canvas.getContext('experimental-webgl', opts));
+
   var gl = this.gl;
+
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.BACK);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
   this.vertexBuffer_ = gl.createBuffer();
 
@@ -134,6 +148,7 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
   image_.onload = goog.bind(function() {
     this.texture_ = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.bindTexture(gl.TEXTURE_2D, this.texture_);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -144,9 +159,9 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
   var fragmentShaderCode = we.shaderbank.getShaderCode('miniglobe-fs.glsl');
   var vertexShaderCode = we.shaderbank.getShaderCode('miniglobe-vs.glsl');
 
-  var fsshader = we.gl.Shader.create(this.context, fragmentShaderCode,
+  var fsshader = we.gl.Shader.create(gl, fragmentShaderCode,
       gl.FRAGMENT_SHADER);
-  var vsshader = we.gl.Shader.create(this.context, vertexShaderCode,
+  var vsshader = we.gl.Shader.create(gl, vertexShaderCode,
       gl.VERTEX_SHADER);
 
   this.program_ = gl.createProgram();
@@ -172,7 +187,7 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
   this.textureCoordAttribute =
       gl.getAttribLocation(this.program_, 'aTextureCoord');
 
-  this.sMatrixUniform = gl.getUniformLocation(this.program_, 'uSMatrix');
+  this.aspectUniform = gl.getUniformLocation(this.program_, 'uAspect');
   this.pMatrixUniform = gl.getUniformLocation(this.program_, 'uPMatrix');
   this.mvMatrixUniform = gl.getUniformLocation(this.program_, 'uMVMatrix');
   this.samplerUniform = gl.getUniformLocation(this.program_, 'uSampler');
@@ -198,6 +213,24 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
 we.scene.MiniGlobe.prototype.setSize = function(size, opt_padding) {
   this.size_ = size;
   if (goog.isDefAndNotNull(opt_padding)) this.padding_ = opt_padding;
+  this.canvas.width = this.size_;
+  this.canvas.height = this.size_;
+
+  var pad = this.padding_ * this.size_;
+  this.canvas.style.cssText = 'position:absolute;z-index:10000;' +
+                              'pointer-events:none;' +
+                              'right:' + pad + 'px;bottom:' + pad + 'px;';
+};
+
+
+/**
+ * @param {!CanvasRenderingContext2D} dst .
+ */
+we.scene.MiniGlobe.prototype.drawToCanvas2D = function(dst) {
+  var cornerOff = this.size_ * (1 + this.padding_);
+  var x = this.scene_.context.canvas.width - cornerOff;
+  var y = this.scene_.context.canvas.height - cornerOff;
+  dst.drawImage(this.canvas, x, y);
 };
 
 
@@ -213,30 +246,18 @@ we.scene.MiniGlobe.prototype.draw = function() {
   gl.bindTexture(gl.TEXTURE_2D, this.texture_);
   gl.uniform1i(this.samplerUniform, 0);
 
-  var relativeSize = this.size_ / this.context.canvas.height;
-  var offset = 2 * (this.padding_ + 0.5) * relativeSize;
-
-  var sm = new we.math.TransformationMatrix();
-  sm.translate(1 - offset / this.context.aspectRatio, -1 + offset, 0);
-  sm.scale(relativeSize, relativeSize, 1);
-
   var mvm = new we.math.TransformationMatrix();
-  mvm.translate(0, 0, -1.1 / Math.tan(this.context.fov / 2));
+  mvm.translate(0, 0, -1.1 / Math.tan(this.scene_.context.fov / 2));
   mvm.rotate100(this.scene_.camera.getLatitude());
   mvm.rotate010(-this.scene_.camera.getLongitude());
 
-  //var mvm = new Float32Array(goog.array.flatten(
-  //    this.context.modelViewMatrix.getStandardMatrix().
-  //    getTranspose().toArray()));
-
   var pm = new Float32Array(goog.array.flatten(
-      this.context.projectionMatrix.getTranspose().toArray()));
+      this.scene_.context.projectionMatrix.getTranspose().toArray()));
 
   gl.uniformMatrix4fv(this.mvMatrixUniform, false, new Float32Array(
       goog.array.flatten(mvm.getStandardMatrix().getTranspose().toArray())));
   gl.uniformMatrix4fv(this.pMatrixUniform, false, pm);
-  gl.uniformMatrix4fv(this.sMatrixUniform, false, new Float32Array(
-      goog.array.flatten(sm.getStandardMatrix().getTranspose().toArray())));
+  gl.uniform1f(this.aspectUniform, this.scene_.context.aspectRatio);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
   gl.vertexAttribPointer(this.vertexPositionAttribute,

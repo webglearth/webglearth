@@ -186,19 +186,26 @@ if (BlobBuilder_ && (saveAs_ || saveBlob_)) {
  * @param {!HTMLCanvasElement} canvas .
  * @param {string} filename .
  * @param {we.ui.markers.MarkerManager=} opt_markerMgr .
+ * @param {we.scene.MiniGlobe=} opt_miniGlobe .
  */
-we.canvas2image.saveCanvasAsPNG = function(canvas, filename, opt_markerMgr) {
+we.canvas2image.saveCanvasAsPNG = function(canvas, filename,
+                                           opt_markerMgr, opt_miniGlobe) {
   var canvas_ = canvas;
-  if (opt_markerMgr) {
+  if (opt_markerMgr || opt_miniGlobe) {
     canvas_ = goog.dom.createElement('canvas');
     canvas_.width = canvas.width;
     canvas_.height = canvas.height;
     var ctx = /** @type {!CanvasRenderingContext2D} */
         (canvas_.getContext('2d'));
     ctx.drawImage(canvas, 0, 0);
-    opt_markerMgr.forEach(function(marker) {
-      marker.draw2D(ctx);
-    });
+    if (opt_markerMgr) {
+      opt_markerMgr.forEach(function(marker) {
+        marker.draw2D(ctx);
+      });
+    }
+    if (opt_miniGlobe) {
+      opt_miniGlobe.drawToCanvas2D(ctx);
+    }
   }
   if (showSave_ && canvas_.toBlob) {
     canvas_.toBlob(function(blob) {
