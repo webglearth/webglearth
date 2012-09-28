@@ -97,9 +97,11 @@ goog.inherits(we.ui.markers.PolyDragger, we.ui.markers.AbstractMarker);
 
 we.utils.addCss(
     '.we-polydragger-a{position:absolute;width:8px;height:8px;z-index:100;' +
-    'margin-left:-4px;margin-top:-4px;background-color:blue;cursor:pointer;}'
+    'margin-left:-4px;margin-top:-4px;background-color:#36f;' +
+    'cursor:pointer;border:1px solid blue;}'
 );
 we.utils.addCss(
     '.we-polydragger-b{position:absolute;width:6px;height:6px;z-index:99;' +
-    'margin-left:-3px;margin-top:-3px;background-color:lightblue;cursor:pointer;}'
+    'margin-left:-3px;margin-top:-3px;background-color:rgba(180,220,250,0.9);' +
+    'cursor:pointer;border:1px solid blue;}'
 );
