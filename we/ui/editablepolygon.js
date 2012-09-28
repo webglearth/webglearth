@@ -107,6 +107,7 @@ we.ui.EditablePolygon = function(scene, markermanager) {
 /**
  */
 we.ui.EditablePolygon.prototype.enableClickToAdd = function() {
+  if (goog.isDefAndNotNull(this.clickListenKey_)) return;
   // when mouse is down, wait for mouseup and check, if it wasn't a dragging..
   this.clickListenKey_ = goog.events.listen(this.scene_.context.canvas,
       goog.events.EventType.MOUSEDOWN, function(e) {
@@ -132,6 +133,7 @@ we.ui.EditablePolygon.prototype.enableClickToAdd = function() {
  */
 we.ui.EditablePolygon.prototype.disableClickToAdd = function() {
   goog.events.unlistenByKey(this.clickListenKey_);
+  this.clickListenKey_ = null;
 };
 
 
@@ -208,6 +210,30 @@ we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
   this.icon_.lat = avg[1];
   this.icon_.lon = avg[0];
   this.icon_.enable(this.polygon_.isValid());
+};
+
+
+/**
+ * @param {boolean} visible .
+ * @param {boolean=} opt_midOnly .
+ */
+we.ui.EditablePolygon.prototype.showDraggers = function(visible, opt_midOnly) {
+  goog.object.forEach(this.midMap_, function(el, key, obj) {
+    el.enable(visible);
+  }, this);
+  if (opt_midOnly !== true) {
+    goog.object.forEach(this.draggers_, function(el, key, obj) {
+      this.markermanager_.getMarker(el).enable(visible);
+    }, this);
+  }
+};
+
+
+/**
+ * @return {!Array.<!{lat: number, lng: number}>} .
+ */
+we.ui.EditablePolygon.prototype.getPoints = function() {
+  return this.polygon_.getAllCoords();
 };
 
 
