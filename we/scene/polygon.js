@@ -265,6 +265,23 @@ we.scene.Polygon.prototype.getCoords = function(fixedId) {
 
 
 /**
+ * @return {!Array.<!{lat: number, lng: number}>} .
+ */
+we.scene.Polygon.prototype.getAllCoords = function() {
+  var mod = 180 / Math.PI;
+  var result = [];
+
+  var vrt = this.head_;
+  do {
+    result.push({'lat': vrt.y * mod, 'lng': vrt.x * mod});
+    vrt = vrt.next;
+  } while (vrt != this.head_);
+
+  return result;
+};
+
+
+/**
  * @param {number} fixedId .
  * @param {number} lat .
  * @param {number} lng .
