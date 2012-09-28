@@ -167,7 +167,7 @@ we.scene.Polygon = function(context) {
    * @type {boolean}
    * @private
    */
-  this.ccwSwitchFlag_ = false;
+  this.pointSwitchFlag_ = false;
 };
 
 
@@ -189,8 +189,8 @@ we.scene.Polygon.prototype.isValid = function() {
  * @return {boolean} True if the polygon CCW/CW orientation was just changed.
  */
 we.scene.Polygon.prototype.orientationChanged = function() {
-  var oldVal = this.ccwSwitchFlag_;
-  this.ccwSwitchFlag_ = false;
+  var oldVal = this.pointSwitchFlag_;
+  this.pointSwitchFlag_ = false;
   return oldVal;
 };
 
@@ -374,9 +374,12 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   this.valid_ = false;
   //test intersection of segments
   if (n > 2) {
+    //point p such that p<->p.next is not intersected by any other
+    var cleanpoint = null;
     this.valid_ = true;
     var a = this.head_;
     do {
+      var localValid = true;
       var b = a.next;
       var c = this.head_;
       do {
@@ -387,15 +390,38 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
         var t = ((b.x - a.x) * (a.y - c.y) - (b.y - a.y) * (a.x - c.x)) / denom;
 
         if (p > 0 && p < 1 && t > 0 && t < 1) {
-          this.valid_ = false;
+          localValid = false;
         }
 
         c = d;
-      } while (this.valid_ && c != this.head_);
+      } while (localValid && c != this.head_);
+      if (localValid) cleanpoint = a;
+      this.valid_ = this.valid_ && localValid;
       a = b;
-    } while (this.valid_ && a != this.head_);
-  }
+    } while (a != this.head_);
 
+    if (!this.valid_ && n == 4) {
+      //although some lines intersect, we can still solve this for 4 points
+      //  by simply swapping some points (unrolling around the clean edge)
+      var swapPoints = function(p1, p2) {
+        var p1_prev = p1.prev;
+        var p2_next = p2.next;
+        p1.prev = p2;
+        p2.next = p1;
+
+        p1.next = p2_next;
+        p2.prev = p1_prev;
+
+        p2_next.prev = p1;
+        p1_prev.next = p2;
+      };
+      if (cleanpoint) swapPoints(cleanpoint, cleanpoint.next);
+
+      this.rebufferPoints_();
+      this.valid_ = true;
+      this.pointSwitchFlag_ = true;
+    }
+  }
   if (!this.valid_) return;
 
   var signedArea = 0;
@@ -411,7 +437,7 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   //NOTE: this area is wrong, but the sign is correct
   if (signedArea > 0) {
     //CCW ! reverse the points
-    this.ccwSwitchFlag_ = true;
+    this.pointSwitchFlag_ = true;
     for (var i = 0; i < this.vertices_.length; ++i) {
       var v = this.vertices_[i];
       if (v) {
