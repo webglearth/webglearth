@@ -29,7 +29,7 @@
       poly.enableClickToAdd();
       poly.setOnChange(onchange);
       setBorder('#000000', 0.9);
-      poly.setFillColor('#ee9a00', 0.6);
+      poly.setFillColor('#eedd00', 0.6);
       document.getElementById('infodiv').innerHTML = 'Create polygon by clicking on the ground, Alt-click on polygon node to remove it.';
       document.getElementById('start').disabled = true;
       document.getElementById('close').disabled = false;
@@ -37,6 +37,7 @@
 
     function closePoly() {
       poly.disableClickToAdd();
+      poly.showDraggers(false);
       poly = null;
       document.getElementById('infodiv').innerHTML = '';
       document.getElementById('info2div').innerHTML = '';
@@ -54,6 +55,14 @@
           poly.setStrokeColor(borderHex, borderAlpha);
         } else {
           poly.setStrokeColor('#ff0000', 1);
+        }
+
+        // when the user has already defined already at least 4 points,
+        //   disable the "click-to-add" feature
+        if (poly.getPoints().length >= 4) {
+          poly.disableClickToAdd();
+        } else {
+          poly.enableClickToAdd();
         }
       }
     }
@@ -111,6 +120,7 @@
    </select>
    <br />
    <input type="button" value="Assign random icon" onclick="javascript:randomIcon();"/>
+   <input type="button" value="Remove icon" onclick="javascript:if(poly)poly.setIcon('');"/>
    <br />
    <input type="button" value="Download as PNG" onclick="javascript:app.saveScreenshot('screenshot.png')"/>
  </body>

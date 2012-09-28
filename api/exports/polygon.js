@@ -65,3 +65,8 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.getRoughArea',
 
 goog.exportSymbol('WebGLEarth.Polygon.prototype.setIcon',
                   weapi.exports.Polygon.prototype.setIcon);
+goog.exportSymbol('WebGLEarth.Polygon.prototype.showDraggers',
+                  weapi.exports.Polygon.prototype.showDraggers);
+
+goog.exportSymbol('WebGLEarth.Polygon.prototype.getPoints',
+                  weapi.exports.Polygon.prototype.getPoints);
