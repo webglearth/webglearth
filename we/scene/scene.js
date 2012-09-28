@@ -173,6 +173,11 @@ we.scene.Scene.prototype.updateCopyrights = function() {
       this.earth.getCurrentTileProvider(true).appendCopyrightContent(
           this.tpCopyrightElement_);
     }
+    this.tpCopyrightElement_.style.pointerEvents = 'none';
+    var anchors = this.tpCopyrightElement_.getElementsByTagName('a');
+    for (var i = 0; i < anchors.length; ++i) {
+      anchors[i].style.pointerEvents = 'auto';
+    }
   }
   if (!goog.isNull(this.tpLogoImg_)) {
     if (!goog.isNull(this.earth.getCurrentTileProvider().getLogoUrl())) {
@@ -181,6 +186,7 @@ we.scene.Scene.prototype.updateCopyrights = function() {
     } else {
       this.tpLogoImg_.style.visibility = 'hidden';
     }
+    this.tpLogoImg_.style.pointerEvents = 'none';
   }
 };
 
