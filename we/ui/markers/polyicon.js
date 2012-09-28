@@ -52,7 +52,7 @@ we.ui.markers.PolyIcon = function(lat, lon, scene) {
    */
   this.image_ = /** @type {!HTMLImageElement} */
       (goog.dom.createDom('img',
-      {'style': 'position:absolute;pointer-events:none;',
+      {'style': 'position:absolute;pointer-events:none;z-index:101;',
         'crossOrigin': null}));
 
   /**
