@@ -35,5 +35,6 @@ varying vec2 vTextureCoord;
 void main(){
   gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
   gl_Position.x *= uAspect;
+  gl_Position.z = 0.0; // to solve perspective clipping
   vTextureCoord = aTextureCoord;
 }
