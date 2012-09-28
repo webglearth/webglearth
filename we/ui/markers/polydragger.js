@@ -96,6 +96,10 @@ goog.inherits(we.ui.markers.PolyDragger, we.ui.markers.AbstractMarker);
 
 
 we.utils.addCss(
-    '.we-polydragger-a{position:absolute;width:8px;height:8px;' +
+    '.we-polydragger-a{position:absolute;width:8px;height:8px;z-index:100;' +
     'margin-left:-4px;margin-top:-4px;background-color:blue;cursor:pointer;}'
+);
+we.utils.addCss(
+    '.we-polydragger-b{position:absolute;width:6px;height:6px;z-index:99;' +
+    'margin-left:-3px;margin-top:-3px;background-color:lightblue;cursor:pointer;}'
 );
