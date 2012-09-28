@@ -110,7 +110,7 @@ we.ui.EditablePolygon.prototype.enableClickToAdd = function() {
   // when mouse is down, wait for mouseup and check, if it wasn't a dragging..
   this.clickListenKey_ = goog.events.listen(this.scene_.context.canvas,
       goog.events.EventType.MOUSEDOWN, function(e) {
-        goog.events.listen(this.scene_.context.canvas,
+        goog.events.listenOnce(this.scene_.context.canvas,
             goog.events.EventType.MOUSEUP, function(e_) {
               if (e_.button == 0 && !goog.isNull(this.clickListenKey_)) {
                 if (Math.max(Math.abs(e.offsetX - e_.offsetX),
@@ -233,17 +233,13 @@ we.ui.EditablePolygon.prototype.repositionMidsAround_ = function(fixedId) {
 /**
  * Checks, whether the polygon has just changed CW/CCW orientation
  * and performs necessary adjustments.
- * @param {number} anyP FixedId of any active point of the polygon.
  * @private
  */
-we.ui.EditablePolygon.prototype.checkPointOrientationChange_ = function(anyP) {
+we.ui.EditablePolygon.prototype.checkPointOrientationChange_ = function() {
   if (this.polygon_.orientationChanged()) {
-    var start = anyP;
-    var pos = start;
-    do {
-      this.repositionMidsAround_(pos);
-      pos = this.polygon_.getNeighbors(pos)[1];
-    } while (pos != start);
+    goog.object.forEach(this.midMap_, function(el, key, obj) {
+      this.repositionMidsAround_(key);
+    }, this);
   }
 };
 
@@ -258,7 +254,6 @@ we.ui.EditablePolygon.prototype.checkPointOrientationChange_ = function(anyP) {
 we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
                                                     opt_parent, opt_fromMid) {
   var fixedId = this.polygon_.addPoint(lat, lng, opt_parent);
-  this.checkPointOrientationChange_(fixedId);
 
   if (opt_fromMid && goog.isDefAndNotNull(opt_parent)) {
     this.draggers_[fixedId] = this.midDraggers_[opt_parent];
@@ -297,6 +292,7 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
     this.repositionMidsAround_(neighs[1]);
   }
 
+  this.checkPointOrientationChange_();
   this.onchange_();
 
   return fixedId;
@@ -311,7 +307,7 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
  */
 we.ui.EditablePolygon.prototype.movePoint_ = function(fixedId, lat, lng) {
   this.polygon_.movePoint(fixedId, lat, lng);
-  this.checkPointOrientationChange_(fixedId);
+  this.checkPointOrientationChange_();
   this.repositionMidsAround_(fixedId);
   this.repositionIcon_();
 
@@ -327,7 +323,6 @@ we.ui.EditablePolygon.prototype.removePoint_ = function(fixedId) {
   var neighs = this.polygon_.getNeighbors(fixedId);
 
   this.polygon_.removePoint(fixedId);
-  this.checkPointOrientationChange_(neighs[0]);
 
   this.repositionIcon_();
   if (goog.isDefAndNotNull(this.draggers_[fixedId])) {
@@ -340,6 +335,8 @@ we.ui.EditablePolygon.prototype.removePoint_ = function(fixedId) {
       delete this.midDraggers_[fixedId];
     }
   }
+
+  this.checkPointOrientationChange_();
 
   if (neighs.length > 0) {
     this.repositionMidsAround_(neighs[0]);
