@@ -168,6 +168,12 @@ we.scene.Polygon = function(context) {
    * @private
    */
   this.pointSwitchFlag_ = false;
+
+  /**
+   * @type {!Array.<!Array.<!we.scene.Polygon.Node>>}
+   * @private
+   */
+  this.triangulation_ = [];
 };
 
 
@@ -336,6 +342,31 @@ we.scene.Polygon.prototype.calcAverage = function() {
 
 
 /**
+ * @param {number} lat .
+ * @param {number} lng .
+ * @return {boolean} True if inside the polygon.
+ */
+we.scene.Polygon.prototype.isPointIn = function(lat, lng) {
+  var p1x = lng / 180 * Math.PI;
+  var p1y = lat / 180 * Math.PI;
+
+  var sign_ = function(p2, p3) {
+    return (p1x - p3.x) * (p2.y - p3.y) -
+           (p2.x - p3.x) * (p1y - p3.y);
+  };
+  var found = false;
+  goog.array.forEach(this.triangulation_, function(el, i, arr) {
+    var b1 = sign_(el[0], el[1]) < 0;
+    var b2 = sign_(el[1], el[2]) < 0;
+    var b3 = sign_(el[2], el[0]) < 0;
+
+    if ((b1 == b2) && (b2 == b3)) found = true;
+  });
+  return found;
+};
+
+
+/**
  * Buffers the points into GPU buffer.
  * @private
  */
@@ -370,6 +401,7 @@ we.scene.Polygon.prototype.rebufferPoints_ = function() {
 we.scene.Polygon.prototype.solveTriangles_ = function() {
   var n = this.numVertices_;
   this.roughArea_ = 0;
+  this.triangulation_ = [];
 
   this.valid_ = false;
   //test intersection of segments
@@ -452,6 +484,7 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   var triangles = [];
   var addTriangle = goog.bind(function(v1, v2, v3) {
     triangles.push([v1.tmpId, v2.tmpId, v3.tmpId]);
+    this.triangulation_.push([v1, v2, v3]);
 
     // Calculate triangle area using Heron's formula
     var len = function(u, v) {

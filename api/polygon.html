@@ -35,6 +35,7 @@
       defaultPoly.addPoint(47.1972434, 8.52277868);
       defaultPoly.disableClickToAdd();
       defaultPoly.showDraggers(false);
+      defaultPoly.onClick(reopenPoly);
       
       // let the corner point animate in circle
       //   not very useful way of demonstrating the movePoint() method
@@ -46,25 +47,38 @@
       }, 50);
     }
 
+    function reopenPoly(pol_) {
+      if (poly) {
+        // disable old active polygon
+        poly.disableClickToAdd();
+        poly.showDraggers(false);
+      }
+      poly = pol_;
+      poly.enableClickToAdd();
+      poly.showDraggers(true);
+      poly.setOnChange(onchange);
+    }
+    
     function startPoly() {
+      if (poly) {
+        closePoly();
+      }
       poly = new WebGLEarth.Polygon(app);
       poly.enableClickToAdd();
       poly.setOnChange(onchange);
       setBorder('#000000', 0.9);
       poly.setFillColor('#eedd00', 0.6);
+      poly.onClick(reopenPoly);
       document.getElementById('infodiv').innerHTML = 'Create polygon by clicking on the ground, Alt-click on polygon node to remove it.';
-      document.getElementById('start').disabled = true;
-      document.getElementById('close').disabled = false;
     }
 
     function closePoly() {
+      if (!poly) return;
       poly.disableClickToAdd();
       poly.showDraggers(false);
       poly = null;
       document.getElementById('infodiv').innerHTML = '';
       document.getElementById('info2div').innerHTML = '';
-      document.getElementById('start').disabled = false;
-      document.getElementById('close').disabled = true;
     }
     
     var borderHex, borderAlpha; //remember the color so we can visualize invalid polygons
@@ -115,7 +129,7 @@
    <div id="info2div" style="width:600px;height:20px;"></div>
    <br />
    <input type="button" id="start" value="Start new polygon" onclick="javascript:startPoly()"/>
-   <input type="button" id="close" value="Close polygon" onclick="javascript:closePoly()" disabled="true"/>
+   <input type="button" id="close" value="Close polygon" onclick="javascript:closePoly()"/>
    <br />
    <input type="button" value="Make green" onclick="javascript:if(poly)poly.setFillColor('#00aa00', 0.7);"/>
    <input type="button" value="Make blue" onclick="javascript:if(poly)poly.setFillColor('#0000ff', 0.4);"/>

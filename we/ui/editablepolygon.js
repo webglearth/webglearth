@@ -45,9 +45,9 @@ goog.require('we.ui.markers.PolyIcon');
 we.ui.EditablePolygon = function(scene, markermanager) {
   /**
    * @type {!we.scene.Scene}
-   * @private
+   * @protected
    */
-  this.scene_ = scene;
+  this.scene = scene;
 
   /**
    * @type {!we.ui.markers.MarkerManager}
@@ -109,15 +109,15 @@ we.ui.EditablePolygon = function(scene, markermanager) {
 we.ui.EditablePolygon.prototype.enableClickToAdd = function() {
   if (goog.isDefAndNotNull(this.clickListenKey_)) return;
   // when mouse is down, wait for mouseup and check, if it wasn't a dragging..
-  this.clickListenKey_ = goog.events.listen(this.scene_.context.canvas,
+  this.clickListenKey_ = goog.events.listen(this.scene.context.canvas,
       goog.events.EventType.MOUSEDOWN, function(e) {
-        goog.events.listenOnce(this.scene_.context.canvas,
+        goog.events.listenOnce(this.scene.context.canvas,
             goog.events.EventType.MOUSEUP, function(e_) {
               if (e_.button == 0 && !goog.isNull(this.clickListenKey_)) {
                 if (Math.max(Math.abs(e.offsetX - e_.offsetX),
                     Math.abs(e.offsetY - e_.offsetY)) <= 3) {
-                  var coords = this.scene_.getLatLongForXY(e_.offsetX,
-                                                           e_.offsetY);
+                  var coords = this.scene.getLatLongForXY(e_.offsetX,
+                      e_.offsetY);
                   if (coords) {
                     this.addPoint(coords[0], coords[1]);
                     e_.preventDefault();
@@ -198,6 +198,16 @@ we.ui.EditablePolygon.prototype.isValid = function() {
  */
 we.ui.EditablePolygon.prototype.getRoughArea = function() {
   return this.polygon_.getRoughArea();
+};
+
+
+/**
+ * @param {number} lat .
+ * @param {number} lng .
+ * @return {boolean} True if inside the polygon.
+ */
+we.ui.EditablePolygon.prototype.isPointIn = function(lat, lng) {
+  return this.polygon_.isPointIn(lat, lng);
 };
 
 
@@ -285,7 +295,7 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
     this.draggers_[fixedId] = this.midDraggers_[opt_parent];
     delete this.midDraggers_[opt_parent];
   } else {
-    var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_, fixedId,
+    var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene, fixedId,
         goog.bind(this.movePoint, this), goog.bind(this.removePoint, this));
     this.draggers_[fixedId] = this.markermanager_.addMarker(null, dragger);
   }
@@ -298,7 +308,7 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
         return this.addPoint(lat, lng, parentP, true);
       }, this);
     }, this);
-    var mid1 = new we.ui.markers.PolyDragger(lat, lng, this.scene_, null,
+    var mid1 = new we.ui.markers.PolyDragger(lat, lng, this.scene, null,
         goog.bind(this.movePoint, this),
         goog.bind(this.removePoint, this),
         adderAfter(fixedId));
@@ -306,7 +316,7 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
     this.midDraggers_[fixedId] = this.markermanager_.addMarker(null, mid1);
 
     if (opt_fromMid) {
-      var mid2 = new we.ui.markers.PolyDragger(lat, lng, this.scene_, null,
+      var mid2 = new we.ui.markers.PolyDragger(lat, lng, this.scene, null,
           goog.bind(this.movePoint, this),
           goog.bind(this.removePoint, this),
           adderAfter(neighs[0]));

@@ -77,3 +77,15 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.removePoint',
 
 goog.exportSymbol('WebGLEarth.Polygon.prototype.getPoints',
                   weapi.exports.Polygon.prototype.getPoints);
+
+goog.exportSymbol('WebGLEarth.Polygon.prototype.onClick',
+                  function(callback) {
+                    goog.events.listen(this.scene.context.canvas,
+                        goog.events.EventType.CLICK, function(e) {
+                      var coords =
+                          this.scene.getLatLongForXY(e.offsetX, e.offsetY);
+                      if (coords && this.isPointIn(coords[0], coords[1])) {
+                        callback(this);
+                      }
+                    }, false, this);
+                  });
