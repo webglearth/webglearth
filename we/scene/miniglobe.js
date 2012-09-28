@@ -215,6 +215,7 @@ we.scene.MiniGlobe.prototype.setSize = function(size, opt_padding) {
   if (goog.isDefAndNotNull(opt_padding)) this.padding_ = opt_padding;
   this.canvas.width = this.size_;
   this.canvas.height = this.size_;
+  this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
   var pad = this.padding_ * this.size_;
   this.canvas.style.cssText = 'position:absolute;z-index:10000;' +
