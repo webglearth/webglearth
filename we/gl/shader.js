@@ -37,25 +37,26 @@ goog.require('we.gl.Context');
 
 /**
  * Function compiling a shader
- * @param {!we.gl.Context} context WebGL context.
+ * @param {!we.gl.Context|!WebGLRenderingContext} context WebGL context.
  * @param {string} shaderCode GLSL source code.
  * @param {number} shaderType gl.FRAGMENT_SHADER or gl.VERTEX_SHADER.
  * @return {!WebGLShader} Compiled WebGL shader.
  */
 we.gl.Shader.create = function(context, shaderCode, shaderType) {
-  var shader = context.gl.createShader(shaderType);
+  var gl = context.gl || context;
+  var shader = gl.createShader(shaderType);
 
   if (goog.DEBUG)
     we.gl.Shader.logger.info('Compiling...');
 
-  context.gl.shaderSource(shader, shaderCode);
-  context.gl.compileShader(shader);
+  gl.shaderSource(shader, shaderCode);
+  gl.compileShader(shader);
 
   if (goog.DEBUG)
-    we.gl.Shader.logger.info('Info: ' + context.gl.getShaderInfoLog(shader));
+    we.gl.Shader.logger.info('Info: ' + gl.getShaderInfoLog(shader));
 
-  if (!context.gl.getShaderParameter(shader, context.gl.COMPILE_STATUS)) {
-    throw Error('Shader err: ' + context.gl.getShaderInfoLog(shader));
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw Error('Shader err: ' + gl.getShaderInfoLog(shader));
   } else if (goog.isNull(shader)) {
     throw Error('Unknown');
   } else if (goog.DEBUG) {
@@ -68,11 +69,12 @@ we.gl.Shader.create = function(context, shaderCode, shaderType) {
 
 /**
  * Creates shader from Element
- * @param {!we.gl.Context} context WebGL context.
+ * @param {!we.gl.Context|!WebGLRenderingContext} context WebGL context.
  * @param {(!Element|string)} element DOM Element.
  * @return {!WebGLShader} Compiled WebGL shader.
  */
 we.gl.Shader.createFromElement = function(context, element) {
+  var gl = context.gl || context;
   if (goog.DEBUG)
     we.gl.Shader.logger.info('Loading shader from \"' + element + '\"..');
 
@@ -92,14 +94,14 @@ we.gl.Shader.createFromElement = function(context, element) {
 
   var type;
   if (shaderScript.type == 'x-shader/x-fragment') {
-    type = context.gl.FRAGMENT_SHADER;
+    type = gl.FRAGMENT_SHADER;
   } else if (shaderScript.type == 'x-shader/x-vertex') {
-    type = context.gl.VERTEX_SHADER;
+    type = gl.VERTEX_SHADER;
   } else {
     throw Error('Unknown shader type');
   }
 
-  return we.gl.Shader.create(context, str, type);
+  return we.gl.Shader.create(gl, str, type);
 };
 
 if (goog.DEBUG) {
