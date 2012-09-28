@@ -162,6 +162,12 @@ we.scene.Polygon = function(context) {
    * @private
    */
   this.valid_ = false;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.ccwSwitchFlag_ = false;
 };
 
 
@@ -176,6 +182,16 @@ we.scene.Polygon.DEBUG_LINES = false;
  */
 we.scene.Polygon.prototype.isValid = function() {
   return this.valid_;
+};
+
+
+/**
+ * @return {boolean} True if the polygon CCW/CW orientation was just changed.
+ */
+we.scene.Polygon.prototype.orientationChanged = function() {
+  var oldVal = this.ccwSwitchFlag_;
+  this.ccwSwitchFlag_ = false;
+  return oldVal;
 };
 
 
@@ -201,7 +217,8 @@ we.scene.Polygon.prototype.addPoint = function(lat, lng, opt_parent) {
     vert.prev = vert;
   } else {
     var parent = this.vertices_[
-        goog.math.clamp(opt_parent || Number.MAX_VALUE,
+        goog.math.clamp(goog.isDefAndNotNull(opt_parent) ?
+                        opt_parent : Number.MAX_VALUE,
                         0, this.vertices_.length - 1)];
     if (!parent) {
       parent = this.head_.prev;
@@ -242,8 +259,8 @@ we.scene.Polygon.prototype.getCoords = function(fixedId) {
   var vert = this.vertices_[fixedId];
   if (!vert) return [];
 
-  var mod = Math.PI * 180;
-  return [vert.x / mod, vert.y / mod];
+  var mod = 180 / Math.PI;
+  return [vert.x * mod, vert.y * mod];
 };
 
 
@@ -377,6 +394,7 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   //NOTE: this area is wrong, but the sign is correct
   if (signedArea > 0) {
     //CCW ! reverse the points
+    this.ccwSwitchFlag_ = true;
     for (var i = 0; i < this.vertices_.length; ++i) {
       var v = this.vertices_[i];
       if (v) {
