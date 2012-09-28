@@ -22,6 +22,28 @@
       app = new WebGLEarth('webglearthdiv', options);
       app.showMiniGlobe('world512.jpg', 128);
       app.setTilt(45);
+      
+      var defaultPoly = new WebGLEarth.Polygon(app);
+      defaultPoly.setFillColor('#00ffff', 0.3);
+      defaultPoly.addPoint(47.1966945, 8.52359601);
+      defaultPoly.addPoint(47.1963864, 8.52475703);
+      var cornerPoint =
+      defaultPoly.addPoint(47.1954063, 8.52230885);
+      defaultPoly.addPoint(47.1966242, 8.52120111);
+      defaultPoly.addPoint(47.1967805, 8.52164874);
+      defaultPoly.addPoint(47.1972796, 8.52242167);
+      defaultPoly.addPoint(47.1972434, 8.52277868);
+      defaultPoly.disableClickToAdd();
+      defaultPoly.showDraggers(false);
+      
+      // let the corner point animate in circle
+      //   not very useful way of demonstrating the movePoint() method
+      setInterval(function() {
+        var alpha = 2 * Math.PI * (+new Date())/1000;
+        var x_ = Math.cos(alpha)/8000;
+        var y_ = Math.sin(alpha)/8000;
+        defaultPoly.movePoint(cornerPoint, 47.1954063 + x_, 8.52230885 + y_);
+      }, 50);
     }
 
     function startPoly() {

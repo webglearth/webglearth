@@ -286,7 +286,7 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
     delete this.midDraggers_[opt_parent];
   } else {
     var dragger = new we.ui.markers.PolyDragger(lat, lng, this.scene_, fixedId,
-        goog.bind(this.movePoint_, this), goog.bind(this.removePoint_, this));
+        goog.bind(this.movePoint, this), goog.bind(this.removePoint, this));
     this.draggers_[fixedId] = this.markermanager_.addMarker(null, dragger);
   }
   this.repositionIcon_();
@@ -299,16 +299,16 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
       }, this);
     }, this);
     var mid1 = new we.ui.markers.PolyDragger(lat, lng, this.scene_, null,
-        goog.bind(this.movePoint_, this),
-        goog.bind(this.removePoint_, this),
+        goog.bind(this.movePoint, this),
+        goog.bind(this.removePoint, this),
         adderAfter(fixedId));
     this.midMap_[fixedId] = mid1;
     this.midDraggers_[fixedId] = this.markermanager_.addMarker(null, mid1);
 
     if (opt_fromMid) {
       var mid2 = new we.ui.markers.PolyDragger(lat, lng, this.scene_, null,
-          goog.bind(this.movePoint_, this),
-          goog.bind(this.removePoint_, this),
+          goog.bind(this.movePoint, this),
+          goog.bind(this.removePoint, this),
           adderAfter(neighs[0]));
       this.midMap_[neighs[0]] = mid2;
       this.midDraggers_[neighs[0]] = this.markermanager_.addMarker(null, mid2);
@@ -329,10 +329,12 @@ we.ui.EditablePolygon.prototype.addPoint = function(lat, lng,
  * @param {number} fixedId .
  * @param {number} lat .
  * @param {number} lng .
- * @private
  */
-we.ui.EditablePolygon.prototype.movePoint_ = function(fixedId, lat, lng) {
+we.ui.EditablePolygon.prototype.movePoint = function(fixedId, lat, lng) {
   this.polygon_.movePoint(fixedId, lat, lng);
+  var marker = this.markermanager_.getMarker(this.draggers_[fixedId]);
+  marker.lat = lat;
+  marker.lon = lng;
   this.checkPointOrientationChange_();
   this.repositionMidsAround_(fixedId);
   this.repositionIcon_();
@@ -343,9 +345,8 @@ we.ui.EditablePolygon.prototype.movePoint_ = function(fixedId, lat, lng) {
 
 /**
  * @param {number} fixedId .
- * @private
  */
-we.ui.EditablePolygon.prototype.removePoint_ = function(fixedId) {
+we.ui.EditablePolygon.prototype.removePoint = function(fixedId) {
   var neighs = this.polygon_.getNeighbors(fixedId);
 
   this.polygon_.removePoint(fixedId);

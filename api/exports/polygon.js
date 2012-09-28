@@ -68,5 +68,12 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.setIcon',
 goog.exportSymbol('WebGLEarth.Polygon.prototype.showDraggers',
                   weapi.exports.Polygon.prototype.showDraggers);
 
+goog.exportSymbol('WebGLEarth.Polygon.prototype.addPoint',
+                  weapi.exports.Polygon.prototype.addPoint);
+goog.exportSymbol('WebGLEarth.Polygon.prototype.movePoint',
+                  weapi.exports.Polygon.prototype.movePoint);
+goog.exportSymbol('WebGLEarth.Polygon.prototype.removePoint',
+                  weapi.exports.Polygon.prototype.removePoint);
+
 goog.exportSymbol('WebGLEarth.Polygon.prototype.getPoints',
                   weapi.exports.Polygon.prototype.getPoints);
