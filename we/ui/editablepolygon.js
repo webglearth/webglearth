@@ -101,6 +101,12 @@ we.ui.EditablePolygon = function(scene, markermanager) {
    * @private
    */
   this.onchange_ = goog.nullFunction;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.lastClickToAdd_ = 0;
 };
 
 
@@ -121,6 +127,7 @@ we.ui.EditablePolygon.prototype.enableClickToAdd = function() {
                   if (coords) {
                     this.addPoint(coords[0], coords[1]);
                     e_.preventDefault();
+                    this.lastClickToAdd_ = goog.now();
                   }
                 }
               }
@@ -207,6 +214,10 @@ we.ui.EditablePolygon.prototype.getRoughArea = function() {
  * @return {boolean} True if inside the polygon.
  */
 we.ui.EditablePolygon.prototype.isPointIn = function(lat, lng) {
+  //workaround: the mousedown/up events cause point adding,
+  // but the click event can not be easily canceled so
+  // it always causes polygon selection when click-to-adding
+  if (goog.now() - this.lastClickToAdd_ < 100) return false;
   return this.polygon_.isPointIn(lat, lng);
 };
 
