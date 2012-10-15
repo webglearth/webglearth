@@ -68,6 +68,12 @@ we.ui.markers.PolyIcon = function(lat, lon, scene) {
   this.minHeight_ = 0;
 
   /**
+   * @type {?number}
+   * @private
+   */
+  this.maxHeight_ = null;
+
+  /**
    * @type {number}
    * @private
    */
@@ -87,15 +93,24 @@ goog.inherits(we.ui.markers.PolyIcon, we.ui.markers.AbstractMarker);
 
 
 /**
+ * @define {number} Reference distance (in meters) for the icon size.
+ */
+we.ui.markers.PolyIcon.REFERENCE_DISTANCE = 1000;
+
+
+/**
  * @inheritDoc
  */
 we.ui.markers.PolyIcon.prototype.setXY = function(x, y) {
   we.ui.markers.PolyIcon.superClass_.setXY.call(this, x, y);
 
-  var pos = this.scene_.getXYForLatLon(this.lat, this.lon, this.height_);
+  var distance = this.scene_.calcDistanceToLatLong(this.lat, this.lon) *
+                 we.scene.EARTH_RADIUS;
   var height =
-      Math.sqrt((pos[0] - x) * (pos[0] - x) + (pos[1] - y) * (pos[1] - y));
-  height = Math.max(this.minHeight_, height);
+      (we.ui.markers.PolyIcon.REFERENCE_DISTANCE * this.height_) / distance;
+  height = goog.math.clamp(height,
+                           this.minHeight_,
+                           this.maxHeight_ || Number.MAX_VALUE);
 
   this.image_.height = height;
   this.image_.width = height * this.aspectRatio_;
@@ -109,9 +124,11 @@ we.ui.markers.PolyIcon.prototype.setXY = function(x, y) {
  * @param {string} src URL of the image to use.
  * @param {number} height Height of the image in meters (0 for no resizing).
  * @param {number=} opt_minHeight Minimal height of the image in pixels.
+ * @param {?number=} opt_maxHeight Maximal height of the image in pixels.
  */
 we.ui.markers.PolyIcon.prototype.setImage = function(src, height,
-                                                     opt_minHeight) {
+                                                     opt_minHeight,
+                                                     opt_maxHeight) {
   this.image_.onload = goog.bind(function() {
     this.aspectRatio_ = this.image_.naturalWidth / this.image_.naturalHeight;
   }, this);
@@ -120,6 +137,7 @@ we.ui.markers.PolyIcon.prototype.setImage = function(src, height,
 
   this.height_ = height;
   this.minHeight_ = opt_minHeight || 0;
+  this.maxHeight_ = opt_maxHeight || null;
 };
 
 

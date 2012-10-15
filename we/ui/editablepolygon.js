@@ -178,9 +178,12 @@ we.ui.EditablePolygon.prototype.setStrokeColor = function(hexColor, opt_a) {
  * @param {string} src URL of the image to use.
  * @param {number} height Height of the image in meters (0 for no resizing).
  * @param {number=} opt_minHeight Minimal height of the image in pixels.
+ * @param {?number=} opt_maxHeight Maximal height of the image in pixels.
  */
-we.ui.EditablePolygon.prototype.setIcon = function(src, height, opt_minHeight) {
-  this.icon_.setImage(src, height, opt_minHeight);
+we.ui.EditablePolygon.prototype.setIcon = function(src, height,
+                                                   opt_minHeight,
+                                                   opt_maxHeight) {
+  this.icon_.setImage(src, height, opt_minHeight, opt_maxHeight);
 };
 
 

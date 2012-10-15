@@ -477,6 +477,31 @@ we.scene.Scene.prototype.getGeoBounds = function() {
 
 
 /**
+ * @param {number} lat Latitude in degrees.
+ * @param {number} lon Longitude in degrees.
+ * @return {number} Direct distance from camera position to the point.
+ */
+we.scene.Scene.prototype.calcDistanceToLatLong = function(lat, lon) {
+  var mat_ = this.context.mvpmInverse;
+  var cameraPos = new goog.math.Vec3(
+      /** @type {number} */ (mat_.getValueAt(0, 3)),
+      /** @type {number} */ (mat_.getValueAt(1, 3)),
+      /** @type {number} */ (mat_.getValueAt(2, 3))
+      ).scale(1 / mat_.getValueAt(3, 3));
+
+  lat = goog.math.toRadians(lat);
+  lon = goog.math.toRadians(lon);
+
+  var cosy = Math.cos(lat);
+  var pointPos = new goog.math.Vec3(Math.sin(lon) * cosy,
+                                    Math.sin(lat),
+                                    Math.cos(lon) * cosy);
+
+  return goog.math.Vec3.distance(cameraPos, pointPos);
+};
+
+
+/**
  * Project latitude from Unprojected to Mercator
  * @param {number} latitude Unprojected latitude in radians.
  * @return {number} Latitude projected to Mercator in radians.
