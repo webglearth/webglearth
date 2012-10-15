@@ -156,8 +156,20 @@ goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
 
 goog.exportSymbol('WebGLEarth.prototype.saveScreenshot', function(name) {
   this.context.afterFrameOnce = goog.bind(function() {
-    we.canvas2image.saveCanvasAsPNG(this.context.canvas, name);
+    we.canvas2image.saveCanvasAsPNG(this.context.canvas, name,
+                                    this.markerManager,
+                                    this.context.scene.miniGlobe);
   }, this);
+});
+
+goog.exportSymbol('WebGLEarth.prototype.showMiniGlobe', function(src, size) {
+  if (goog.isDefAndNotNull(src)) {
+    this.context.scene.miniGlobe =
+        new we.scene.MiniGlobe(this.context.scene, 32, 32, src);
+    this.context.scene.miniGlobe.setSize(size);
+  } else {
+    this.context.scene.miniGlobe = null;
+  }
 });
 
 goog.exportSymbol('WebGLEarth.Maps', weapi.maps.MapType);

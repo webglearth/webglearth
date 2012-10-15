@@ -113,7 +113,7 @@ weapi.App = function(divid, opt_options) {
       goog.Timer.TICK,
       goog.bind(function() {
         this.context.renderFrame();
-        this.markerManager_.updateMarkers();
+        this.markerManager.updateMarkers();
       }, this)
   );
 
@@ -147,10 +147,9 @@ weapi.App = function(divid, opt_options) {
 
   /**
    * @type {!we.ui.markers.MarkerManager}
-   * @private
    */
-  this.markerManager_ = new we.ui.markers.MarkerManager(this.context.scene,
-                                                        wrapperEl);
+  this.markerManager = new we.ui.markers.MarkerManager(this.context.scene,
+                                                       wrapperEl);
   /* Parsing options */
   /* Some options are parsed somewhere else: map, atmosphere */
   var pos = options['position'];
@@ -315,7 +314,7 @@ weapi.App.prototype.initMarker = function(lat, lon,
   var mark = new we.ui.markers.PrettyMarker(lat, lon,
                                             opt_iconUrl, opt_width, opt_height);
 
-  this.markerManager_.addMarker(null, mark);
+  this.markerManager.addMarker(null, mark);
 
   return mark;
 };

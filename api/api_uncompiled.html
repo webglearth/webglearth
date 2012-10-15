@@ -28,6 +28,8 @@
     
       app = new WebGLEarth('webglearthdiv', options);
       
+      app.showMiniGlobe('world512.jpg', 128);
+      
       mapBR = app.initMap(WebGLEarth.Maps.BING, ['Road', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
       mapBA = app.initMap(WebGLEarth.Maps.BING, ['Aerial', 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu']);
       mapM = app.initMap(WebGLEarth.Maps.MAPQUEST);

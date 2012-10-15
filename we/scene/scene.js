@@ -41,6 +41,7 @@ goog.require('we.gl.utils');
 goog.require('we.scene.Camera');
 goog.require('we.scene.Earth');
 goog.require('we.scene.Halo');
+goog.require('we.scene.MiniGlobe');
 
 
 /**
@@ -126,11 +127,20 @@ we.scene.Scene = function(context, opt_infobox, opt_copyrightbox, opt_logobox,
   this.earth = new we.scene.Earth(this, opt_tileProvider);
 
   /**
+   * @type {?we.scene.MiniGlobe}
+   */
+  this.miniGlobe = null;
+
+  /**
    * @type {we.scene.Halo}
    * @private
    */
   this.halo_ = opt_nohalo === true ? null : new we.scene.Halo(this);
 
+  /**
+   * @type {!Array.<!we.scene.Drawable>}
+   */
+  this.additionalDrawables = [];
 
   /**
    * This says how many tiles should be visible vertically.
@@ -163,6 +173,11 @@ we.scene.Scene.prototype.updateCopyrights = function() {
       this.earth.getCurrentTileProvider(true).appendCopyrightContent(
           this.tpCopyrightElement_);
     }
+    this.tpCopyrightElement_.style.pointerEvents = 'none';
+    var anchors = this.tpCopyrightElement_.getElementsByTagName('a');
+    for (var i = 0; i < anchors.length; ++i) {
+      anchors[i].style.pointerEvents = 'auto';
+    }
   }
   if (!goog.isNull(this.tpLogoImg_)) {
     if (!goog.isNull(this.earth.getCurrentTileProvider().getLogoUrl())) {
@@ -171,6 +186,7 @@ we.scene.Scene.prototype.updateCopyrights = function() {
     } else {
       this.tpLogoImg_.style.visibility = 'hidden';
     }
+    this.tpLogoImg_.style.pointerEvents = 'none';
   }
 };
 
@@ -259,6 +275,11 @@ we.scene.Scene.prototype.draw = function() {
 
   this.earth.draw();
 
+  goog.array.forEach(this.additionalDrawables, function(el, i, arr) {
+    el.draw();
+  });
+
+  if (this.miniGlobe) this.miniGlobe.draw();
 };
 
 
@@ -333,9 +354,10 @@ we.scene.Scene.prototype.getLatLongForXY = function(x, y, opt_radians) {
  * Calculates screen-space coordinates for given geo-space coordinates.
  * @param {number} lat Latitude in degrees.
  * @param {number} lon Longitude in degrees.
+ * @param {number=} opt_elev Elevation of the point in meters.
  * @return {?Array.<number>} Array [x, y, visibility] or null.
  */
-we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
+we.scene.Scene.prototype.getXYForLatLon = function(lat, lon, opt_elev) {
   lat = goog.math.toRadians(lat);
   lon = goog.math.toRadians(lon);
 
@@ -343,6 +365,10 @@ we.scene.Scene.prototype.getXYForLatLon = function(lat, lon) {
   var point = new goog.math.Vec3(Math.sin(lon) * cosy,
                                  Math.sin(lat),
                                  Math.cos(lon) * cosy);
+
+  if (opt_elev > 0) {
+    point = point.scale(1 + opt_elev / we.scene.EARTH_RADIUS);
+  }
 
   var result = this.context.mvpm.multiply(new goog.math.Matrix([[point.x],
                                                                 [point.y],
@@ -447,6 +473,31 @@ we.scene.Scene.prototype.getGeoBounds = function() {
       positify(coords[1][1]))));
 
   return [minlat, maxlat, minlon, maxlon];
+};
+
+
+/**
+ * @param {number} lat Latitude in degrees.
+ * @param {number} lon Longitude in degrees.
+ * @return {number} Direct distance from camera position to the point.
+ */
+we.scene.Scene.prototype.calcDistanceToLatLong = function(lat, lon) {
+  var mat_ = this.context.mvpmInverse;
+  var cameraPos = new goog.math.Vec3(
+      /** @type {number} */ (mat_.getValueAt(0, 3)),
+      /** @type {number} */ (mat_.getValueAt(1, 3)),
+      /** @type {number} */ (mat_.getValueAt(2, 3))
+      ).scale(1 / mat_.getValueAt(3, 3));
+
+  lat = goog.math.toRadians(lat);
+  lon = goog.math.toRadians(lon);
+
+  var cosy = Math.cos(lat);
+  var pointPos = new goog.math.Vec3(Math.sin(lon) * cosy,
+                                    Math.sin(lat),
+                                    Math.cos(lon) * cosy);
+
+  return goog.math.Vec3.distance(cameraPos, pointPos);
 };
 
 

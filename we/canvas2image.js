@@ -185,11 +185,34 @@ if (BlobBuilder_ && (saveAs_ || saveBlob_)) {
  * Custom filename may not be supported by the browser.
  * @param {!HTMLCanvasElement} canvas .
  * @param {string} filename .
+ * @param {we.ui.markers.MarkerManager=} opt_markerMgr .
+ * @param {we.scene.MiniGlobe=} opt_miniGlobe .
  */
-we.canvas2image.saveCanvasAsPNG = function(canvas, filename) {
-  if (showSave_ && canvas.toBlob) {
-    canvas.toBlob(function(blob) {
+we.canvas2image.saveCanvasAsPNG = function(canvas, filename,
+                                           opt_markerMgr, opt_miniGlobe) {
+  var canvas_ = canvas;
+  if (opt_markerMgr || opt_miniGlobe) {
+    canvas_ = goog.dom.createElement('canvas');
+    canvas_.width = canvas.width;
+    canvas_.height = canvas.height;
+    var ctx = /** @type {!CanvasRenderingContext2D} */
+        (canvas_.getContext('2d'));
+    ctx.drawImage(canvas, 0, 0);
+    if (opt_markerMgr) {
+      opt_markerMgr.forEach(function(marker) {
+        marker.draw2D(ctx);
+      });
+    }
+    if (opt_miniGlobe) {
+      opt_miniGlobe.drawToCanvas2D(ctx);
+    }
+  }
+  if (showSave_ && canvas_.toBlob) {
+    canvas_.toBlob(function(blob) {
       showSave_(blob, filename, 'image/png');
     }, 'image/png');
+  } else if (canvas.toDataURL) {
+    var strData = canvas.toDataURL();
+    document.location.href = strData.replace('image/png', 'image/octet-stream');
   }
 };

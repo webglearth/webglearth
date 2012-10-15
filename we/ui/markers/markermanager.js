@@ -132,3 +132,15 @@ we.ui.markers.MarkerManager.prototype.updateMarker = function(key) {
     }
   }
 };
+
+
+/**
+ * @param {function(!we.ui.markers.AbstractMarker)} func Callback.
+ */
+we.ui.markers.MarkerManager.prototype.forEach = function(func) {
+  goog.array.forEach(this.markerMap_.getKeys(), function(el, i, arr) {
+    var marker = /** @type {we.ui.markers.AbstractMarker}*/
+        (this.markerMap_.get(el));
+    if (marker) func(marker);
+  }, this);
+};
