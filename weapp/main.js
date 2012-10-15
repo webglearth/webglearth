@@ -40,7 +40,6 @@ goog.require('we.debug');
 goog.require('we.gl.Context');
 goog.require('we.math.geo');
 goog.require('we.scene.CameraAnimator');
-goog.require('we.scene.Polygon');
 goog.require('we.scene.Scene');
 goog.require('we.texturing.BingTileProvider');
 goog.require('we.texturing.GenericTileProvider');
@@ -143,22 +142,6 @@ weapp.App = function(canvas) {
         goog.dom.getElement('weapp-maplogo'));
 
     this.context.resize();
-
-    var polygon = new we.scene.Polygon(this.context);
-    /*polygon.addPoint(40, 40);
-    polygon.addPoint(40, 50);
-    polygon.addPoint(30, 50);
-    polygon.addPoint(30, 40);
-    polygon.addPoint(35, 40);//*/
-    polygon.addPoint(9.0, 9.0);
-    polygon.addPoint(5.0, 5.0);
-    polygon.addPoint(-10.0, 5.0);
-    polygon.addPoint(-5.0, 3.5);
-    polygon.addPoint(5.5, -7.5);
-    polygon.addPoint(3.0, -2.5);//*/
-
-    this.context.scene.additionalDrawables.push(polygon);
-
 
     /**
      * @type {!we.scene.CameraAnimator}
