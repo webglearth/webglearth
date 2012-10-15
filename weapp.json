@@ -10,7 +10,8 @@
 
   "define": {
     // "goog.dom.ASSUME_STANDARDS_MODE": true,
-    "goog.DEBUG": false
+    "goog.DEBUG": false,
+    "weapp.BING_KEY": 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu'
   },
 
   "mode": "ADVANCED",

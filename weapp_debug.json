@@ -4,8 +4,7 @@
 
   "define": {
     //"we.shaderbank.USE_COMPILED_SHADERS": false,
-    "goog.DEBUG": true,
-    "weapp.BING_KEY": 'AsLurrtJotbxkJmnsefUYbatUuBkeBTzTL930TvcOekeG8SaQPY9Z5LDKtiuzAOu'
+    "goog.DEBUG": true
   },
 
   "mode": "SIMPLE",
