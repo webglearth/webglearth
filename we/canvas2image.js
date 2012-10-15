@@ -211,5 +211,8 @@ we.canvas2image.saveCanvasAsPNG = function(canvas, filename,
     canvas_.toBlob(function(blob) {
       showSave_(blob, filename, 'image/png');
     }, 'image/png');
+  } else if (canvas.toDataURL) {
+    var strData = canvas.toDataURL();
+    document.location.href = strData.replace('image/png', 'image/octet-stream');
   }
 };
