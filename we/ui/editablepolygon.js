@@ -212,6 +212,16 @@ we.ui.EditablePolygon.prototype.getRoughArea = function() {
 
 
 /**
+ * @return {{lat: number, lng: number}|null}
+ *                                 Centroid of the polygon or null if not valid.
+ */
+we.ui.EditablePolygon.prototype.getCentroid = function() {
+  var centroid = this.polygon_.calcCentroid();
+  return {'lat': centroid[1], 'lng': centroid[0]};
+};
+
+
+/**
  * @param {number} lat .
  * @param {number} lng .
  * @return {boolean} True if inside the polygon.
@@ -229,7 +239,7 @@ we.ui.EditablePolygon.prototype.isPointIn = function(lat, lng) {
  * @private
  */
 we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
-  var avg = this.polygon_.calcAverage();
+  var avg = this.polygon_.calcCentroid() || this.polygon_.calcAverage();
 
   this.icon_.lat = avg[1];
   this.icon_.lon = avg[0];

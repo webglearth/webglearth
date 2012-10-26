@@ -342,6 +342,30 @@ we.scene.Polygon.prototype.calcAverage = function() {
 
 
 /**
+ * @return {Array.<number>} Centroid of the polygon or null if not valid.
+ */
+we.scene.Polygon.prototype.calcCentroid = function() {
+  if (!this.isValid()) return null;
+
+  var x = 0, y = 0, area = 0;
+  var vrt = this.head_;
+  do {
+    var p1 = vrt, p2 = vrt.next;
+    var f = p1.x * p2.y - p2.x * p1.y;
+    x += (p1.x + p2.x) * f;
+    y += (p1.y + p2.y) * f;
+    area += f;
+
+    vrt = vrt.next;
+  } while (vrt != this.head_);
+  area /= 2;
+
+  var f = (6 * area) / (180 / Math.PI);
+  return [x / f, y / f];
+};
+
+
+/**
  * @param {number} lat .
  * @param {number} lng .
  * @return {boolean} True if inside the polygon.

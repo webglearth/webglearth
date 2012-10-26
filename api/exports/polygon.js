@@ -77,6 +77,8 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.removePoint',
 
 goog.exportSymbol('WebGLEarth.Polygon.prototype.getPoints',
                   weapi.exports.Polygon.prototype.getPoints);
+goog.exportSymbol('WebGLEarth.Polygon.prototype.getCentroid',
+                  weapi.exports.Polygon.prototype.getCentroid);
 
 goog.exportSymbol('WebGLEarth.Polygon.prototype.onClick',
                   function(callback) {
