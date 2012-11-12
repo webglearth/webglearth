@@ -30,8 +30,9 @@
 
 precision highp float;
 
-const float PI=3.1415927;
-const float PI2=6.2831855;
+const float PI=3.141592653589793;
+const float PI2=2.0*PI;
+const float PI_HALF=0.5*PI;
 const float EARTH_RADIUS=6378137.0; //in meters
 
 const float TERRAIN_MIN=-10000.0; //in meters
@@ -77,6 +78,48 @@ vec2 modFirst(vec2 x, float y) {
   // And "x-y*floor(x/y)" seems to be 3 instructions shorter (2 vs 5) on my
   //  ATI card than "mod(x,y)" which is strange..
   return vec2(x.x-y*floor(x.x/y), x.y);
+}
+
+// calculates precise sine function using taylor series expansion
+// works properly only for 0 <= x <= PI/2
+float sine_limited(float x) {
+  float r = x, mxx = -x*x;
+  // It is enough to consider factors 3,5,7,9,11
+  // The error of this calculation is at most (theoretically) ~36cm:
+  //   ((PI/2)^13 / 13!) / (1/6378137)) = 0.363...
+  // General version:
+  //for (int i = 3; i <= 11; i += 2) {
+  //  r += (x *= mxx/float(i*(i - 1)));
+  //}
+  // Manual unroll:
+  r += (x *= mxx/6.0);   // i=3
+  r += (x *= mxx/20.0);  // i=5
+  r += (x *= mxx/42.0);  // i=7
+  r += (x *= mxx/72.0);  // i=9
+  r += (x *= mxx/110.0); // i=11
+
+  return r;
+}
+
+// works properly only for x >= 0
+float sine_positive(float x) {
+  if (x <= PI_HALF) {
+    return sine_limited(x);
+  } else if (x <= PI) {
+    return sine_limited(PI - x);
+  } else if (x <= PI2) {
+    return -sine_limited(x - PI);
+  } else {
+    return sine_limited(x - PI2*floor(x/PI2));
+  }
+}
+
+float sine(float x) {
+  return x < 0.0 ? -sine_positive(-x) : sine_positive(x);
+}
+
+float cosine(float x) {
+  return sine(PI_HALF - x);
 }
 
 void main(){
@@ -126,7 +169,7 @@ void main(){
   float exp_2y=exp(2.0*phi.y);
   float tanh=((exp_2y-1.0)/(exp_2y+1.0));
   float cosy=sqrt(1.0-tanh*tanh);
-  vec3 pos=vec3(sin(phi.x)*cosy,tanh,cos(phi.x)*cosy);
+  vec3 pos=vec3(sine(phi.x)*cosy,tanh,cosine(phi.x)*cosy);
   gl_Position=uMVPMatrix*vec4(pos*(1.0+elev),1.0);
   
   if (abs(phi.y)>PI) {
