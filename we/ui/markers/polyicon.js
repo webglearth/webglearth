@@ -142,6 +142,22 @@ we.ui.markers.PolyIcon.prototype.setImage = function(src, height,
 
 
 /**
+ * @param {number} x .
+ * @param {number} y .
+ * @return {boolean} .
+ */
+we.ui.markers.PolyIcon.prototype.isPointIn = function(x, y) {
+  var img = this.image_;
+  x -= parseInt(img.style.left, 10);
+  y -= parseInt(img.style.top, 10);
+
+  var width = parseInt(img.width, 10);
+  var height = parseInt(img.height, 10);
+  return (Math.abs(x) <= width / 2 && Math.abs(y) <= height / 2);
+};
+
+
+/**
  * @inheritDoc
  */
 we.ui.markers.PolyIcon.prototype.draw2D = function(ctx) {
