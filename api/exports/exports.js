@@ -156,10 +156,22 @@ goog.exportSymbol('WebGLEarth.prototype.handleResize', function() {
 
 goog.exportSymbol('WebGLEarth.prototype.saveScreenshot', function(name) {
   this.context.afterFrameOnce = goog.bind(function() {
-    we.canvas2image.saveCanvasAsPNG(this.context.canvas, name,
-                                    this.markerManager,
-                                    this.context.scene.miniGlobe);
+    var canvas_ = we.canvas2image.prepareCanvas(this.context.canvas,
+                                                this.markerManager,
+                                                this.context.scene.miniGlobe);
+    we.canvas2image.saveCanvasAsPNG(canvas_, name);
   }, this);
+});
+
+goog.exportSymbol('WebGLEarth.prototype.getScreenshot', function(callback) {
+  var result;
+  this.context.afterFrameOnce = goog.bind(function() {
+    var canvas_ = we.canvas2image.prepareCanvas(this.context.canvas,
+                                                this.markerManager,
+                                                this.context.scene.miniGlobe);
+    callback(we.canvas2image.getCanvasAsDataURL(canvas_));
+  }, this);
+
 });
 
 goog.exportSymbol('WebGLEarth.prototype.showMiniGlobe', function(src, size) {

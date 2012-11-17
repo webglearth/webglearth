@@ -158,5 +158,9 @@
    <input type="button" value="Remove icon" onclick="javascript:if(poly)poly.setIcon('');"/>
    <br />
    <input type="button" value="Download as PNG" onclick="javascript:app.saveScreenshot('screenshot.png')"/>
+   <input type="button" value="Open in popup (may get blocked)" onclick="javascript:app.getScreenshot(function(url) {window.open(url, '_blank');});"/>
+   <input type="button" value="Display screenshot below" onclick="javascript:app.getScreenshot(function(url) {document.getElementById('screenshot').src = url;});"/>
+   <br />
+   <img id="screenshot" />
  </body>
 </html>
