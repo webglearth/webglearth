@@ -219,11 +219,9 @@ we.scene.Scene.prototype.recalcTilesVertically = function() {
 
 
 /**
- * Draw scene
+ * Process scene logic
  */
-we.scene.Scene.prototype.draw = function() {
-  var gl = this.context.gl;
-
+we.scene.Scene.prototype.tick = function() {
   if (!goog.isNull(this.infobox_)) {
     this.infobox_.innerHTML =
         goog.math.toDegrees(this.camera.getLatitude()).toFixed(4) + '; ' +
@@ -232,6 +230,16 @@ we.scene.Scene.prototype.draw = function() {
         this.earth.getZoom().toFixed(3) + '; ' +
         this.earth.getInfoText();
   }
+  this.earth.tick();
+};
+
+
+/**
+ * Draw scene
+ */
+we.scene.Scene.prototype.draw = function() {
+  var gl = this.context.gl;
+
 
   // distance of the camera from surface
   var cameraDistance = this.camera.getAltitude() / we.scene.EARTH_RADIUS;

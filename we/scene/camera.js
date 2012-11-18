@@ -123,6 +123,8 @@ we.scene.Camera.prototype.setPosition = function(latitude, longitude) {
   this.latitude_ = goog.math.clamp(latitude, -1.57, 1.57);
   this.longitude_ = we.utils.standardLongitudeRadians(longitude);
 
+  this.scene_.context.sceneChanged = true;
+
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.POSITIONCHANGED));
 };
@@ -246,6 +248,8 @@ we.scene.Camera.prototype.validateAltitude = function(altitude) {
 we.scene.Camera.prototype.setAltitude = function(altitude) {
   this.altitude_ = this.validateAltitude(altitude);
 
+  this.scene_.context.sceneChanged = true;
+
   this.dispatchEvent(new we.scene.CameraEvent(
       we.scene.Camera.EventType.ALTITUDECHANGED));
 };
@@ -276,6 +280,7 @@ we.scene.Camera.prototype.getTarget = function() {
  */
 we.scene.Camera.prototype.setHeading = function(heading) {
   this.heading_ = heading;
+  this.scene_.context.sceneChanged = true;
 };
 
 
@@ -284,6 +289,7 @@ we.scene.Camera.prototype.setHeading = function(heading) {
  */
 we.scene.Camera.prototype.setTilt = function(tilt) {
   this.tilt_ = tilt;
+  this.scene_.context.sceneChanged = true;
 };
 
 
@@ -292,6 +298,7 @@ we.scene.Camera.prototype.setTilt = function(tilt) {
  */
 we.scene.Camera.prototype.setRoll = function(roll) {
   this.roll_ = roll;
+  this.scene_.context.sceneChanged = true;
 };
 
 

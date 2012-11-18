@@ -369,6 +369,7 @@ we.scene.ClipLevel.prototype.bufferTile_ = function(tile) {
                      gl.RGBA, gl.UNSIGNED_BYTE, tile.getImage());
 
     this.metaBuffer[y][x] = 1;
+    this.context_.sceneChanged = true;
   } catch (DOMException) {
     if (this.tileProvider_.canUseProxy() &&
         (this.tileProvider_.setProxyHost(this.context_.proxyHost) ||

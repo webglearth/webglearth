@@ -62,7 +62,8 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
    */
   var tryGetContext = function(canvas, type) {
     try {
-      var context = canvas.getContext(type, {'premultipliedAlpha': false});
+      var context = canvas.getContext(type,
+          {'premultipliedAlpha': false, 'preserveDrawingBuffer': true});
       if (goog.isDefAndNotNull(context)) {
         if (goog.DEBUG)
           we.gl.Context.logger.info('got WebGL context of type ' + type);
@@ -247,6 +248,16 @@ we.gl.Context = function(canvas, opt_fpsbox, opt_onfail) {
    */
   this.afterFrameOnce = null;
 
+  /**
+   * @type {boolean}
+   */
+  this.forcedPause = false;
+
+  /**
+   * @type {boolean}
+   */
+  this.sceneChanged = true;
+
   if (goog.DEBUG)
     we.gl.Context.logger.info('Created');
 };
@@ -316,6 +327,8 @@ we.gl.Context.prototype.redimensionZBufferInternal_ = function() {
   var diff = this.zNear_ - this.zFar_;
   this.projectionMatrix.setValueAt(2, 2, (this.zFar_ + this.zNear_) / diff);
   this.projectionMatrix.setValueAt(2, 3, 2 * this.zFar_ * this.zNear_ / diff);
+
+  this.sceneChanged = true;
 };
 
 
@@ -382,16 +395,22 @@ we.gl.Context.prototype.renderFrame = function() {
 
     this.framesSinceLastFpsCalc_++;
   }
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  this.modelViewMatrix.loadIdentity();
+  if (!this.forcedPause) this.scene.tick();
 
-  if (goog.DEBUG && goog.isNull(this.scene)) {
-    we.gl.Context.logger.shout('Scene is not set');
+  if (this.sceneChanged && !this.forcedPause) {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    this.modelViewMatrix.loadIdentity();
+
+    if (goog.DEBUG && goog.isNull(this.scene)) {
+      we.gl.Context.logger.shout('Scene is not set');
+    }
+
+    this.scene.draw();
+
+    this.sceneChanged = false;
   }
-
-  this.scene.draw();
-
   if (we.CALC_FPS && !goog.isNull(this.fpsbox_)) {
     this.frameTimeSinceLastFpsCalc_ += goog.now() - time;
   }

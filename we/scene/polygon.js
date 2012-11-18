@@ -483,6 +483,8 @@ we.scene.Polygon.prototype.solveTriangles_ = function() {
   this.roughArea_ = 0;
   this.triangulation_ = [];
 
+  this.context.sceneChanged = true;
+
   this.valid_ = false;
   //test intersection of segments
   if (n > 2) {

@@ -300,12 +300,18 @@ we.scene.Earth.prototype.updateTiles_ = function() {
 
 
 /**
+ * Process required logic
+ */
+we.scene.Earth.prototype.tick = function() {
+  this.updateTiles_();
+};
+
+
+/**
  * Draw the planet
  */
 we.scene.Earth.prototype.draw = function() {
   var gl = this.context.gl;
-
-  this.updateTiles_();
 
   var zoom = Math.floor(this.getZoom());
 

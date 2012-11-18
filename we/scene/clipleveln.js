@@ -73,6 +73,7 @@ we.scene.ClipLevelN = function(tileprovider, context, zoom) {
       gl.texSubImage2D(gl.TEXTURE_2D, 0, tile.x * tileSize,
           (tileCount - tile.y - 1) * tileSize, gl.RGBA,
           gl.UNSIGNED_BYTE, tile.getImage());
+      context.sceneChanged = true;
     } catch (DOMException) {
       if (tileprovider.canUseProxy() &&
           (tileprovider.setProxyHost(context.proxyHost) ||

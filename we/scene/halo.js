@@ -132,6 +132,8 @@ we.scene.Halo = function(scene) {
    * @type {WebGLUniformLocation}
    */
   this.gradientUniform = this.gl.getUniformLocation(this.program_, 'uGradient');
+
+  this.context.sceneChanged = true;
 };
 
 

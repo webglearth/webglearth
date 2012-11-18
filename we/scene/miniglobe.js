@@ -59,7 +59,7 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
   var par = this.scene_.context.canvas.parentElement || window.document;
   goog.dom.append(par, this.canvas);
 
-  var opts = {'depth': false};
+  var opts = {'depth': false, 'preserveDrawingBuffer': true};
 
   /**
    * @type {?WebGLRenderingContext}
@@ -203,6 +203,8 @@ we.scene.MiniGlobe = function(scene, latBands, lngBands, textureUrl) {
    * @private
    */
   this.padding_ = 0.1;
+
+  this.scene_.context.sceneChanged = true;
 };
 
 

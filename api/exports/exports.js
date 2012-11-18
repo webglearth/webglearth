@@ -184,6 +184,14 @@ goog.exportSymbol('WebGLEarth.prototype.showMiniGlobe', function(src, size) {
   }
 });
 
+goog.exportSymbol('WebGLEarth.prototype.pauseRendering', function() {
+  this.context.forcedPause = true;
+});
+
+goog.exportSymbol('WebGLEarth.prototype.resumeRendering', function() {
+  this.context.forcedPause = false;
+});
+
 goog.exportSymbol('WebGLEarth.Maps', weapi.maps.MapType);
 goog.exportSymbol('WebGLEarth.prototype.initMap', weapi.maps.initMap);
 goog.exportSymbol('WebGLEarth.prototype.setMap', weapi.App.prototype.setMap);

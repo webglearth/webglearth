@@ -156,6 +156,8 @@ we.ui.EditablePolygon.prototype.setFillColor = function(hexColor, opt_a) {
 
   this.polygon_.fillColor =
       [r, g, b, goog.isDefAndNotNull(opt_a) ? opt_a : 1];
+
+  this.scene.context.sceneChanged = true;
 };
 
 
@@ -171,6 +173,8 @@ we.ui.EditablePolygon.prototype.setStrokeColor = function(hexColor, opt_a) {
 
   this.polygon_.strokeColor =
       [r, g, b, goog.isDefAndNotNull(opt_a) ? opt_a : 1];
+
+  this.scene.context.sceneChanged = true;
 };
 
 
