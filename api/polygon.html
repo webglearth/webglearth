@@ -14,7 +14,7 @@
     
       var options = {
         altitude: 360,
-        position: [47.192, 8.524],
+        position: [47.192, 8.523],
         map: WebGLEarth.Maps.OSM,
         proxyHost: 'http://srtm.webglearth.com/cgi-bin/corsproxy.fcgi?url='
       };
@@ -37,6 +37,16 @@
       defaultPoly.showDraggers(false);
       defaultPoly.onClick(reopenPoly);
       
+      var defaultPoly2 = new WebGLEarth.Polygon(app);
+      defaultPoly2.setFillColor('#00ff00', 0.3);
+      defaultPoly2.addPoint(47.1965465487, 8.5211790565);
+      defaultPoly2.addPoint(47.1953526123, 8.5222943548);
+      defaultPoly2.addPoint(47.1942354599, 8.5196876980);
+      defaultPoly2.addPoint(47.1958763746, 8.5188098538);
+      defaultPoly2.disableClickToAdd();
+      defaultPoly2.showDraggers(false);
+      defaultPoly2.onClick(reopenPoly);
+      
       // let the corner point animate in circle
       //   not very useful way of demonstrating the movePoint() method
       setInterval(function() {
@@ -44,6 +54,7 @@
         var x_ = Math.cos(alpha)/8000;
         var y_ = Math.sin(alpha)/8000;
         defaultPoly.movePoint(cornerPoint, 47.1954063 + x_, 8.52230885 + y_);
+        document.getElementById('info3div').innerHTML = "The two default polygons " + (defaultPoly.intersects(defaultPoly2) ? "DO" : "DO NOT") + " intersect.";
       }, 50);
     }
 
@@ -126,6 +137,7 @@
    <div id="webglearthdiv" style="width:600px;height:400px;"></div>
    <div id="infodiv" style="width:600px;height:20px;"></div>
    <div id="info2div" style="width:600px;height:20px;"></div>
+   <div id="info3div" style="width:600px;height:20px;"></div>
    <br />
    <input type="button" id="start" value="Start new polygon" onclick="javascript:startPoly()"/>
    <input type="button" id="close" value="Close polygon" onclick="javascript:closePoly()"/>

@@ -62,6 +62,8 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.isValid',
                   weapi.exports.Polygon.prototype.isValid);
 goog.exportSymbol('WebGLEarth.Polygon.prototype.getRoughArea',
                   weapi.exports.Polygon.prototype.getRoughArea);
+goog.exportSymbol('WebGLEarth.Polygon.prototype.intersects',
+                  weapi.exports.Polygon.prototype.intersects);
 
 goog.exportSymbol('WebGLEarth.Polygon.prototype.setIcon',
                   weapi.exports.Polygon.prototype.setIcon);
@@ -86,7 +88,9 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.onClick',
                         goog.events.EventType.CLICK, function(e) {
                       var coords =
                           this.scene.getLatLongForXY(e.offsetX, e.offsetY);
-                      if (coords && this.isPointIn(coords[0], coords[1])) {
+                      if (coords &&
+                          (this.isPointIn(coords[0], coords[1]) ||
+                           this.icon_.isPointIn(e.offsetX, e.offsetY))) {
                         callback(this);
                       }
                     }, false, this);

@@ -236,6 +236,15 @@ we.ui.EditablePolygon.prototype.isPointIn = function(lat, lng) {
 
 
 /**
+ * @param {!we.ui.EditablePolygon} other .
+ * @return {boolean} True if the two polygons overlap.
+ */
+we.ui.EditablePolygon.prototype.intersects = function(other) {
+  return this.polygon_.intersects(other.polygon_);
+};
+
+
+/**
  * @private
  */
 we.ui.EditablePolygon.prototype.repositionIcon_ = function() {

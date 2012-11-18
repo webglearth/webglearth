@@ -391,6 +391,62 @@ we.scene.Polygon.prototype.isPointIn = function(lat, lng) {
 
 
 /**
+ * Test polygon<->polygon intersection based on the triangulations.
+ * TODO: Could be optimized, but seems to be performing very well.
+ * @param {!we.scene.Polygon} other .
+ * @return {boolean} True if the two polygons overlap.
+ */
+we.scene.Polygon.prototype.intersects = function(other) {
+  var lineInter = function(a, b, c, d) {
+    //test ab<->cd intersection
+    var denom = (d.y - c.y) * (b.x - a.x) - (d.x - c.x) * (b.y - a.y);
+    var aycy = (a.y - c.y), axcx = (a.x - c.x);
+    var p = ((d.x - c.x) * aycy - (d.y - c.y) * axcx) / denom;
+    var t = ((b.x - a.x) * aycy - (b.y - a.y) * axcx) / denom;
+
+    return (p > 0 && p < 1 && t > 0 && t < 1);
+  };
+  var isPointIn = function(p, t) {
+    var sign_ = function(p2, p3) {
+      return (p.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p.y - p3.y);
+    };
+
+    var b1 = sign_(t[0], t[1]) < 0;
+    var b2 = sign_(t[1], t[2]) < 0;
+    var b3 = sign_(t[2], t[0]) < 0;
+
+    return (b1 == b2) && (b2 == b3);
+  };
+  return goog.array.find(this.triangulation_, function(triA, iA, arrA) {
+    return goog.array.find(other.triangulation_, function(triB, iB, arrB) {
+      // any of the edges intersect (3x3 possibilities)
+      if (lineInter(triA[0], triA[1], triB[0], triB[1]) ||
+          lineInter(triA[0], triA[1], triB[1], triB[2]) ||
+          lineInter(triA[0], triA[1], triB[2], triB[0]) ||
+          lineInter(triA[1], triA[2], triB[0], triB[1]) ||
+          lineInter(triA[1], triA[2], triB[1], triB[2]) ||
+          lineInter(triA[1], triA[2], triB[2], triB[0]) ||
+          lineInter(triA[2], triA[0], triB[0], triB[1]) ||
+          lineInter(triA[2], triA[0], triB[1], triB[2]) ||
+          lineInter(triA[2], triA[0], triB[2], triB[0])) return true;
+
+      // all points of A are inside B
+      if (isPointIn(triA[0], triB) &&
+          isPointIn(triA[1], triB) &&
+          isPointIn(triA[2], triB)) return true;
+
+      // all points of B are inside A
+      if (isPointIn(triB[0], triA) &&
+          isPointIn(triB[1], triA) &&
+          isPointIn(triB[2], triA)) return true;
+
+      return false;
+    }) !== null;
+  }) !== null;
+};
+
+
+/**
  * Buffers the points into GPU buffer.
  * @private
  */
