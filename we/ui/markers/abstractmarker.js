@@ -86,9 +86,7 @@ we.ui.markers.AbstractMarker.prototype.attach = function(parentElement) {
     this.detach();
   }
   this.parentElement = parentElement;
-
-
-  goog.dom.appendChild(this.parentElement, this.element);
+  this.show(true);
 };
 
 
@@ -97,7 +95,7 @@ we.ui.markers.AbstractMarker.prototype.attach = function(parentElement) {
  */
 we.ui.markers.AbstractMarker.prototype.detach = function() {
   if (this.parentElement) {
-    goog.dom.removeNode(this.element);
+    this.show(false);
     this.parentElement = null;
   }
 };
@@ -136,8 +134,17 @@ we.ui.markers.AbstractMarker.prototype.isVisible = function() {
  *                               Default true.
  */
 we.ui.markers.AbstractMarker.prototype.show = function(opt_visible) {
-  this.visible = opt_visible == true;
-  this.element.style.display = this.visible ? 'block' : 'none';
+  var newVal = !(opt_visible === false);
+  var change = !(this.visible == newVal);
+  this.visible = newVal;
+
+  if (change) {
+    if (this.visible && this.parentElement) {
+      goog.dom.appendChild(this.parentElement, this.element);
+    } else {
+      goog.dom.removeNode(this.element);
+    }
+  }
 };
 
 

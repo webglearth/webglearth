@@ -86,9 +86,7 @@ goog.exportSymbol('WebGLEarth.Polygon.prototype.onClick',
                         goog.events.EventType.CLICK, function(e) {
                       var coords =
                           this.scene.getLatLongForXY(e.offsetX, e.offsetY);
-                      if (coords &&
-                          (this.isPointIn(coords[0], coords[1]) ||
-                           this.icon_.isPointIn(e.offsetX, e.offsetY))) {
+                      if (coords && this.isPointIn(coords[0], coords[1])) {
                         callback(this);
                       }
                     }, false, this);
