@@ -96,13 +96,25 @@ we.scene.CameraAnimator = function(camera) {
  * @param {number=} opt_altitude Altitude (otherwise unchanged).
  * @param {number=} opt_heading Heading (otherwise 0).
  * @param {number=} opt_tilt Tilt (otherwise 0).
+ * @param {boolean=} opt_targetPosition If true, the camera is position in
+ *                                      such a way, that the camera target is
+ *                                      [latitude, longitude] (default false).
  */
 we.scene.CameraAnimator.prototype.flyTo = function(latitude, longitude,
                                                    opt_altitude,
-                                                   opt_heading, opt_tilt) {
-  //TODO: animate everything in one animation, except altitude
+                                                   opt_heading, opt_tilt,
+                                                   opt_targetPosition) {
   //altitude has to be divided into two animations: easein+easeout (serial)
   //everything+altitude(paralel)
+
+  if (opt_targetPosition) {
+    var newPos = we.scene.Camera.calculatePositionForGivenTarget(
+        latitude, longitude, opt_altitude || this.camera_.getAltitude(),
+        opt_heading, opt_tilt);
+
+    latitude = newPos[0];
+    longitude = newPos[1];
+  }
 
   if (goog.isDefAndNotNull(this.animation_)) {
     this.onEnd_();
@@ -126,7 +138,8 @@ we.scene.CameraAnimator.prototype.flyTo = function(latitude, longitude,
 
   var animationAlteringEvents = [goog.fx.Animation.EventType.BEGIN,
                                  goog.fx.Animation.EventType.ANIMATE,
-                                 goog.fx.Animation.EventType.END];
+                                 goog.fx.Animation.EventType.END,
+                                 goog.fx.Transition.EventType.FINISH];
 
   //animate most of the parameters in one animation,
   //only altitude has to be seperate

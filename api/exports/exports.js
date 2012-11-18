@@ -118,10 +118,14 @@ goog.exportSymbol('WebGLEarth.prototype.getZoom', function() {
 goog.exportSymbol('WebGLEarth.prototype.flyTo', function(latitude, longitude,
                                                          opt_altitude,
                                                          opt_heading,
-                                                         opt_tilt) {
+                                                         opt_tilt,
+                                                         opt_targetPosition) {
       this.animator_.flyTo(goog.math.toRadians(latitude),
-          goog.math.toRadians(longitude),
-          opt_altitude, opt_heading, opt_tilt);
+                           goog.math.toRadians(longitude),
+                           opt_altitude,
+                           goog.math.toRadians(opt_heading),
+                           goog.math.toRadians(opt_tilt),
+                           opt_targetPosition);
     });
 
 goog.exportSymbol('WebGLEarth.prototype.flyToFitBounds', function(minlat,
