@@ -570,6 +570,16 @@ we.scene.Earth.prototype.calcAltitudeForZoom = function(zoom, latitude) {
 
 
 /**
+ * @param {number} lat Latitude in radians.
+ * @param {number} lng Longitude in radians.
+ * @return {Array.<number>} Pixel data [r 0-1, g 0-1, b 0-1, a 0-1, zoomLevel].
+ */
+we.scene.Earth.prototype.getBestAvailablePixelColor = function(lat, lng) {
+  return this.clipStackA_.getBestAvailablePixelColor(lat, lng);
+};
+
+
+/**
  * Calculates distance between two points using the havesine formula
  * @param {number} lat1 Latitude of the first point.
  * @param {number} lon1 Longitude of the first point.

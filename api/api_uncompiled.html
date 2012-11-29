@@ -37,7 +37,7 @@
       mapBR.setOpacity(0.5);
       
       app.setBaseMap(mapM);
-      app.setOverlayMap(mapBR);
+      //app.setOverlayMap(mapBR);
       
       var marker = app.initMarker(20, 0);
       
@@ -51,6 +51,31 @@
       
       //setTimeout(function() {app.off(key);}, 15000);
     }
+    var colorQueryMarker;
+    var intervalTimer;
+    function queryColor() {
+      if (!app) return;
+
+      var lat = parseFloat(document.getElementById('colorlat').value, 10);
+      var lng = parseFloat(document.getElementById('colorlng').value, 10);
+      var colorbox = document.getElementById('colorbox');
+      
+      if (!colorQueryMarker) {
+        colorQueryMarker = app.initMarker(lat, lng);
+      } else {
+        colorQueryMarker.setPosition(lat, lng);
+      }
+      
+      if (intervalTimer) clearInterval(intervalTimer);
+      intervalTimer = setInterval(function() {
+        var res = app.getBestAvailablePixelColor(lat, lng);
+        colorbox.innerHTML = res.toString();
+        colorbox.style.backgroundColor = "rgba(" + res[0] + "," +
+                                                   res[1] + "," +
+                                                   res[2] + "," +
+                                                   res[3] + ")";
+      }, 500);
+    }
   </script>
   
  </head>
@@ -61,19 +86,21 @@
    <input type="button" value="What's current zoom level?" onclick="javascript:alert(app.getZoom());"/>
    <input type="button" value="Set altitude to 5000km" onclick="javascript:app.setAltitude(5000000);"/>
    <input type="button" value="What's current altitude?" onclick="javascript:alert(app.getAltitude());"/>
-   <br /><br />
+   <br />
    <input type="button" value="Set position to Mount Everest" onclick="javascript:app.setPosition(27.988056, 86.925278);"/>
    <input type="button" value="What's current position?" onclick="javascript:alert(app.getPosition());"/>
-   <br /><br />
+   <br />
    <input type="button" value="Make the app bigger!" onclick="javascript:document.getElementById('webglearthdiv').style.width='800px';app.handleResize();this.disabled=true;"/>
    <input type="button" value="Download as PNG" onclick="javascript:app.saveScreenshot('screenshot.png')"/>
-   <br /><br />
+   <br />
    <input type="button" value="Switch to MapQuest" onclick="javascript:app.setBaseMap(mapM)"/>
    <input type="button" value="Switch to Bing - Aerial" onclick="javascript:app.setBaseMap(mapBA)"/>
-   <input type="button" value="Disable overlay" onclick="javascript:app.setOverlayMap(null)"/>
-   <br /><br />
+   <!-- <input type="button" value="Disable overlay" onclick="javascript:app.setOverlayMap(null)"/> -->
+   <br />
    <input type="button" value="Fly to Japan" onclick="javascript:app.flyToFitBounds(22,48,122,154)"/>
    <input type="button" value="Fly to Iceland @ 1000km" onclick="javascript:app.flyTo(65,-19,1000000)"/>
    <input type="button" value="Target the Statue of Liberty @ 500m with tilt and heading" onclick="javascript:app.flyTo(40.6894, -74.0446, 500, 20, 45, true)"/>
+   <br />
+   Pick color for position <input type="text" id="colorlat" value="32.65" size="8" />,<input type="text" id="colorlng" value="-16.9166" size="8" /> <input type="button" value="Query color" onclick="javascript:queryColor()" /><div id="colorbox" style="display:inline-block;width:150px;text-align:center;text-shadow:0 0 3px #fff;"></span>
  </body>
 </html>

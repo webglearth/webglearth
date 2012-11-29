@@ -196,6 +196,12 @@ goog.exportSymbol('WebGLEarth.prototype.resumeRendering', function() {
   this.context.forcedPause = false;
 });
 
+goog.exportSymbol('WebGLEarth.prototype.getBestAvailablePixelColor',
+    function(lat, lng) {
+      return this.context.scene.earth.getBestAvailablePixelColor(
+          lat / 180 * Math.PI, lng / 180 * Math.PI);
+    });
+
 goog.exportSymbol('WebGLEarth.Maps', weapi.maps.MapType);
 goog.exportSymbol('WebGLEarth.prototype.initMap', weapi.maps.initMap);
 goog.exportSymbol('WebGLEarth.prototype.setMap', weapi.App.prototype.setMap);

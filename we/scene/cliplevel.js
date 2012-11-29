@@ -410,3 +410,14 @@ we.scene.ClipLevel.prototype.getAreaDescriptor = function() {
                                                       spanLat, spanLon,
                                                       this.zoom_);
 };
+
+
+/**
+ * @param {number} x X.
+ * @param {number} y Y.
+ * @return {?we.texturing.Tile} Requested tile.
+ */
+we.scene.ClipLevel.prototype.getTile = function(x, y) {
+  var key = we.texturing.Tile.createKey(this.zoom_, x, y);
+  return this.tileCache_.getTileFromCache(key);
+};

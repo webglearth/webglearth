@@ -311,3 +311,45 @@ we.scene.ClipStack.prototype.requestNewCopyrightInfo_ = function() {
   }
   this.tileProvider_.requestNewCopyrightInfo(areas);
 };
+
+
+/**
+ * @param {number} lat Latitude in radians.
+ * @param {number} lng Longitude in radians.
+ * @return {Array.<number>} Pixel data [r 0-1, g 0-1, b 0-1, a 0-1, zoomLevel].
+ */
+we.scene.ClipStack.prototype.getBestAvailablePixelColor = function(lat, lng) {
+  var tileCount = 1 << this.maxLevel_;
+
+  var posX = (lng / (2 * Math.PI) + 0.5) * tileCount;
+  var posY = (0.5 - we.scene.Scene.projectLatitude(lat) /
+             (Math.PI * 2)) * tileCount;
+
+  var zoom = this.maxLevel_;
+  while (zoom >= this.minLevel_) {
+    var tile = this.levels_[zoom - this.minLevel_].getTile(Math.floor(posX),
+                                                           Math.floor(posY));
+
+    if (tile && tile.state == we.texturing.Tile.State.LOADED) {
+      var tileSize = this.tileProvider_.getTileSize();
+      var pixelX = Math.floor((posX - Math.floor(posX)) * tileSize);
+      var pixelY = Math.floor((posY - Math.floor(posY)) * tileSize);
+
+      // this is ugly, but there is probably no other way:
+      var canvas = goog.dom.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      var context = canvas.getContext('2d');
+      context.drawImage(tile.getImage(), pixelX, pixelY, 1, 1, 0, 0, 1, 1);
+
+      var data = context.getImageData(0, 0, 1, 1).data;
+
+      return [data[0], data[1], data[2], data[3] / 255, zoom];
+    }
+    posX /= 2;
+    posY /= 2;
+    zoom--;
+  }
+
+  return [0, 0, 0, 0, -1];
+};
