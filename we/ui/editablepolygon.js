@@ -188,6 +188,7 @@ we.ui.EditablePolygon.prototype.setIcon = function(src, height,
                                                    opt_minHeight,
                                                    opt_maxHeight) {
   this.icon_.setImage(src, height, opt_minHeight, opt_maxHeight);
+  this.repositionIcon_();
 };
 
 
