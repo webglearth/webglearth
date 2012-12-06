@@ -256,7 +256,7 @@ we.ui.EditablePolygon.prototype.repositionIcon_ = function() {
 
   this.icon_.lat = avg[1];
   this.icon_.lon = avg[0];
-  this.icon_.enable(this.polygon_.isValid());
+  this.icon_.enable(this.icon_.src.length > 0 && this.polygon_.isValid());
 };
 
 

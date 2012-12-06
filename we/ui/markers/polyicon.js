@@ -56,6 +56,11 @@ we.ui.markers.PolyIcon = function(lat, lon, scene) {
         'crossOrigin': null}));
 
   /**
+   * @type {string}
+   */
+  this.src = '';
+
+  /**
    * @type {number}
    * @private
    */
@@ -134,6 +139,7 @@ we.ui.markers.PolyIcon.prototype.setImage = function(src, height,
   }, this);
   this.image_.style.display = 'none';
   this.image_.src = src;
+  this.src = src;
 
   this.height_ = height;
   this.minHeight_ = opt_minHeight || 0;
