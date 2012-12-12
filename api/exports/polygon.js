@@ -46,6 +46,9 @@ goog.inherits(weapi.exports.Polygon, we.ui.EditablePolygon);
 
 goog.exportSymbol('WebGLEarth.Polygon', weapi.exports.Polygon);
 
+goog.exportSymbol('WebGLEarth.Polygon.prototype.destroy',
+                  weapi.exports.Polygon.prototype.destroy);
+
 goog.exportSymbol('WebGLEarth.Polygon.prototype.enableClickToAdd',
                   weapi.exports.Polygon.prototype.enableClickToAdd);
 goog.exportSymbol('WebGLEarth.Polygon.prototype.disableClickToAdd',

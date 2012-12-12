@@ -93,7 +93,8 @@ we.ui.EditablePolygon = function(scene, markermanager) {
    */
   this.icon_ = new we.ui.markers.PolyIcon(0, 0, scene);
   //this.icon_.setImage('47.png', 100);
-  this.markermanager_.addMarker(null, this.icon_);
+
+  this.iconKey_ = this.markermanager_.addMarker(null, this.icon_);
   this.icon_.enable(false);
 
   /**
@@ -107,6 +108,24 @@ we.ui.EditablePolygon = function(scene, markermanager) {
    * @private
    */
   this.lastClickToAdd_ = 0;
+};
+
+
+/**
+ */
+we.ui.EditablePolygon.prototype.destroy = function() {
+  this.disableClickToAdd();
+  goog.array.remove(this.scene.additionalDrawables, this.polygon_);
+  this.onchange_ = goog.nullFunction;
+  this.markermanager_.removeMarker(this.iconKey_);
+  goog.object.forEach(this.midDraggers_, function(el, key, obj) {
+    this.markermanager_.removeMarker(el);
+  }, this);
+  goog.object.forEach(this.draggers_, function(el, key, obj) {
+    this.markermanager_.removeMarker(el);
+  }, this);
+  delete this.midMap_;
+  delete this.polygon_;
 };
 
 

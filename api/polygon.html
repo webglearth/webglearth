@@ -90,6 +90,12 @@
       document.getElementById('infodiv').innerHTML = '';
       document.getElementById('info2div').innerHTML = '';
     }
+
+    function removePoly() {
+      if (!poly) return;
+      poly.destroy();
+      poly = null;
+    }
     
     var borderHex = '#000000', borderAlpha = 1; //remember the color so we can visualize invalid polygons
     function onchange() {
@@ -141,6 +147,7 @@
    <br />
    <input type="button" id="start" value="Start new polygon" onclick="javascript:startPoly()"/>
    <input type="button" id="close" value="Close polygon" onclick="javascript:closePoly()"/>
+   <input type="button" value="Remove polygon" onclick="javascript:removePoly()"/>
    <br />
    <input type="button" value="Make green" onclick="javascript:if(poly)poly.setFillColor('#00aa00', 0.7);"/>
    <input type="button" value="Make blue" onclick="javascript:if(poly)poly.setFillColor('#0000ff', 0.4);"/>
