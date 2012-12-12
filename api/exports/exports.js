@@ -59,11 +59,33 @@ goog.exportSymbol('WebGLEarth.prototype.getCenter', function() {
 
 /* Elemental functions - Simple mappings */
 //Position
-goog.exportSymbol('WebGLEarth.prototype.setPosition', function(lat, lon, zoom) {
-  this.animator_.cancel();
-  this.context.scene.camera.setPositionDegrees(lat, lon);
-  if (goog.isDefAndNotNull(zoom)) this.context.scene.earth.setZoom(zoom);
-});
+goog.exportSymbol('WebGLEarth.prototype.setPosition', function(lat, lon,
+    opt_zoom, opt_altitude, opt_heading, opt_tilt, opt_targetPosition) {
+      this.animator_.cancel();
+
+      lat = goog.math.toRadians(lat);
+      lon = goog.math.toRadians(lon);
+      opt_heading = goog.math.toRadians(opt_heading);
+      opt_tilt = goog.math.toRadians(opt_tilt);
+      var cam = this.context.scene.camera;
+
+      if (goog.isDefAndNotNull(opt_zoom)) {
+        cam.setPosition(lat, lon);
+        this.context.scene.earth.setZoom(opt_zoom);
+      }
+      if (opt_targetPosition) {
+        var newPos = we.scene.Camera.calculatePositionForGivenTarget(
+            lat, lon, opt_altitude || cam.getAltitude(),
+            opt_heading, opt_tilt);
+
+        lat = newPos[0];
+        lon = newPos[1];
+      }
+      cam.setPosition(lat, lon);
+      if (goog.isDefAndNotNull(opt_altitude)) cam.setAltitude(opt_altitude);
+      if (goog.isDefAndNotNull(opt_heading)) cam.setHeading(opt_heading);
+      if (goog.isDefAndNotNull(opt_tilt)) cam.setTilt(opt_tilt);
+    });
 goog.exportSymbol('WebGLEarth.prototype.getPosition', function() {
   return this.context.scene.camera.getPositionDegrees();
 });
