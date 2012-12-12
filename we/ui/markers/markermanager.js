@@ -106,6 +106,17 @@ we.ui.markers.MarkerManager.prototype.removeMarker = function(key) {
 
 
 /**
+ * Removes marker, does NOT dispose of it.
+ * @param {we.ui.markers.AbstractMarker} marker .
+ */
+we.ui.markers.MarkerManager.prototype.removeMarkerEx = function(marker) {
+  goog.structs.forEach(this.markerMap_, function(val, key, col) {
+    if (val == marker) this.removeMarker(key);
+  }, this);
+};
+
+
+/**
  * Updates all markers it controls.
  */
 we.ui.markers.MarkerManager.prototype.updateMarkers = function() {

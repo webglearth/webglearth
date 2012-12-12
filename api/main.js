@@ -318,3 +318,11 @@ weapi.App.prototype.initMarker = function(lat, lon,
 
   return mark;
 };
+
+
+/**
+ * @param {!we.ui.markers.PrettyMarker} marker .
+ */
+weapi.App.prototype.removeMarker = function(marker) {
+  this.markerManager.removeMarkerEx(marker);
+};

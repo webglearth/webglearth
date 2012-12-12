@@ -214,6 +214,8 @@ goog.exportSymbol('WebGLEarth.prototype.off', weapi.App.prototype.off);
 goog.exportSymbol('WebGLEarth.prototype.offAll', weapi.App.prototype.offAll);
 goog.exportSymbol('WebGLEarth.prototype.initMarker',
                   weapi.App.prototype.initMarker);
+goog.exportSymbol('WebGLEarth.prototype.removeMarker',
+                  weapi.App.prototype.removeMarker);
 
 
 goog.exportSymbol('WebGLEarth.Map', weapi.exports.Map);
