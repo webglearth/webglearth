@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://www.webglearth.com/api.js"></script>
+<script src="iso-3166-1.json"></script>
+<script>
+  function initialize() {
+  var options = { altitude: 6000000, position: [47.19537,8.524404] };
+  var earth = new WebGLEarth('earth_div', options);
+  
+  for (var key in data.Results) {  
+    earth.initMarker(
+    data.Results[key].GeoPt[0],
+    data.Results[key].GeoPt[1],
+    'country-flags-32x32/' + key.toLowerCase() + '.png',
+    32, 32);
+  }
+
+  }
+</script>
+
+<style type="text/css" media="screen">
+  #earth_div {
+    width:100%;
+    height:90%;
+    border:1px solid black;
+    padding:2px;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0, rgb(0, 0, 0)),
+        color-stop(0.56, rgb(25, 25, 25)),
+        color-stop(1, rgb(0, 0, 0))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgb(253,253,253) 0%,
+        rgb(253,253,253) 15%,
+        rgb(223,223,223) 53%,
+        rgb(255,255,255) 56%,
+        rgb(253,253,253) 100%
+    );
+  }
+</style>
+
+</head>
+<body onload="initialize()">
+  <div id="earth_div"></div>
+</body>
+</html>
